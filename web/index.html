@@ -1,0 +1,1355 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3D7FFF">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FLL Manager">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-512.png">
+<!-- Content Security Policy - blocks inline XSS and untrusted scripts -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.gstatic.com https://www.googleapis.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app wss://*.firebaseio.com https://accounts.google.com https://apis.google.com;">
+<title>FLL Team Manager – Unearthed 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div style="font-size:48px">🤖</div>
+  <div class="spinner"></div>
+  <div style="color:var(--text2);font-size:14px">מתחבר למערכת...</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="pin-screen" style="display:none">
+  <div class="pin-box" style="max-width:420px">
+    <div id="pin-team-logo" class="pin-logo">🤖</div>
+    <div class="pin-title" id="pin-app-title">FLL Team Manager</div>
+
+    <!-- שלב א: בחירת מצב -->
+    <div id="login-step-choose">
+      <div style="color:var(--text2);font-size:13px;text-align:center;margin-bottom:18px">מה תרצה לעשות?</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button onclick="loginGoTo('auth')" style="padding:16px 14px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;gap:14px;transition:0.2s;color:var(--text)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:26px">🔑</span>
+          <div style="text-align:right">
+            <div style="font-weight:700;font-size:14px">כניסה לקבוצה קיימת</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">Google או אימייל וסיסמא</div>
+          </div>
+        </button>
+        <button onclick="loginGoTo('create')" style="padding:16px 14px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;gap:14px;transition:0.2s;color:var(--text)" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:26px">🚀</span>
+          <div style="text-align:right">
+            <div style="font-weight:700;font-size:14px">צור קבוצה חדשה</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">אני מנטור ורוצה לפתוח קבוצה</div>
+          </div>
+        </button>
+        <button onclick="loginGoTo('join')" style="padding:16px 14px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;gap:14px;transition:0.2s;color:var(--text)" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:26px">🔗</span>
+          <div style="text-align:right">
+            <div style="font-weight:700;font-size:14px">הצטרף לקבוצה</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">יש לי קוד הצטרפות מהמנטור</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- שלב ב: הזדהות רגילה -->
+    <div id="login-step-auth" style="display:none">
+      <button onclick="loginWithGoogle()" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        התחבר עם Google
+      </button>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="color:var(--text3);font-size:12px">או</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="form-group"><input type="email" class="form-input" id="login-email" placeholder="אימייל"></div>
+      <div class="form-group" style="margin-top:8px"><input type="password" class="form-input" id="login-password" placeholder="סיסמא"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1;padding:12px" onclick="loginWithEmail()">כניסה</button>
+        <button class="btn btn-ghost" style="flex:1;padding:12px" onclick="registerWithEmail()">הרשמה</button>
+      </div>
+      <button onclick="resetPassword()" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;margin-top:10px;width:100%">שכחתי סיסמא</button>
+      <button onclick="loginGoTo('choose')" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;margin-top:6px;width:100%">← חזור</button>
+    </div>
+
+    <!-- שלב ג: יצירת קבוצה (לאחר הזדהות) -->
+    <div id="login-step-create" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:40px">🚀</div>
+        <div style="font-weight:800;font-size:18px;margin-top:8px">צור קבוצה חדשה</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:4px">התחבר תחילה, ואז תגדיר את הקבוצה</div>
+      </div>
+      <button onclick="loginWithGoogleForCreate()" style="width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:0.2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Google — צור קבוצה
+      </button>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="flex:1;height:1px;background:var(--border)"></div><span style="color:var(--text3);font-size:12px">או</span><div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="form-group"><input type="email" class="form-input" id="create-email" placeholder="אימייל"></div>
+      <div class="form-group" style="margin-top:8px"><input type="password" class="form-input" id="create-password" placeholder="סיסמא חדשה (לפחות 6 תווים)"></div>
+      <button class="btn btn-primary" style="width:100%;padding:12px;margin-top:10px" onclick="registerForCreate()">הרשם וצור קבוצה</button>
+      <button onclick="loginGoTo('choose')" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;margin-top:8px;width:100%">← חזור</button>
+    </div>
+
+    <!-- שלב ד: הצטרפות לקבוצה -->
+    <div id="login-step-join" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:40px">🔗</div>
+        <div style="font-weight:800;font-size:18px;margin-top:8px">הצטרף לקבוצה</div>
+        <div style="color:var(--text2);font-size:13px;margin-top:4px">הכנס את הקוד שקיבלת מהמנטור</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">שמך המלא *</label>
+        <input type="text" class="form-input" id="join-fullname" placeholder="שמך המלא">
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <label class="form-label">קוד הצטרפות *</label>
+        <input type="text" class="form-input" id="join-code-input" placeholder="למשל: ABCD-2345"
+          style="font-family:'Space Mono',monospace;font-size:18px;text-align:center;letter-spacing:3px"
+          oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;text-align:center">קוד מנטורים: 🔑 | קוד תלמידים: 🎓</div>
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <label class="form-label">אימייל *</label>
+        <input type="email" class="form-input" id="join-email" placeholder="האימייל שלך">
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <input type="password" class="form-input" id="join-password" placeholder="סיסמא (לפחות 6 תווים)">
+      </div>
+      <div id="join-login-error" style="color:var(--red);font-size:12px;min-height:18px;text-align:center;margin-top:4px"></div>
+      <button class="btn btn-success" style="width:100%;padding:12px;margin-top:10px" onclick="joinWithCode()">🔗 הצטרף לקבוצה</button>
+      <button onclick="loginGoTo('choose')" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;margin-top:8px;width:100%">← חזור</button>
+    </div>
+
+    <div class="pin-error" id="pin-error" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" style="display:none">
+  <div class="setup-box" style="max-width:500px">
+
+    <!-- שלב 1: יצירת קבוצה -->
+    <div id="setup-step-create">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:48px">🚀</div>
+        <h2 style="font-size:22px;font-weight:900;margin-top:8px">הגדרת קבוצה חדשה</h2>
+        <p style="color:var(--text2);font-size:13px;margin-top:6px">ברוך הבא מנטור! הגדר את פרטי הקבוצה</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">שם מלא *</label>
+        <input type="text" class="form-input" id="setup-name" placeholder="שמך המלא">
+      </div>
+      <div class="form-group">
+        <label class="form-label">שם הקבוצה *</label>
+        <input type="text" class="form-input" id="setup-team" placeholder="למשל: רובוטמיסטים 3000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">לוגו קבוצה (אופציונלי)</label>
+        <input type="file" class="form-input" id="setup-logo" accept="image/*" onchange="handleLogoUpload(event,'setup')">
+      </div>
+      <div id="setup-crop-area" style="display:none;margin-bottom:12px">
+        <canvas id="setup-crop-canvas" style="max-width:100%;border-radius:12px;border:1px solid var(--border)"></canvas>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="completeSetup()">✅ צור קבוצה</button>
+      <button onclick="backFromSetup()" style="width:100%;margin-top:10px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px">← חזור</button>
+    </div>
+
+    <!-- שלב 3: לאחר יצירה — הצג שני קודים -->
+    <div id="setup-step-code" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:48px">🎉</div>
+        <h2 style="font-size:22px;font-weight:900;margin-top:8px">הקבוצה נוצרה!</h2>
+        <p style="color:var(--text2);font-size:13px;margin-top:4px">שלח את הקודים הנכונים לכל חבר</p>
+      </div>
+      <!-- קוד מנטורים -->
+      <div style="background:linear-gradient(135deg,var(--accent3),var(--gold));border-radius:14px;padding:18px;text-align:center;margin-bottom:12px">
+        <div style="color:rgba(255,255,255,0.85);font-size:12px;margin-bottom:6px">👑 קוד מנטורים</div>
+        <div id="display-mentor-code" style="font-family:'Space Mono',monospace;font-size:30px;font-weight:900;color:#fff;letter-spacing:4px">----</div>
+        <button onclick="copyCode('mentor')" style="margin-top:10px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600">📋 העתק</button>
+      </div>
+      <!-- קוד תלמידים -->
+      <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;padding:18px;text-align:center;margin-bottom:16px">
+        <div style="color:rgba(255,255,255,0.85);font-size:12px;margin-bottom:6px">🎓 קוד תלמידים</div>
+        <div id="display-student-code" style="font-family:'Space Mono',monospace;font-size:30px;font-weight:900;color:#fff;letter-spacing:4px">----</div>
+        <button onclick="copyCode('student')" style="margin-top:10px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600">📋 העתק</button>
+      </div>
+      <div style="background:var(--surface2);border-radius:12px;padding:14px;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.8">
+        💡 <strong>איך להוסיף חברים:</strong><br>
+        • מנטורים — שלח להם את הקוד הכתום 👑<br>
+        • תלמידים — שלח להם את הקוד הכחול 🎓<br>
+        • הם נכנסים לאפליקציה → "הצטרף לקבוצה" → מכניסים קוד
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="finishSetup()">✅ כניסה לאפליקציה</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <div class="team-logo" id="sidebar-logo" onclick="navigate('settings')" title="הגדרות קבוצה">🤖</div>
+      <div>
+        <div class="team-name" id="sidebar-team-name">FLL Team</div>
+        <div class="season-badge">Unearthed 2026</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="navigate('dashboard')" title="דשבורד">
+        <span class="nav-icon">🏠</span><span class="nav-label">דשבורד ראשי</span>
+      </div>
+      <div class="nav-item" onclick="navigate('daily')" title="תיעוד יומי">
+        <span class="nav-icon">📅</span><span class="nav-label">תיעוד יומי</span>
+      </div>
+      <div class="nav-item" onclick="navigate('values')" title="ערכי יסוד">
+        <span class="nav-icon">⭐</span><span class="nav-label">ערכי יסוד</span>
+      </div>
+      <div class="nav-item" onclick="navigate('robot')" title="תיעוד רובוט">
+        <span class="nav-icon">🤖</span><span class="nav-label">תכנון רובוט</span>
+      </div>
+      <div class="nav-item" onclick="navigate('innovation')" title="פרויקט חדשנות">
+        <span class="nav-icon">💡</span><span class="nav-label">פרויקט חדשנות</span>
+      </div>
+      <div class="nav-item" onclick="navigate('scoring')" title="מחשבון ניקוד">
+        <span class="nav-icon">🎯</span><span class="nav-label">הכנה לתחרות</span>
+      </div>
+      <div class="nav-item" onclick="navigate('mytasks')" title="המשימות שלי">
+        <span class="nav-icon">✅</span><span class="nav-label">המשימות שלי</span>
+      </div>
+      <div class="nav-item" onclick="navigate('team')" title="ניהול קבוצה">
+        <span class="nav-icon">👥</span><span class="nav-label">ניהול קבוצה</span>
+      </div>
+      <div class="nav-item" onclick="navigate('chat')" title="צ'אט קבוצה">
+        <span class="nav-icon">💬</span><span class="nav-label">צ'אט קבוצה</span>
+      </div>
+      <div class="nav-item" onclick="navigate('archive')" title="עונות וארכיון">
+        <span class="nav-icon">📦</span><span class="nav-label">עונות וארכיון</span>
+      </div>
+      <div class="nav-item" onclick="navigate('settings')" title="הגדרות">
+        <span class="nav-icon">⚙️</span><span class="nav-label">הגדרות</span>
+      </div>
+      <div class="nav-item" onclick="navigate('gallery')" title="גלריית עונה">
+        <span class="nav-icon">🖼️</span><span class="nav-label">גלריית עונה</span>
+      </div>
+      <div class="nav-item" onclick="navigate('judging')" title="שאלות שיפוט">
+        <span class="nav-icon">🎓</span><span class="nav-label">שאלות שיפוט</span>
+      </div>
+      <div class="nav-item" onclick="navigate('links')" title="ספריית קישורים">
+        <span class="nav-icon">🔗</span><span class="nav-label">ספריית קישורים</span>
+      </div>
+      <div class="nav-item" onclick="navigate('strategy')" title="לוח אסטרטגיה">
+        <span class="nav-icon">🗺️</span><span class="nav-label">לוח אסטרטגיה</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div style="padding:6px 12px;font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px" id="role-display">
+        <span id="role-pill" class="role-pill">תלמיד</span>
+        <span class="nav-label" id="role-label"></span>
+      </div>
+      <div class="collapse-btn" onclick="toggleSidebarCollapse()">◀</div>
+    </div>
+  </nav>
+
+  <!-- MAIN AREA -->
+  <div id="main">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <span class="hamburger" onclick="toggleSidebar()">☰</span>
+      <div class="topbar-title" id="page-title">דשבורד</div>
+      <div class="topbar-actions">
+        <div class="theme-toggle">
+          <button class="theme-btn active" id="dark-btn" onclick="setTheme('dark')">🌙</button>
+          <button class="theme-btn" id="light-btn" onclick="setTheme('light')">☀️</button>
+        </div>
+        <button class="btn btn-primary btn-icon" onclick="showAddModal()" title="הוסף תיעוד">＋</button>
+        <button class="btn btn-ghost btn-icon" onclick="signOut()" title="התנתק" style="font-size:16px">🚪</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="grid-4" style="margin-bottom:16px">
+          <div class="stat-card blue">
+            <div class="stat-value" id="stat-missions">0/15</div>
+            <div class="stat-label">משימות הושלמו</div>
+            <div class="progress-bar"><div class="progress-fill" id="stat-missions-bar" style="width:0%"></div></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-value" id="stat-score">0</div>
+            <div class="stat-label">ניקוד אחרון</div>
+            <div class="stat-change" id="stat-score-change">אין ריצות עדיין</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-value" id="stat-logs">0</div>
+            <div class="stat-label">יומנים שנכתבו</div>
+            <div class="stat-change" id="stat-logs-change">↑ 0 השבוע</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-value" id="stat-members">0</div>
+            <div class="stat-label">חברי קבוצה</div>
+            <div class="stat-change" id="stat-members-change">אין חברים עדיין</div>
+          </div>
+        </div>
+
+        <div class="card" id="competition-countdown-card" style="display:none;margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">📅</span>
+            <span class="card-title">ספירה לאחור לתחרות</span>
+          </div>
+          <div id="competition-countdown" class="countdown-widget"><!-- populated --></div>
+          <div id="competition-countdown-total" class="countdown-total"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">📊</span>
+              <span class="card-title">התקדמות לפי קטגוריה</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">📈</span>
+              <span class="card-title">ניקוד לאורך העונה</span>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">📋</span>
+            <span class="card-title">עדכונים אחרונים</span>
+            <button class="btn btn-ghost" style="margin-right:auto;font-size:12px" onclick="navigate('daily')">הכל ←</button>
+          </div>
+          <div id="recent-logs">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">⚡</span>
+            <span class="card-title">פעולות מהירות</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="navigate('daily');showAddLogModal()">📝 תיעוד חדש</button>
+            <button class="btn btn-success" onclick="navigate('robot');openAddImprovement()">📸 הוסף שיפור רובוט</button>
+            <button class="btn btn-ghost" onclick="navigate('scoring')">🎯 מחשבון ניקוד</button>
+            <button class="btn btn-ghost" onclick="navigate('scoring');setTimeout(()=>startTimer('robot'),150)">⏱️ טיימר ריצה</button>
+            <button class="btn btn-ghost" id="install-btn" onclick="installPWA()">📲 הוסף למסך הבית</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ DAILY LOG ═══ -->
+      <div class="screen" id="screen-daily">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" placeholder="חיפוש..." id="log-search" oninput="filterLogs()">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select class="form-input" style="width:auto;padding:8px 12px" id="log-filter" onchange="filterLogs()">
+              <option value="">כל הנושאים</option>
+              <option value="robot">🤖 רובוט</option>
+              <option value="innovation">💡 חדשנות</option>
+              <option value="values">⭐ ערכים</option>
+              <option value="general">📌 כללי</option>
+            </select>
+            <button class="btn btn-primary" onclick="showAddLogModal()">＋ עדכון חדש</button>
+          </div>
+        </div>
+        <div id="timeline-container"><!-- populated --></div>
+      </div>
+
+      <!-- ═══ VALUES ═══ -->
+      <div class="screen" id="screen-values">
+        <!-- Header -->
+        <div class="card" style="background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(61,127,255,0.1));margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <span style="font-size:36px">⭐</span>
+            <div>
+              <h3 style="font-weight:800;font-size:18px">ערכי יסוד – Core Values</h3>
+              <p style="color:var(--text2);font-size:13px;margin-top:4px">מחוון הערכה ולוח פתקים</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button id="values-tab-rubrics" class="btn btn-primary" style="flex:1" onclick="switchValuesTab('rubrics')">📋 מחוון</button>
+          <button id="values-tab-sticky" class="btn btn-ghost" style="flex:1" onclick="switchValuesTab('sticky')">📝 לוח פתקים</button>
+        </div>
+
+        <!-- Panel: Rubrics (default) -->
+        <div id="values-panel-rubrics">
+          <div id="values-rubrics"><!-- populated --></div>
+          <div class="admin-only" style="margin-top:16px">
+            <div class="card" style="border-color:var(--accent);background:rgba(61,127,255,0.05)">
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
+                <button class="btn btn-primary" style="margin-right:auto" onclick="importOfficialRubric('values')">📥 ייבא מחוון רשמי</button>
+                <button class="btn btn-ghost" onclick="addCustomRubric('values')">＋ הוסף שאלה</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Sticky board (hidden by default) -->
+        <div id="values-panel-sticky" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+            <button class="btn btn-primary" onclick="showAddStickyModal()">＋ הוסף פתק</button>
+          </div>
+          <div id="values-sticky-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ROBOT ═══ -->
+      <div class="screen" id="screen-robot">
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card" style="background:linear-gradient(135deg,rgba(61,127,255,0.1),rgba(0,212,160,0.05))">
+            <div style="display:flex;align-items:center;gap:16px">
+              <span style="font-size:36px">🤖</span>
+              <div>
+                <h3 style="font-weight:800;font-size:18px">תכנון רובוט</h3>
+                <p style="color:var(--text2);font-size:13px;margin-top:4px">Unearthed 2026 – 15 משימות</p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-icon">📸</span><span class="card-title">פעולות</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-success" onclick="openAddImprovement()">📸 הוסף שיפור</button>
+              <label class="btn btn-primary" style="cursor:pointer">
+                📷 צלם מנייד
+                <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleRobotPhoto(event)">
+              </label>
+              <button class="btn btn-ghost" onclick="navigate('scoring')">🎯 ניקוד</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-icon">📋</span><span class="card-title">15 משימות – Unearthed 2026</span></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button id="mf-all"   class="btn btn-primary" style="flex:1;font-size:13px" onclick="filterMissions('all')">📋 הכול</button>
+            <button id="mf-done"  class="btn btn-ghost"   style="flex:1;font-size:13px" onclick="filterMissions('done')">✅ הושלמו</button>
+            <button id="mf-undone" class="btn btn-ghost"  style="flex:1;font-size:13px" onclick="filterMissions('undone')">⬜ לא הושלמו</button>
+          </div>
+          <div id="mission-status-stats" class="mission-stat-row"><!-- populated --></div>
+          <div id="missions-grid" class="grid-3"><!-- populated --></div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <span class="card-icon">🖼️</span>
+            <span class="card-title">גלריית שיפורים</span>
+            <select class="form-input" id="mission-filter" onchange="filterRobotByMission()" style="font-size:12px;padding:4px 8px;width:auto;margin-right:auto">
+              <option value="">כל המשימות</option>
+            </select>
+            <button class="btn btn-ghost" style="font-size:12px" onclick="openVideoSelect()">🎬 יצור סרטון</button>
+          </div>
+          <div class="gallery-grid" id="robot-gallery">
+            <div class="gallery-empty">
+              <div style="font-size:36px;margin-bottom:8px">📷</div>
+              <div>הוסף תמונות ושיפורים לגלריה</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-only" style="margin-top:16px">
+          <div class="card" style="border-color:var(--accent)">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
+              <button class="btn btn-primary" style="margin-right:auto" onclick="importOfficialRubric('robot')">📥 ייבא מחוון רשמי</button>
+              <button class="btn btn-ghost" onclick="addCustomRubric('robot')">＋ הוסף שאלה</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="robot-rubrics" style="margin-top:16px"><!-- populated --></div>
+      </div>
+
+      <!-- ═══ INNOVATION ═══ -->
+      <div class="screen" id="screen-innovation">
+
+        <!-- Tab bar -->
+        <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:16px">
+          <div id="innov-tab-project"    onclick="switchInnovTab('project')"    style="flex:1;text-align:center;padding:12px 4px;cursor:pointer;font-weight:700;font-size:14px;border-bottom:3px solid var(--accent2);color:var(--accent2);margin-bottom:-2px;transition:0.2s">🎯 פרויקט</div>
+          <div id="innov-tab-research"   onclick="switchInnovTab('research')"   style="flex:1;text-align:center;padding:12px 4px;cursor:pointer;font-weight:600;font-size:14px;border-bottom:3px solid transparent;color:var(--text2);margin-bottom:-2px;transition:0.2s">🔬 מחקר</div>
+          <div id="innov-tab-interviews" onclick="switchInnovTab('interviews')" style="flex:1;text-align:center;padding:12px 4px;cursor:pointer;font-weight:600;font-size:14px;border-bottom:3px solid transparent;color:var(--text2);margin-bottom:-2px;transition:0.2s">💡 ראיונות</div>
+        </div>
+
+        <!-- Panel: Project -->
+        <div id="innov-panel-project">
+          <!-- Progress card -->
+          <div class="card" style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <span style="font-size:20px">💡</span>
+              <span style="font-weight:800;font-size:15px;flex:1">התקדמות פרויקט חדשנות</span>
+              <span id="innov-step-count" style="font-family:'Space Mono';font-weight:900;font-size:13px;color:var(--accent2)">0/5 שלבים</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px" id="innov-progress-bars"><!-- rendered by JS --></div>
+          </div>
+          <!-- Step cards -->
+          <div id="innov-steps-list"><!-- rendered by JS --></div>
+          <!-- Rubrics + Admin -->
+          <div id="innovation-rubrics" style="margin-top:16px"></div>
+          <div class="admin-only" style="margin-top:16px">
+            <div class="card" style="border-color:var(--accent2)">
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <span style="font-size:14px;font-weight:700;color:var(--accent2)">🟢 מצב אדמין</span>
+                <button class="btn btn-success" style="margin-right:auto" onclick="importOfficialRubric('innovation')">📥 ייבא מחוון רשמי</button>
+                <button class="btn btn-ghost" onclick="addCustomRubric('innovation')">＋ הוסף שאלה</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Research -->
+        <div id="innov-panel-research" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="font-weight:700;font-size:15px">📚 ממצאי מחקר</h3>
+            <button class="btn btn-primary" onclick="showAddFindingModal()">＋ הוסף ממצא</button>
+          </div>
+          <div id="research-hub">
+            <div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">
+              <div style="font-size:36px;margin-bottom:8px">🔬</div>
+              <div>הוסף ממצאי מחקר ופגישות עם מומחים</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Interviews -->
+        <div id="innov-panel-interviews" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="font-weight:700;font-size:15px">🎙️ ראיונות עם מומחים</h3>
+            <button class="btn btn-primary" onclick="showAddInterviewModal()">＋ הוסף ראיון</button>
+          </div>
+          <div id="interviews-list"><!-- rendered by JS --></div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header">
+              <span class="card-icon">🎤</span>
+              <span class="card-title">הקלטת פגישה</span>
+              <span style="font-size:11px;color:var(--text3);margin-right:auto">הורדה כקובץ שמע</span>
+            </div>
+            <div style="text-align:center;padding:16px 20px">
+              <button class="btn btn-danger" style="font-size:15px;padding:12px 24px" onclick="startRecording()">🎤 התחל הקלטה</button>
+              <p style="color:var(--text3);font-size:12px;margin-top:10px">מקליט שיחות עם מומחים ומוריד כקובץ שמע</p>
+              <div id="recording-status" style="display:none;color:var(--red);margin-top:8px;font-size:13px">● מקליט...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ═══ SCORING ═══ -->
+      <div class="screen" id="screen-scoring">
+
+        <!-- Tab bar -->
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button id="scoring-tab-judging" class="btn btn-primary" style="flex:1" onclick="switchScoringTab('judging')">🏛️ חדר שיפוט</button>
+          <button id="scoring-tab-robot"   class="btn btn-ghost"   style="flex:1" onclick="switchScoringTab('robot')">🤖 ריצת רובוט</button>
+        </div>
+
+        <!-- ── JUDGING PANEL ── -->
+        <div id="scoring-panel-judging">
+          <div id="sq-doc-card" class="card" style="margin-bottom:12px"><!-- populated by renderScoringJudgingDoc() --></div>
+          <div class="card">
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+              <div class="j-phase-icon active" onclick="jumpToPhase(0)" title="קבלת פני הקבוצה">⏰</div>
+              <div class="j-phase-icon" onclick="jumpToPhase(1)" title="פרויקט חדשנות">💡</div>
+              <div class="j-phase-icon" onclick="jumpToPhase(2)" title="שאלות על חדשנות">❓</div>
+              <div class="j-phase-icon" onclick="jumpToPhase(3)" title="תכנות רובוט">🤖</div>
+              <div class="j-phase-icon" onclick="jumpToPhase(4)" title="שאלות על רובוט">❓</div>
+              <div class="j-phase-icon" onclick="jumpToPhase(5)" title="זמן חופשי">🚪</div>
+            </div>
+            <div style="text-align:center;margin-bottom:6px">
+              <span id="judging-phase-badge" style="display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:3px 14px;border-radius:20px">שלב 1/6</span>
+            </div>
+            <div id="judging-phase-label" style="text-align:center;font-size:14px;font-weight:700;color:var(--text);margin-bottom:0">קבלת פני הקבוצה</div>
+            <div class="timer-display" id="judging-timer">2:00</div>
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button class="btn btn-success" style="border-radius:40px;padding:10px 24px" onclick="startJudgingTimer()">▶ התחל</button>
+              <button class="btn btn-ghost" style="border-radius:40px;padding:10px 24px" onclick="resetJudgingTimer()">↺ אפס</button>
+              <button class="btn btn-ghost" style="border-radius:40px;padding:10px 24px" onclick="nextJudgingPhase()">⏭ הבא</button>
+            </div>
+          </div>
+
+          <div class="admin-only" style="margin:12px 0 4px">
+            <button class="btn btn-ghost" style="width:100%;border-radius:12px;padding:12px;font-weight:700;border:2px solid var(--border)" onclick="window.open('https://fll-events.firstisrael.org.il/tools/rubrics','_blank')">
+              📋 מחווני שיפוט רשמיים – FIRST Israel ↗
+            </button>
+          </div>
+
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <div class="card" style="padding:0;overflow:hidden">
+              <div onclick="toggleRubricSection('innovation')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
+                <span style="font-weight:700;font-size:14px">💡 פרויקט חדשנות</span>
+                <span id="rubric-chevron-innovation" style="transition:transform 0.2s;display:inline-block">▾</span>
+              </div>
+              <div id="rubric-section-innovation" style="padding:12px 16px">
+                <div id="scoring-innovation-rubrics"><!-- populated --></div>
+                <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-ghost" style="font-size:12px" onclick="addCustomRubric('innovation')">＋ הוסף שאלה</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div onclick="toggleRubricSection('values')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
+                <span style="font-weight:700;font-size:14px">⭐ ערכי FLL</span>
+                <span id="rubric-chevron-values" style="transition:transform 0.2s;display:inline-block">▾</span>
+              </div>
+              <div id="rubric-section-values" style="padding:12px 16px">
+                <div id="scoring-values-rubrics"><!-- populated --></div>
+                <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-ghost" style="font-size:12px" onclick="addCustomRubric('values')">＋ הוסף שאלה</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div onclick="toggleRubricSection('robot')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
+                <span style="font-weight:700;font-size:14px">🤖 עיצוב הרובוט</span>
+                <span id="rubric-chevron-robot" style="transition:transform 0.2s;display:inline-block">▾</span>
+              </div>
+              <div id="rubric-section-robot" style="padding:12px 16px">
+                <div id="scoring-robot-rubrics"><!-- populated --></div>
+                <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-ghost" style="font-size:12px" onclick="addCustomRubric('robot')">＋ הוסף שאלה</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── ROBOT PANEL (hidden by default) ── -->
+        <div id="scoring-panel-robot" style="display:none">
+          <div class="score-total" style="margin-bottom:12px">
+            <div class="score-total-num" id="total-score">0</div>
+            <div class="score-total-label">נקודות סה"כ</div>
+          </div>
+          <button class="btn btn-success" style="width:100%;padding:14px;font-size:16px;font-weight:700;border-radius:12px;margin-bottom:12px" onclick="saveRunScore()">💾 שמור ריצה</button>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-header"><span class="card-icon">⏱️</span><span class="card-title">טיימר ריצת רובוט</span></div>
+            <div class="timer-display" id="robot-timer">2:30</div>
+            <div style="display:flex;gap:8px;justify-content:center">
+              <button class="btn btn-primary" style="border-radius:40px;padding:10px 24px" onclick="startTimer('robot')">▶ התחל</button>
+              <button class="btn btn-ghost" style="border-radius:40px;padding:10px 24px" onclick="resetTimer('robot')">↺ אפס</button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-header"><span class="card-icon">📋</span><span class="card-title">משימות Unearthed 2026</span></div>
+            <div id="scoring-missions"><!-- populated --></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-icon">📈</span><span class="card-title">גרף ניקוד</span></div>
+            <div id="chart-runs-wrap" style="position:relative;height:180px;margin-bottom:16px;display:none">
+              <canvas id="chart-runs"></canvas>
+            </div>
+            <div id="score-history"><!-- populated --></div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <!-- ═══ MY TASKS ═══ -->
+      <div class="screen" id="screen-mytasks">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button id="mytasks-tab-pending" class="btn btn-primary" style="flex:1" onclick="switchMyTasksTab('pending')">📋 משימות</button>
+          <button id="mytasks-tab-done"    class="btn btn-ghost"   style="flex:1" onclick="switchMyTasksTab('done')">✅ הושלמו</button>
+        </div>
+        <div id="mytasks-panel-pending">
+          <div id="mytasks-list-pending"><!-- populated --></div>
+        </div>
+        <div id="mytasks-panel-done" style="display:none">
+          <div id="mytasks-list-done"><!-- populated --></div>
+        </div>
+      </div>
+
+      <!-- ═══ TEAM ═══ -->
+      <div class="screen" id="screen-team">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div class="card" style="flex:1;min-width:200px">
+            <div style="font-size:24px;font-weight:900" id="team-count">6</div>
+            <div style="color:var(--text2);font-size:12px">חברי קבוצה</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary admin-only" onclick="showAddMemberModal()">＋ הוסף חבר</button>
+          </div>
+        </div>
+
+        <h3 style="font-weight:700;margin-bottom:12px;color:var(--text2);font-size:13px;text-transform:uppercase">חברי הקבוצה</h3>
+        <div id="members-list" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><!-- populated --></div>
+
+        <div class="admin-only" style="margin-top:24px">
+          <div class="card" style="border-color:var(--accent3)">
+            <div class="card-header"><span class="card-icon">✅</span><span class="card-title">צ'קליסט הכנה לתחרות</span></div>
+            <div id="competition-checklist"><!-- populated --></div>
+            <button class="btn btn-ghost" style="margin-top:10px;font-size:12px" onclick="addChecklistItem()">＋ הוסף פריט</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CHAT ═══ -->
+      <div class="screen" id="screen-chat">
+        <!-- Pinned Announcements -->
+        <div id="announcements-section" style="display:none;margin-bottom:10px"></div>
+
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <button id="chat-tab-general"     class="btn btn-primary" onclick="switchChatTab('general')">💬 כללי</button>
+            <button id="chat-tab-robot"       class="btn btn-ghost"   onclick="switchChatTab('robot')">🤖 רובוט</button>
+            <button id="chat-tab-innovation"  class="btn btn-ghost"   onclick="switchChatTab('innovation')">💡 חדשנות</button>
+            <button id="chat-tab-mentors"     class="btn btn-ghost"   onclick="switchChatTab('mentors')" style="display:none">👑 מנטורים</button>
+            <div id="chat-tab-private-wrap" style="display:none;display:flex;align-items:center;gap:8px">
+              <button class="btn btn-ghost" onclick="switchChatTab('general')" style="font-size:12px">← חזור</button>
+              <span id="chat-private-title" style="font-size:14px;font-weight:700;color:var(--accent)"></span>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column">
+          <div id="chat-messages" style="min-height:340px;max-height:460px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 0"></div>
+          <div id="chat-mentor-notice" style="display:none;text-align:center;padding:8px;color:var(--text3);font-size:13px">👁️ צ'אט מנטורים — קריאה בלבד לתלמידים</div>
+          <div id="chat-input-row" style="display:flex;gap:8px;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+            <input type="text" class="form-input" id="chat-input" placeholder="כתוב הודעה..." style="flex:1" onkeydown="if(event.key==='Enter')sendChatMessage()">
+            <button class="btn btn-ghost admin-only" onclick="openModal('modal-poll')"    title="צור הצבעה קבוצתית"       style="font-size:16px;padding:8px 10px">🗳️</button>
+            <button class="btn btn-ghost admin-only" onclick="openModal('modal-announce')" title="שלח הכרזה לכל הקבוצה" style="font-size:16px;padding:8px 10px">📣</button>
+            <button class="btn btn-primary" onclick="sendChatMessage()">שלח ›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ARCHIVE ═══ -->
+      <div class="screen" id="screen-archive">
+        <!-- רשימת עונות -->
+        <div id="archive-main-view">
+          <div class="card" style="background:linear-gradient(135deg,rgba(245,200,66,0.1),transparent);margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:16px">
+              <span style="font-size:36px">📦</span>
+              <div>
+                <h3 style="font-weight:800;font-size:18px">עונות וארכיון</h3>
+                <p style="color:var(--text2);font-size:13px">עונה פעילה: <strong id="active-season-label">Unearthed 2026</strong></p>
+              </div>
+              <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap" class="admin-only">
+                <button class="btn btn-primary" onclick="openNewSeasonModal()">🆕 עונה חדשה</button>
+              </div>
+            </div>
+          </div>
+          <div id="seasons-list"><!-- populated --></div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-header"><span class="card-icon">💾</span><span class="card-title">ייצוא נתונים</span></div>
+            <p style="color:var(--text2);font-size:12px;margin-bottom:12px">ייצוא נתוני העונה הנוכחית</p>
+            <div class="export-row">
+              <button class="btn btn-ghost" onclick="exportData('pdf')">📄 ייצוא PDF</button>
+              <button class="btn btn-ghost" onclick="exportData('excel')">📊 ייצוא Excel (CSV)</button>
+              <button class="btn btn-ghost" onclick="exportData('json')">📋 ייצוא JSON</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- מסך צפייה בארכיון עונה ספציפית -->
+        <div id="archive-season-view" style="display:none">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <button onclick="closeArchiveView()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;font-weight:700">← חזור</button>
+            <h3 id="archive-season-title" style="font-weight:800;font-size:18px;margin:0"></h3>
+            <div style="margin-right:auto">
+              <button class="btn btn-ghost" style="font-size:12px" onclick="exportArchivedSeason()">📄 ייצא עונה זו</button>
+            </div>
+          </div>
+          <div id="archive-season-content"></div>
+        </div>
+      </div>
+
+      <!-- ═══ SETTINGS ═══ -->
+      <div class="screen" id="screen-settings">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-icon">🎨</span><span class="card-title">מראה ועיצוב</span></div>
+            <div class="form-group">
+              <label class="form-label">ערכת צבעים</label>
+              <div class="theme-toggle" style="width:fit-content">
+                <button class="theme-btn active" onclick="setTheme('dark')">🌙 כהה</button>
+                <button class="theme-btn" onclick="setTheme('light')">☀️ בהיר</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-icon">👥</span><span class="card-title">פרטי קבוצה</span></div>
+            <div class="form-group">
+              <label class="form-label">שם הקבוצה</label>
+              <input type="text" class="form-input" id="settings-team-name" placeholder="שם הקבוצה">
+            </div>
+            <div class="form-group">
+              <label class="form-label">לוגו קבוצה</label>
+              <input type="file" class="form-input" accept="image/*" onchange="handleLogoUpload(event,'settings')">
+            </div>
+            <button class="btn btn-primary" onclick="saveTeamSettings()">💾 שמור שינויים</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-icon">✏️</span><span class="card-title">שינוי שם</span></div>
+            <div class="form-group">
+              <label class="form-label">שם חדש</label>
+              <input type="text" class="form-input" id="my-new-name" placeholder="הכנס שם חדש">
+            </div>
+            <div id="name-change-info" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+            <button class="btn btn-ghost" onclick="changeMyName()">✏️ שנה שם</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-icon">🔐</span><span class="card-title">אבטחה</span></div>
+            <div class="form-group">
+              <label class="form-label">שינוי קוד PIN</label>
+              <input type="password" class="form-input" id="new-pin" maxlength="6" placeholder="קוד חדש (6 ספרות)" inputmode="numeric">
+            </div>
+            <button class="btn btn-ghost" onclick="changePin()">🔒 שנה קוד</button>
+            <div style="margin-top:12px">
+              <button class="btn btn-ghost" style="font-size:12px" onclick="setupBiometric()">👆 הגדר טביעת אצבע</button>
+            </div>
+          </div>
+
+          <div class="card admin-only">
+            <div class="card-header"><span class="card-icon">🔗</span><span class="card-title">קודי הצטרפות לקבוצה</span></div>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px">שתף את הקוד המתאים עם כל חבר</p>
+            <div style="background:linear-gradient(135deg,var(--accent3),var(--gold));border-radius:12px;padding:14px;text-align:center;margin-bottom:10px">
+              <div style="color:rgba(255,255,255,0.85);font-size:11px;margin-bottom:4px">👑 קוד מנטורים</div>
+              <div id="settings-mentor-code" style="font-family:'Space Mono',monospace;font-size:22px;font-weight:900;color:#fff;letter-spacing:3px">----</div>
+              <button onclick="copySettingsCode('mentor')" style="margin-top:8px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 14px;border-radius:20px;cursor:pointer;font-size:12px">📋 העתק</button>
+            </div>
+            <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;padding:14px;text-align:center;margin-bottom:10px">
+              <div style="color:rgba(255,255,255,0.85);font-size:11px;margin-bottom:4px">🎓 קוד תלמידים</div>
+              <div id="settings-student-code" style="font-family:'Space Mono',monospace;font-size:22px;font-weight:900;color:#fff;letter-spacing:3px">----</div>
+              <button onclick="copySettingsCode('student')" style="margin-top:8px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 14px;border-radius:20px;cursor:pointer;font-size:12px">📋 העתק</button>
+            </div>
+            <button class="btn btn-ghost" style="width:100%;font-size:13px" onclick="regenerateCodes()">🔄 צור קודים חדשים</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-icon">📅</span><span class="card-title">תאריך תחרות</span></div>
+            <div class="form-group">
+              <label class="form-label">תאריך תחרות הקבוצה</label>
+              <input type="date" class="form-input" id="competition-date-input">
+            </div>
+            <button class="btn btn-primary" onclick="saveCompetitionDate()">💾 שמור תאריך</button>
+          </div>
+
+          <div class="card" style="border-color:var(--red)">
+            <div class="card-header"><span class="card-icon">🗑️</span><span class="card-title">פעולות חשבון</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <p style="color:var(--text2);font-size:13px;margin-bottom:8px">יציאה מהקבוצה — החשבון שלך ישמר, תוכל להצטרף מחדש עם קוד.</p>
+                <button class="btn btn-ghost" style="width:100%;border-color:var(--accent3);color:var(--accent3)" onclick="leaveTeam()">🚪 צא מהקבוצה</button>
+              </div>
+              <div style="border-top:1px solid var(--border);padding-top:10px">
+                <p style="color:var(--text2);font-size:13px;margin-bottom:8px">מחיקת החשבון תסיר אותך מהקבוצה לצמיתות.</p>
+                <button class="btn btn-danger" style="width:100%" onclick="deleteMyAccount()">🗑️ מחק את החשבון שלי</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card admin-only" style="border-color:var(--red)">
+            <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">פעולות אדמין</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <p style="color:var(--text2);font-size:13px;margin-bottom:8px">איפוס נתונים — ימחק יומנים, שיפורים, ממצאים, ניקוד ופתקים. חברי הקבוצה ישמרו.</p>
+                <button class="btn btn-ghost" style="width:100%;border-color:var(--gold);color:var(--gold)" onclick="resetTeamData()">🔄 אפס נתוני קבוצה</button>
+              </div>
+              <div style="border-top:1px solid var(--border);padding-top:10px">
+                <p style="color:var(--text2);font-size:13px;margin-bottom:8px">מחיקת הקבוצה תמחק את כל הנתונים לצמיתות ותנתק את כל החברים.</p>
+                <button class="btn btn-danger" style="width:100%" onclick="deleteTeam()">💥 מחק קבוצה לצמיתות</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-icon">ℹ️</span><span class="card-title">אודות</span></div>
+            <p style="color:var(--text2);font-size:13px;line-height:1.8">
+              <strong>FLL Team Manager</strong><br>
+              גרסה 1.0.0 – Unearthed 2026<br>
+              פותח עבור קבוצות FIRST LEGO League
+            </p>
+            <div style="margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px">
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">🔑 מזהה הקבוצה שלך</div>
+              <div id="team-id-display" style="font-family:'Space Mono';font-size:12px;color:var(--accent);word-break:break-all"></div>
+              <div style="font-size:11px;color:var(--text3);margin-top:6px">כל קבוצה מקבלת מזהה ייחודי — הנתונים שלך נפרדים לחלוטין מקבוצות אחרות</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ STRATEGY BOARD ═══ -->
+      <div class="screen" id="screen-strategy">
+        <div class="sb-toolbar">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button id="sb-btn-pen"    class="btn btn-primary sb-tool-btn" onclick="sbSetTool('pen')">🖊 עט</button>
+            <button id="sb-btn-eraser" class="btn btn-ghost   sb-tool-btn" onclick="sbSetTool('eraser')">○ מחק</button>
+            <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
+            <div class="sb-colors">
+              <div class="sb-color" style="background:#ff4d6d" onclick="sbSetColor('#ff4d6d')"></div>
+              <div class="sb-color" style="background:#3d7fff" onclick="sbSetColor('#3d7fff')"></div>
+              <div class="sb-color" style="background:#00d4a0" onclick="sbSetColor('#00d4a0')"></div>
+              <div class="sb-color" style="background:#f5c842" onclick="sbSetColor('#f5c842')"></div>
+              <div class="sb-color" style="background:#fff;border-color:rgba(0,0,0,0.2)" onclick="sbSetColor('#ffffff')"></div>
+              <div class="sb-color" style="background:#111" onclick="sbSetColor('#111111')"></div>
+            </div>
+            <input type="color" id="sb-custom-color" value="#ff4d6d" oninput="sbSetColor(this.value)" title="צבע מותאם" style="width:28px;height:28px;border:none;cursor:pointer;border-radius:4px;padding:1px;background:none;flex-shrink:0">
+            <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
+            <button class="btn btn-ghost sb-width-btn active" data-w="3"  onclick="sbSetWidth(3)"  title="קו דק">—</button>
+            <button class="btn btn-ghost sb-width-btn"        data-w="6"  onclick="sbSetWidth(6)"  title="קו בינוני">━</button>
+            <button class="btn btn-ghost sb-width-btn"        data-w="14" onclick="sbSetWidth(14)" title="קו עבה" style="line-height:1">█</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="sbUndo()" title="בטל פעולה">↩ בטל</button>
+            <button class="btn btn-ghost" onclick="sbClearDrawing()" title="מחק ציור">🗑 נקה</button>
+            <label class="btn btn-ghost" style="cursor:pointer" title="העלה תמונת רקע">
+              📸 רקע
+              <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
+            </label>
+            <button class="btn btn-ghost admin-only" onclick="sbClearBackground()" style="color:var(--red);font-size:12px">✕ הסר</button>
+            <button class="btn btn-success" onclick="sbSaveImage()">💾 שמור</button>
+          </div>
+        </div>
+        <div class="sb-canvas-wrap" id="sb-canvas-wrap">
+          <canvas id="strategy-bg-canvas"></canvas>
+          <canvas id="strategy-canvas"></canvas>
+          <div id="sb-placeholder" class="sb-placeholder">
+            <div style="font-size:40px;margin-bottom:12px">🗺️</div>
+            <div style="font-size:15px;margin-bottom:8px">העלה תמונת לוח משימות</div>
+            <label class="btn btn-primary" style="cursor:pointer;font-size:14px;padding:10px 22px;display:inline-flex;align-items:center;gap:8px">
+              📸 בחר תמונה
+              <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
+            </label>
+            <div style="font-size:12px;margin-top:10px;color:var(--text3)">ניתן לסרטט בחופשיות על גבי התמונה</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ GALLERY ═══ -->
+      <div class="screen" id="screen-gallery">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">🖼️</span>
+            <span class="card-title">גלריית עונה</span>
+            <span id="gallery-count" style="font-size:12px;color:var(--text3);margin-right:auto">0 תמונות</span>
+            <label class="btn btn-primary" style="cursor:pointer;font-size:13px">
+              📷 הוסף תמונה
+              <input type="file" accept="image/*" capture="environment" style="display:none" onchange="addTeamPhoto(event)">
+            </label>
+          </div>
+        </div>
+        <div id="team-gallery-grid" class="team-gallery-grid">
+          <div class="team-gallery-empty">
+            <div style="font-size:48px;margin-bottom:10px">🖼️</div>
+            <div style="font-size:15px;margin-bottom:6px">אין תמונות בגלריה</div>
+            <div style="font-size:12px">הוסף תמונות מהאימונים והתחרות</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ LINKS ═══ -->
+      <div class="screen" id="screen-links">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-header">
+            <span class="card-icon">🔗</span>
+            <span class="card-title">ספריית קישורים</span>
+            <span id="links-count" style="font-size:12px;color:var(--text3);margin-right:auto">0 קישורים</span>
+            <button class="btn btn-primary" style="font-size:13px" onclick="showAddLinkModal()">＋ הוסף קישור</button>
+          </div>
+        </div>
+        <div class="links-filter-bar">
+          <button id="lf-all"        class="btn btn-primary" onclick="filterLinks('all')">📋 הכל</button>
+          <button id="lf-general"    class="btn btn-ghost"   onclick="filterLinks('general')">📌 כללי</button>
+          <button id="lf-robot"      class="btn btn-ghost"   onclick="filterLinks('robot')">🤖 רובוט</button>
+          <button id="lf-innovation" class="btn btn-ghost"   onclick="filterLinks('innovation')">💡 חדשנות</button>
+          <button id="lf-judging"    class="btn btn-ghost"   onclick="filterLinks('judging')">🎓 שיפוט</button>
+        </div>
+        <div id="links-grid" class="links-grid"><!-- populated --></div>
+      </div>
+
+      <!-- ═══ JUDGING ═══ -->
+      <div class="screen" id="screen-judging">
+        <div id="judging-doc-card" class="card" style="margin-bottom:16px"><!-- populated by renderJudgingDoc() --></div>
+        <div class="judging-tabs">
+          <div class="judging-tab active" id="judg-tab-robot" onclick="switchJudgingTab('robot')">🤖 רובוט</div>
+          <div class="judging-tab" id="judg-tab-innovation" onclick="switchJudgingTab('innovation')">💡 חדשנות</div>
+          <div class="judging-tab" id="judg-tab-values" onclick="switchJudgingTab('values')">⭐ ערכים</div>
+        </div>
+        <div id="judging-content"><!-- populated by JS --></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Add Log Modal -->
+<div class="modal-overlay" id="modal-log">
+  <div class="modal">
+    <div class="modal-title">📝 תיעוד יומי חדש</div>
+    <div class="form-group">
+      <label class="form-label">נושא</label>
+      <select class="form-input" id="log-topic">
+        <option value="general">📌 כללי</option>
+        <option value="robot">🤖 רובוט</option>
+        <option value="innovation">💡 חדשנות</option>
+        <option value="values">⭐ ערכים</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">מה עשית היום?</label>
+      <textarea class="form-input" id="log-text" rows="4" placeholder="תאר את הפעילות שבצעת..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">הוסף תמונה (אופציונלי)</label>
+      <input type="file" class="form-input" accept="image/*" capture="environment" id="log-image">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-log')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveLog()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="modal-member">
+  <div class="modal">
+    <div class="modal-title">👤 הוסף חבר קבוצה</div>
+    <div class="form-group">
+      <label class="form-label">שם מלא *</label>
+      <input type="text" class="form-input" id="member-name" placeholder="שם ומשפחה">
+    </div>
+    <div class="form-group">
+      <label class="form-label">כתובת אימייל</label>
+      <input type="email" class="form-input" id="member-email" placeholder="email@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">תפקיד</label>
+      <select class="form-input" id="member-role">
+        <option value="student">תלמיד</option>
+        <option value="admin">מנטור</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN ראשוני (ברירת מחדל: 123456)</label>
+      <input type="text" class="form-input" id="member-pin" value="123456" maxlength="6" inputmode="numeric">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-member')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveMember()">＋ הוסף</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Improvement Modal -->
+<div class="modal-overlay" id="modal-improvement">
+  <div class="modal">
+    <div class="modal-title">🔧 כרטיס שיפור רובוט</div>
+    <div class="form-group">
+      <label class="form-label">שם השיפור *</label>
+      <input type="text" class="form-input" id="imp-name" placeholder="למשל: שיפור זרוע משימה 3">
+    </div>
+    <div class="form-group">
+      <label class="form-label">משימה קשורה</label>
+      <select class="form-input" id="imp-mission"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור</label>
+      <textarea class="form-input" id="imp-desc" rows="3" placeholder="מה שופר ואיך..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תמונה</label>
+      <input type="file" class="form-input" accept="image/*" capture="environment" id="imp-image">
+    </div>
+    <div class="form-group">
+      <label class="form-label">קישור קוד (GitHub / EV3)</label>
+      <input type="url" class="form-input" id="imp-code" placeholder="https://...">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-improvement')">ביטול</button>
+      <button class="btn btn-success" onclick="saveImprovement()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Innovation Step Edit Modal -->
+<div class="modal-overlay" id="modal-innov-step">
+  <div class="modal">
+    <div class="modal-title" id="innov-step-modal-title">✏️ עריכת שלב</div>
+    <div style="font-size:13px;color:var(--accent);margin-bottom:14px" id="innov-step-modal-question"></div>
+    <input type="hidden" id="innov-step-key">
+    <div class="form-group">
+      <textarea class="form-input" id="innov-step-text" rows="5" placeholder="תאר כאן..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-innov-step')">ביטול</button>
+      <button class="btn btn-success" onclick="saveInnovStep()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Interview Modal -->
+<div class="modal-overlay" id="modal-interview">
+  <div class="modal">
+    <div class="modal-title">🎙️ הוסף ראיון עם מומחה</div>
+    <div class="form-group">
+      <label class="form-label">שם המומחה / הארגון *</label>
+      <input type="text" class="form-input" id="interview-expert" placeholder="למשל: ד״ר כהן, אוניברסיטת תל אביב">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מה למדתם? *</label>
+      <textarea class="form-input" id="interview-text" rows="4" placeholder="סכמו את עיקרי השיחה..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-interview')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveInterview()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Finding Modal -->
+<div class="modal-overlay" id="modal-finding">
+  <div class="modal">
+    <div class="modal-title">🔬 ממצא מחקר חדש</div>
+    <div class="form-group">
+      <label class="form-label">תקציר *</label>
+      <textarea class="form-input" id="finding-text" rows="3" placeholder="סכם את הממצא..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תגית</label>
+      <input type="text" class="form-input" id="finding-tag" placeholder="למשל: ריכוז קרקע, חקלאות">
+    </div>
+    <div class="form-group">
+      <label class="form-label">קובץ / תמונה</label>
+      <input type="file" class="form-input" id="finding-file" accept=".pdf,image/*">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-finding')">ביטול</button>
+      <button class="btn btn-success" onclick="saveFinding()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Note Modal -->
+<div class="modal-overlay" id="modal-sticky">
+  <div class="modal">
+    <div class="modal-title">📝 הוסף פתק</div>
+    <div class="form-group">
+      <label class="form-label">ערך *</label>
+      <select class="form-input" id="sticky-value">
+        <option value="discovery" style="background:#3d7fff">🔍 גילוי</option>
+        <option value="innovation" style="background:#00d4a0">💡 חדשנות</option>
+        <option value="impact" style="background:#ff6b35">🌍 השפעה</option>
+        <option value="inclusion" style="background:#f5c842">🤝 שילוב</option>
+        <option value="teamwork" style="background:#9c6fe4">👥 עבודת צוות</option>
+        <option value="fun" style="background:#ff4d6d">🎉 כיף</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תוכן הפתק *</label>
+      <textarea class="form-input" id="sticky-text" rows="4" placeholder="מה תרצה לשתף?"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-sticky')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveSticky()">📌 הוסף פתק</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rubric Add Modal -->
+<div class="modal-overlay" id="modal-rubric">
+  <div class="modal">
+    <div class="modal-title">📋 הוסף שאלה לשאלון</div>
+    <div class="form-group">
+      <label class="form-label">שאלה / קריטריון</label>
+      <textarea class="form-input" id="rubric-question" rows="3" placeholder="הכנס שאלת הערכה..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rubric')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveRubric()">＋ הוסף</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Season Modal -->
+<div class="modal-overlay" id="modal-season">
+  <div class="modal">
+    <div class="modal-title">🆕 פתח עונה חדשה</div>
+    <div style="background:rgba(255,107,53,0.1);border:1px solid var(--accent3);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--text2)">
+      ⚠️ פתיחת עונה חדשה תעביר את כל נתוני העונה הנוכחית לארכיון.
+    </div>
+    <div class="form-group">
+      <label class="form-label">שם עונה חדשה</label>
+      <input type="text" class="form-input" id="new-season-name" placeholder="למשל: Submerged 2027">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-season')">ביטול</button>
+      <button class="btn btn-danger" onclick="createNewSeason()">🆕 פתח עונה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Task Modal -->
+<div class="modal-overlay" id="modal-member-task">
+  <div class="modal">
+    <div class="modal-title">📋 הוסף משימה לחבר קבוצה</div>
+    <div class="form-group">
+      <label class="form-label">בחר חבר *</label>
+      <select class="form-input" id="task-member-select"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תיאור המשימה *</label>
+      <textarea class="form-input" id="task-desc" rows="3" placeholder="מה צריך לעשות..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">תאריך יעד</label>
+      <input type="date" class="form-input" id="task-due">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-member-task')">ביטול</button>
+      <button class="btn btn-success" onclick="saveMemberTask()">📋 הוסף משימה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Video Selection Modal -->
+<div class="modal-overlay" id="modal-video-select">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">🎬 בחר תמונות לסרטון</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:12px">כל תמונה תוצג 5 שניות עם מעברים חלקים. <span id="video-selected-count" style="color:var(--accent);font-weight:700">0 נבחרו</span></p>
+    <div id="video-img-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-height:360px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-video-select')">ביטול</button>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="toggleSelectAll()">בחר הכל</button>
+      <button class="btn btn-success" onclick="createVideoFromSelected()">🎬 צור סרטון</button>
+    </div>
+  </div>
+</div>
+
+<!-- Poll Modal -->
+<div class="modal-overlay" id="modal-poll">
+  <div class="modal">
+    <div class="modal-title">🗳️ צור הצבעה קבוצתית</div>
+    <div class="form-group">
+      <label class="form-label">שאלה *</label>
+      <input type="text" class="form-input" id="poll-question" placeholder="למשל: מה סדר המשימות הטוב יותר?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אפשרות 1 *</label>
+      <input type="text" class="form-input" id="poll-opt-1" placeholder="אפשרות ראשונה">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אפשרות 2 *</label>
+      <input type="text" class="form-input" id="poll-opt-2" placeholder="אפשרות שנייה">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אפשרות 3 (אופציונלי)</label>
+      <input type="text" class="form-input" id="poll-opt-3" placeholder="אפשרות שלישית">
+    </div>
+    <div class="form-group">
+      <label class="form-label">אפשרות 4 (אופציונלי)</label>
+      <input type="text" class="form-input" id="poll-opt-4" placeholder="אפשרות רביעית">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-poll')">ביטול</button>
+      <button class="btn btn-primary" onclick="createPoll()">🗳️ שלח הצבעה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Announce Modal -->
+<div class="modal-overlay" id="modal-announce">
+  <div class="modal">
+    <div class="modal-title">📣 הכרזה קבוצתית</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:12px">ההכרזה תופיע בצ'אט כבאנר בולט לכל חברי הקבוצה.</p>
+    <div class="form-group">
+      <label class="form-label">טקסט ההכרזה *</label>
+      <textarea class="form-input" id="announce-input" rows="3" placeholder="למשל: אימון מחר מבוטל! / מזל טוב לדן על השיא החדש 🎉"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-announce')">ביטול</button>
+      <button class="btn btn-primary" onclick="sendAnnouncement()">📣 שלח הכרזה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Link Modal -->
+<div class="modal-overlay" id="modal-link">
+  <div class="modal">
+    <div class="modal-title">🔗 הוסף קישור</div>
+    <div class="form-group">
+      <label class="form-label">כותרת *</label>
+      <input type="text" class="form-input" id="link-title" placeholder="למשל: חוקי FLL 2026">
+    </div>
+    <div class="form-group">
+      <label class="form-label">כתובת URL *</label>
+      <input type="url" class="form-input" id="link-url" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">קטגוריה</label>
+      <select class="form-input" id="link-category">
+        <option value="general">📌 כללי</option>
+        <option value="robot">🤖 רובוט</option>
+        <option value="innovation">💡 חדשנות</option>
+        <option value="judging">🎓 שיפוט</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('modal-link')">ביטול</button>
+      <button class="btn btn-primary" onclick="saveLink()">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notification"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/logs.js"></script>
+  <script src="js/members.js"></script>
+  <script src="js/missions.js"></script>
+  <script src="js/rubrics.js"></script>
+  <script src="js/gallery.js"></script>
+  <script src="js/innovation.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/values.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/checklist.js"></script>
+  <script src="js/archive.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/judging.js"></script>
+  <script src="js/links.js"></script>
+  <script src="js/strategy.js"></script>
+  <script src="js/pwa.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

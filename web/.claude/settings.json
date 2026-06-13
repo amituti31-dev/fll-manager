@@ -1,0 +1,52 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 /tmp/reorganize.py)",
+      "Bash(where python *)",
+      "Bash(C:\\\\Python314\\\\python.exe C:/tmp/reorganize.py)",
+      "PowerShell(C:\\\\Python314\\\\python.exe C:\\\\tmp\\\\reorganize.py)",
+      "Bash(python C:/tmp/split_fll.py)",
+      "Bash(powershell -Command \"Get-Content 'c:/Code/FLL Manager/public/js/auth.js' | Select-Object -Last 20\")",
+      "Bash(python -c ' *)",
+      "Bash(find \"c:/Code\" -name \"*.dart\" -maxdepth 5 2>/dev/null | head -20 && echo \"---\" && ls \"c:/Code/\")",
+      "Read(//c/Code/**)",
+      "Bash(mkdir -p \"c:/Code/FLL Manager/Android/lib/screens/tasks\")",
+      "Bash(rm \"c:/Code/FLL Manager/Android/lib/screens/tasks/my_tasks_screen.dart\")",
+      "Bash(rmdir \"c:/Code/FLL Manager/Android/lib/screens/tasks\")",
+      "PowerShell(Start-Process npm -ArgumentList \"start\" -WorkingDirectory \"c:\\\\Code\\\\FLL Manager\")",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList \"/c\", \"cd `\"c:\\\\Code\\\\FLL Manager`\" && npx electron .\" -WorkingDirectory \"c:\\\\Code\\\\FLL Manager\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" .)",
+      "Bash(echo \"const e = require\\('electron'\\); console.log\\('keys:', Object.keys\\(e || {}\\)\\); console.log\\('type:', typeof e\\);\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" /tmp/test_electron.js)",
+      "Bash(echo \"const e = require\\('electron'\\); console.log\\('type:', typeof e\\); console.log\\('keys:', Object.keys\\(e || {}\\)\\);\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" debug_main.js)",
+      "Bash(rm debug_main.js)",
+      "Bash(echo \"console.log\\('process.type:', process.type\\); console.log\\('electron keys:', Object.keys\\(require\\('electron'\\) || {}\\)\\);\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" debug2.js)",
+      "Bash(rm debug2.js)",
+      "Bash(echo \"const e = require\\('electron'\\); console.log\\('value:', e\\);\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" debug3.js)",
+      "Bash(rm debug3.js)",
+      "Bash(echo \"console.log\\('resolve:', require.resolve\\('electron'\\)\\); console.log\\('builtins:', require\\('module'\\).builtinModules.filter\\(m => m.includes\\('elec'\\)\\)\\);\")",
+      "Bash(\"./node_modules/electron/dist/electron.exe\" debug4.js)",
+      "Bash(rm debug4.js)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:d[k] for k in ['main','exports'] if k in d}, indent=2\\)\\)\")",
+      "Bash(\"node_modules/.bin/electron.cmd\" .)",
+      "Bash(echo \"try { const e = require\\('electron/main'\\); console.log\\('electron/main:', typeof e, e ? Object.keys\\(e\\).slice\\(0,5\\) : 'null'\\); } catch\\(err\\) { console.log\\('err:', err.message\\); }\")",
+      "Bash(\"node_modules/.bin/electron.cmd\" debug5.js)",
+      "Bash(rm debug5.js)",
+      "Bash(echo \"console.log\\('process.type:', process.type\\); const e = require\\('electron'\\); console.log\\('typeof e:', typeof e\\); console.log\\('e.app:', e.app\\);\")",
+      "Bash(\"node_modules/.bin/electron.cmd\" debug6.js)",
+      "Bash(rm debug6.js)",
+      "PowerShell(Start-Process -FilePath \"cmd.exe\" -ArgumentList '/c', 'cd /d \"c:\\\\Code\\\\FLL Manager\" && npm start')",
+      "PowerShell(node -e \"const e = require\\('C:/Code/FLL Manager/node_modules/electron'\\); console.log\\(typeof e, JSON.stringify\\(Object.keys\\(e||{}\\)\\)\\)\")",
+      "PowerShell(Test-Path \"c:\\\\Code\\\\FLL Manager\\\\node_modules\\\\electron\\\\dist\\\\electron.exe\"; Get-Content \"c:\\\\Code\\\\FLL Manager\\\\node_modules\\\\electron\\\\dist\\\\electron.exe\" -TotalCount 1 2>$null | Out-Null; \\(Get-Item \"c:\\\\Code\\\\FLL Manager\\\\node_modules\\\\electron\\\\dist\\\\electron.exe\"\\).Length)",
+      "PowerShell(Start-Process \"c:\\\\Code\\\\FLL Manager\\\\dist\\\\win-unpacked\\\\FLL Manager.exe\")"
+    ],
+    "additionalDirectories": [
+      "C:\\tmp",
+      "c:\\Code\\FLL Manager\\Android\\lib\\screens",
+      "c:\\Code\\FLL Manager"
+    ]
+  }
+}

@@ -108,6 +108,18 @@ function isNewerVersion(remote, current) {
   return false;
 }
 
+function downloadAndInstall(win, version) {
+  const downloadUrl = `https://github.com/amituti31-dev/fll-manager/releases/latest/download/FLL.Manager.Setup.exe`;
+  shell.openExternal(downloadUrl);
+  dialog.showMessageBox(win, {
+    type: 'info',
+    title: 'הורדה התחילה',
+    message: 'הקובץ מורד בדפדפן שלך',
+    detail: 'לאחר סיום ההורדה — פתח את הקובץ והתקן אותו.',
+    buttons: ['אישור'],
+  });
+}
+
 function checkForUpdates(win) {
   const req = https.request(
     { hostname: 'fll-manger.web.app', path: '/version.json', method: 'GET', timeout: 6000 },
@@ -122,9 +134,11 @@ function checkForUpdates(win) {
               type: 'info',
               title: 'עדכון זמין — FLL Manager',
               message: `גרסה ${version} זמינה!`,
-              detail: `הגרסה המותקנת שלך היא ${app.getVersion()}.\nבקש מהמנטור לשלוח לך את הקובץ המעודכן.`,
-              buttons: ['אישור'],
+              detail: `הגרסה המותקנת שלך היא ${app.getVersion()}.\nלחץ "עדכן עכשיו" להורדה והתקנה אוטומטית.`,
+              buttons: ['עדכן עכשיו', 'אחר כך'],
               defaultId: 0,
+            }).then(({ response }) => {
+              if (response === 0) downloadAndInstall(win, version);
             });
           }
         } catch (e) {}

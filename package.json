@@ -1,0 +1,42 @@
+{
+  "name": "fll-manager",
+  "version": "1.0.0",
+  "description": "FLL Team Manager – Unearthed 2026",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.fll.manager",
+    "productName": "FLL Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "web/**",
+      "!web/.firebase/**",
+      "!web/.claude/**",
+      "!web/*.bak",
+      "!web/node_modules/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "web/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "language": "1037",
+      "installerHeaderIcon": "web/icon-512.png"
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "allowScripts": {
+    "electron@30.5.1": true
+  }
+}
