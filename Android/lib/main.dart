@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,9 +64,62 @@ class _RootRouter extends StatefulWidget {
 }
 
 class _RootRouterState extends State<_RootRouter> {
+  static const _currentVersion = '1.0.0';
+  bool _updateChecked = false;
+
+  bool _isNewer(String remote) {
+    final r = remote.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final c = _currentVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    for (int i = 0; i < 3; i++) {
+      final rv = i < r.length ? r[i] : 0;
+      final cv = i < c.length ? c[i] : 0;
+      if (rv > cv) return true;
+      if (rv < cv) return false;
+    }
+    return false;
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (_updateChecked) return;
+    _updateChecked = true;
+    try {
+      final client = HttpClient();
+      final req = await client.getUrl(Uri.parse('https://fll-manger.web.app/version.json'));
+      final res = await req.close();
+      final body = await res.transform(utf8.decoder).join();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final remote = data['androidVersion'] as String?;
+      if (remote != null && _isNewer(remote) && mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            backgroundColor: AppColors.surface,
+            title: Text('עדכון זמין! 🎉',
+                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+            content: Text(
+              'גרסה $remote זמינה!\nהגרסה שלך: $_currentVersion\n\nפנה למנטור לקבלת הגרסה החדשה.',
+              style: TextStyle(color: AppColors.textSecondary),
+              textDirection: TextDirection.rtl,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('אישור', style: TextStyle(color: AppColors.accent)),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = context.select<AppProvider, AppStatus>((p) => p.status);
+
+    if (status == AppStatus.ready) {
+      Future.delayed(const Duration(seconds: 5), _checkForUpdates);
+    }
 
     return switch (status) {
       AppStatus.loading         => const _SplashScreen(),
