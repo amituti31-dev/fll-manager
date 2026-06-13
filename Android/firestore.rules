@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    // Replicates the Dart key: email.replaceAll(RegExp(r'[.@]'), '_')
+    // e.g. "amit@gmail.com" → "amit_gmail_com"
+    function emailKey() {
+      return request.auth.token.email
+        .replace('\\.', '_')
+        .replace('@', '_');
+    }
+
+    function myRegistryDoc() {
+      return /databases/$(database)/documents/fll-teams-registry/$(emailKey());
+    }
+
+    // True when the signed-in user is a registered member of this team
+    function isMember(teamId) {
+      return isAuth()
+        && exists(myRegistryDoc())
+        && get(myRegistryDoc()).data.teamId == teamId;
+    }
+
+    // ── Registry (fll-teams-registry) ──────────────────────────────────
+    //
+    // Read  — any authenticated user: needed to look up join codes
+    //         before the user has their own registry entry.
+    // Write — any authenticated user: needed for self-registration
+    //         (registerUserToTeam) and join-code creation (saveJoinCodes).
+    //
+    match /fll-teams-registry/{doc} {
+      allow read, write: if isAuth();
+    }
+
+    // ── Team data (/{teamId}/…) ────────────────────────────────────────
+    //
+    // Existing members can read and write everything in their team.
+    //
+    // 'create' also allowed for a document that doesn't yet exist when
+    // /settings hasn't been written — this covers the initTeamData()
+    // call during team creation (the user isn't in the registry yet).
+    // teamIds are long random strings so collision risk is negligible.
+    //
+    match /{teamId}/{document} {
+      allow read, write: if isMember(teamId);
+      allow create: if isAuth()
+        && !exists(/databases/$(database)/documents/$(teamId)/settings);
+    }
+  }
+}
