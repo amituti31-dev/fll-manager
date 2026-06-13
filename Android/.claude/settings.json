@@ -53,11 +53,13 @@
       "Bash(Get-Content)",
       "Bash(Measure-Object -Line)",
       "Bash(Select-Object -ExpandProperty Lines)",
-      "PowerShell($env:DART_VM_OPTIONS = \"--old_gen_heap_size=2048\"; cd \"c:\\\\Code\\\\FLL Manager\\\\Android\"; flutter build apk --debug 2>&1)"
+      "PowerShell($env:DART_VM_OPTIONS = \"--old_gen_heap_size=2048\"; cd \"c:\\\\Code\\\\FLL Manager\\\\Android\"; flutter build apk --debug 2>&1)",
+      "Read(//c/Code/FLL Manager/**)"
     ],
     "additionalDirectories": [
       "c:\\Code\\FLL Manager\\Android\\lib\\models",
-      "C:\\Users\\Amit\\.android"
+      "C:\\Users\\Amit\\.android",
+      "c:\\Code\\FLL Manager\\web"
     ]
   }
 }

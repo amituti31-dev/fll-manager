@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'providers/app_provider.dart';
 import 'screens/auth/login_screen.dart';
@@ -89,6 +90,7 @@ class _RootRouterState extends State<_RootRouter> {
       final body = await res.transform(utf8.decoder).join();
       final data = jsonDecode(body) as Map<String, dynamic>;
       final remote = data['androidVersion'] as String?;
+      final downloadUrl = data['downloadUrl'] as String?;
       if (remote != null && _isNewer(remote) && mounted) {
         showDialog(
           context: context,
@@ -97,15 +99,25 @@ class _RootRouterState extends State<_RootRouter> {
             title: Text('עדכון זמין! 🎉',
                 style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             content: Text(
-              'גרסה $remote זמינה!\nהגרסה שלך: $_currentVersion\n\nפנה למנטור לקבלת הגרסה החדשה.',
+              'גרסה $remote זמינה!\nהגרסה שלך: $_currentVersion',
               style: TextStyle(color: AppColors.textSecondary),
               textDirection: TextDirection.rtl,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('אישור', style: TextStyle(color: AppColors.accent)),
+                child: Text('אחר כך', style: TextStyle(color: AppColors.textSecondary)),
               ),
+              if (downloadUrl != null)
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final uri = Uri.parse(downloadUrl);
+                    if (await canLaunchUrl(uri)) launchUrl(uri, mode: LaunchMode.externalApplication);
+                  },
+                  icon: const Icon(Icons.download, size: 16),
+                  label: const Text('הורד עדכון'),
+                ),
             ],
           ),
         );
