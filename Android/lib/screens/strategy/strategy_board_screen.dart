@@ -208,6 +208,7 @@ class _NewBoardDialogState extends State<_NewBoardDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.read<AppProvider>().isAdmin;
     return AlertDialog(
       backgroundColor: AppColors.surface,
       title: Text('לוח אסטרטגיה חדש', style: TextStyle(color: AppColors.textPrimary)),
@@ -219,17 +220,21 @@ class _NewBoardDialogState extends State<_NewBoardDialog> {
           decoration: const InputDecoration(hintText: 'שם הלוח (למשל: הרצה 1)'),
         ),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _picking ? null : _pickImage,
-          icon: _picking
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-              : Icon(_bgBase64 == null ? Icons.image_outlined : Icons.check_circle_outline,
-                  color: _bgBase64 == null ? AppColors.textSecondary : AppColors.accent2),
-          label: Text(
-            _bgBase64 == null ? 'העלה תמונת לוח מטלות' : 'תמונה נבחרה ✓',
-            style: TextStyle(color: _bgBase64 == null ? AppColors.textSecondary : AppColors.accent2),
-          ),
-        ),
+        if (isAdmin)
+          OutlinedButton.icon(
+            onPressed: _picking ? null : _pickImage,
+            icon: _picking
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : Icon(_bgBase64 == null ? Icons.image_outlined : Icons.check_circle_outline,
+                    color: _bgBase64 == null ? AppColors.textSecondary : AppColors.accent2),
+            label: Text(
+              _bgBase64 == null ? 'העלה תמונת לוח מטלות' : 'תמונה נבחרה ✓',
+              style: TextStyle(color: _bgBase64 == null ? AppColors.textSecondary : AppColors.accent2),
+            ),
+          )
+        else
+          Text('רק מנטור יכול להעלות תמונת רקע',
+              style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('ביטול')),
@@ -332,11 +337,12 @@ class _BoardEditorState extends State<_BoardEditor> {
         ),
         title: Text(widget.board.title, style: TextStyle(color: AppColors.textPrimary, fontSize: 16)),
         actions: [
-          IconButton(
-            icon: Icon(Icons.image_outlined, color: AppColors.textSecondary),
-            tooltip: 'שנה רקע',
-            onPressed: _pickBackground,
-          ),
+          if (context.read<AppProvider>().isAdmin)
+            IconButton(
+              icon: Icon(Icons.image_outlined, color: AppColors.textSecondary),
+              tooltip: 'שנה רקע',
+              onPressed: _pickBackground,
+            ),
           IconButton(
             icon: Icon(Icons.undo, color: _strokes.isEmpty ? AppColors.textTertiary : AppColors.textSecondary),
             tooltip: 'בטל',
