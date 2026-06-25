@@ -109,7 +109,7 @@ function isNewerVersion(remote, current) {
 }
 
 function downloadAndInstall(win, version) {
-  const downloadUrl = `https://github.com/amituti31-dev/fll-manager/releases/latest/download/FLL.Manager.Setup.exe`;
+  const downloadUrl = `https://github.com/amituti31-dev/fll-manager/releases/download/v${version}/FLL.Manager.Setup.exe`;
   shell.openExternal(downloadUrl);
   dialog.showMessageBox(win, {
     type: 'info',
