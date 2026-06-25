@@ -1,4 +1,4 @@
-var C = "fll-v4";
+var C = "fll-v5";
 self.addEventListener("install", e => { /* wait for SKIP_WAITING message from page */ });
 self.addEventListener("message", e => {
   if (e.data?.type === "SKIP_WAITING") self.skipWaiting();
