@@ -1,6 +1,6 @@
 {
   "name": "fll-manager",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "FLL Team Manager – Unearthed 2026",
   "main": "main.js",
   "scripts": {

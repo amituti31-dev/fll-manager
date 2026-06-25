@@ -68,11 +68,11 @@ class _ShellScreenState extends State<ShellScreen> {
     _NavItem('👥', 'ניהול קבוצה'),
     _NavItem('📋', 'המשימות שלי'),
     _NavItem('📦', 'ארכיון עונות'),
-    _NavItem('⚙️', 'הגדרות'),
     _NavItem('🖼️', 'גלריית עונה'),
     _NavItem('🎓', 'שאלות שיפוט'),
     _NavItem('🔗', 'ספריית קישורים'),
     _NavItem('🗺️', 'לוח אסטרטגיה'),
+    _NavItem('⚙️', 'הגדרות'),
   ];
 
   Widget _buildScreen(int index) {
@@ -87,11 +87,11 @@ class _ShellScreenState extends State<ShellScreen> {
       7 => const TeamScreen(),
       8 => const MyTasksScreen(),
       9 => const ArchiveScreen(),
-      10 => const SettingsScreen(),
-      11 => const GalleryScreen(),
-      12 => const JudgingScreen(),
-      13 => const LinksScreen(),
-      14 => const StrategyBoardScreen(),
+      10 => const GalleryScreen(),
+      11 => const JudgingScreen(),
+      12 => const LinksScreen(),
+      13 => const StrategyBoardScreen(),
+      14 => const SettingsScreen(),
       _ => DashboardScreen(navigateTo: (i) => setState(() => _selectedIndex = i)),
     };
   }
@@ -214,9 +214,9 @@ class _ShellScreenState extends State<ShellScreen> {
         RobotScreen.showAddDialog(context);
       case 7:
         TeamScreen.showAddTaskDialog(context);
-      case 13:
+      case 12:
         LinksScreen.showAddDialog(context);
-      case 14:
+      case 13:
         StrategyBoardScreen.showAddDialog(context);
       default:
         DailyScreen.showAddDialog(context);
