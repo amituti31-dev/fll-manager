@@ -221,7 +221,7 @@ if ('serviceWorker' in navigator) {
       'box-shadow:0 4px 24px rgba(0,0,0,0.4)', 'font-size:14px'
     ].join(';');
     banner.innerHTML = `
-      <span>⬆️ עדכון חדש זמין!</span>
+      <span>⬆️ עדכון v1.0.2 זמין!</span>
       <button id="sw-update-btn" style="padding:7px 16px;border-radius:10px;border:2px solid rgba(255,255,255,0.7);background:rgba(255,255,255,0.2);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">
         🔄 עדכן עכשיו
       </button>
