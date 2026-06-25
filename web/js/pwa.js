@@ -2,7 +2,6 @@
 // § 27 · PWA
 // ═══════════════════════════════════════════════════════
 async function installPWA() {
-  // הצג מודאל מותאם אישית
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
   overlay.innerHTML = `
@@ -39,23 +38,79 @@ async function installPWA() {
         if (btn) btn.style.display = 'none';
       }
     } else {
-      // דפדפן שלא תומך ב-beforeinstallprompt — הוראות ידניות
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const guide = document.createElement('div');
-      guide.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px';
-      guide.innerHTML = `
-        <div style="background:var(--surface);border-radius:20px;padding:28px;width:100%;max-width:360px;border:1px solid var(--border)">
-          <div style="font-weight:800;font-size:16px;margin-bottom:16px">📱 הוראות הוספה ידנית</div>
-          <div style="font-size:13px;color:var(--text2);line-height:1.9">
-            <strong>Chrome / Android:</strong><br>
-            תפריט ⋮ ← "הוסף למסך הבית"<br><br>
-            <strong>Safari / iPhone:</strong><br>
-            כפתור שיתוף □↑ ← "הוסף למסך הבית"
+
+      if (isIOS) {
+        guide.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:auto';
+        guide.innerHTML = `
+          <div id="ios-guide-bg" style="position:absolute;inset:0;background:rgba(0,0,0,0.65)"></div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 16px 90px">
+            <div style="background:var(--surface);border-radius:20px;padding:22px;border:1px solid var(--border);text-align:center">
+              <div style="font-size:42px;margin-bottom:10px">📲</div>
+              <div style="font-weight:800;font-size:17px;color:var(--text);margin-bottom:18px">הוסף למסך הבית</div>
+              <div style="display:flex;flex-direction:column;gap:10px;text-align:right">
+                <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px">
+                  <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">⬆️</div>
+                  <div>
+                    <div style="font-weight:700;font-size:14px;color:var(--text)">שלב 1</div>
+                    <div style="font-size:13px;color:var(--text2)">לחץ כפתור השיתוף בתחתית Safari</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px">
+                  <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent3),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">➕</div>
+                  <div>
+                    <div style="font-weight:700;font-size:14px;color:var(--text)">שלב 2</div>
+                    <div style="font-size:13px;color:var(--text2)">בחר "הוסף למסך הבית"</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px">
+                  <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),#00a080);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">✅</div>
+                  <div>
+                    <div style="font-weight:700;font-size:14px;color:var(--text)">שלב 3</div>
+                    <div style="font-size:13px;color:var(--text2)">לחץ "הוסף" — זהו!</div>
+                  </div>
+                </div>
+              </div>
+              <button id="ios-guide-close" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">סגור</button>
+            </div>
+            <div style="text-align:center;margin-top:10px">
+              <span style="font-size:38px;color:#fff;display:inline-block;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));animation:fll-bounce 1s ease-in-out infinite">↓</span>
+            </div>
           </div>
-          <button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:20px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">סגור</button>
-        </div>
-      `;
-      document.body.appendChild(guide);
-      guide.addEventListener('click', e => { if (e.target === guide) guide.remove(); });
+          <style>@keyframes fll-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(10px)}}</style>
+        `;
+        document.body.appendChild(guide);
+        document.getElementById('ios-guide-bg').onclick = () => guide.remove();
+        document.getElementById('ios-guide-close').onclick = () => guide.remove();
+      } else {
+        guide.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:auto';
+        guide.innerHTML = `
+          <div style="background:var(--surface);border-radius:20px;padding:24px;width:100%;max-width:360px;border:1px solid var(--border);text-align:center">
+            <div style="font-size:42px;margin-bottom:10px">📲</div>
+            <div style="font-weight:800;font-size:17px;color:var(--text);margin-bottom:18px">הוסף למסך הבית</div>
+            <div style="display:flex;flex-direction:column;gap:10px;text-align:right">
+              <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px">
+                <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">⋮</div>
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:var(--text)">שלב 1</div>
+                  <div style="font-size:13px;color:var(--text2)">לחץ על תפריט ⋮ בפינה העליונה</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border-radius:12px;padding:12px">
+                <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent3),var(--gold));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px">➕</div>
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:var(--text)">שלב 2</div>
+                  <div style="font-size:13px;color:var(--text2)">בחר "הוסף למסך הבית"</div>
+                </div>
+              </div>
+            </div>
+            <button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">סגור</button>
+          </div>
+        `;
+        document.body.appendChild(guide);
+        guide.addEventListener('click', e => { if (e.target === guide) guide.remove(); });
+      }
     }
   };
 }
@@ -133,9 +188,7 @@ let _swReg = null;
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(reg => {
     _swReg = reg;
-    // Already a waiting SW (e.g. tab was open during deploy)
     if (reg.waiting) _showUpdateBanner(reg.waiting);
-    // New SW found while page is open
     reg.addEventListener('updatefound', () => {
       const incoming = reg.installing;
       incoming.addEventListener('statechange', () => {
@@ -146,7 +199,6 @@ if ('serviceWorker' in navigator) {
     });
   }).catch(() => {});
 
-  // After user clicks "update", new SW takes control → reload
   let _reloadOnChange = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (_reloadOnChange) window.location.reload();
@@ -191,11 +243,10 @@ window.addEventListener('resize', () => {
     document.getElementById('sidebar').classList.remove('mobile-hidden', 'closed');
     document.getElementById('sidebar-overlay').classList.remove('show');
   } else if (window.innerWidth < 1024) {
-    // auto-collapse on small screens
   }
 });
 
-// Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(ov => {
   ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
 });
+

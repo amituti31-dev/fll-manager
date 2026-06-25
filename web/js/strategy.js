@@ -161,6 +161,7 @@ function sbClearDrawing() {
 }
 
 function sbUploadBackground(event) {
+  if (!state.isAdmin) { notify('רק מנטור יכול להעלות תמונת רקע', 'error'); event.target.value = ''; return; }
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -179,6 +180,7 @@ function sbUploadBackground(event) {
 }
 
 function sbClearBackground() {
+  if (!state.isAdmin) { notify('רק מנטור יכול להסיר תמונת רקע', 'error'); return; }
   if (!confirm('למחוק את תמונת הרקע? הציור יישמר.')) return;
   state.strategyBoardImage = null;
   saveState();

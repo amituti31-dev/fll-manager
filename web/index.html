@@ -927,7 +927,7 @@
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             <button class="btn btn-ghost" onclick="sbUndo()" title="בטל פעולה">↩ בטל</button>
             <button class="btn btn-ghost" onclick="sbClearDrawing()" title="מחק ציור">🗑 נקה</button>
-            <label class="btn btn-ghost" style="cursor:pointer" title="העלה תמונת רקע">
+            <label class="btn btn-ghost admin-only" style="cursor:pointer" title="העלה תמונת רקע">
               📸 רקע
               <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
             </label>
@@ -940,12 +940,15 @@
           <canvas id="strategy-canvas"></canvas>
           <div id="sb-placeholder" class="sb-placeholder">
             <div style="font-size:40px;margin-bottom:12px">🗺️</div>
-            <div style="font-size:15px;margin-bottom:8px">העלה תמונת לוח משימות</div>
-            <label class="btn btn-primary" style="cursor:pointer;font-size:14px;padding:10px 22px;display:inline-flex;align-items:center;gap:8px">
-              📸 בחר תמונה
-              <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
-            </label>
-            <div style="font-size:12px;margin-top:10px;color:var(--text3)">ניתן לסרטט בחופשיות על גבי התמונה</div>
+            <div style="font-size:15px;margin-bottom:8px">לוח אסטרטגיה</div>
+            <div class="admin-only">
+              <label class="btn btn-primary" style="cursor:pointer;font-size:14px;padding:10px 22px;display:inline-flex;align-items:center;gap:8px">
+                📸 בחר תמונה
+                <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
+              </label>
+              <div style="font-size:12px;margin-top:10px;color:var(--text3)">ניתן לסרטט בחופשיות על גבי התמונה</div>
+            </div>
+            <div class="student-only" style="font-size:13px;color:var(--text3);margin-top:8px">המנטור טרם העלה תמונת לוח</div>
           </div>
         </div>
       </div>

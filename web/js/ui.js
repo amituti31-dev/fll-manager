@@ -17,6 +17,9 @@ function updateAdminUI() {
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = state.isAdmin ? '' : 'none';
   });
+  document.querySelectorAll('.student-only').forEach(el => {
+    el.style.display = state.isAdmin ? 'none' : '';
+  });
   document.getElementById('role-pill').textContent = state.isAdmin ? 'מנטור' : 'תלמיד';
   document.getElementById('role-label').textContent = state.isAdmin ? 'מצב אדמין' : 'מצב תלמיד';
 }
