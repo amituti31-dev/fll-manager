@@ -1,2 +1,8 @@
 .github-token
 **/.claude/settings.local.json
+dist/
+backup/
+node_modules/
+fll_manager/
+ios/
+*.bat
