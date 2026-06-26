@@ -52,7 +52,7 @@ $f = $f -replace "static const _currentVersion = '[^']*'", "static const _curren
 [System.IO.File]::WriteAllText("$AndroidDir\lib\main.dart", $f, $UTF8)
 
 $f = [System.IO.File]::ReadAllText("$AndroidDir\lib\screens\settings\settings_screen.dart", $UTF8)
-$f = $f -replace "(?<=גרסה )\d+\.\d+\.\d+(?= – )", $NewVersion
+$f = [regex]::Replace($f, '\d+\.\d+\.\d+(?= . Unearthed)', $NewVersion)
 [System.IO.File]::WriteAllText("$AndroidDir\lib\screens\settings\settings_screen.dart", $f, $UTF8)
 
 Write-Host "  OK" -ForegroundColor Green
@@ -78,7 +78,7 @@ Write-Host "  OK ($apkMB MB)" -ForegroundColor Green
 # [4] Git push
 Write-Host "[4/7] Git push..." -ForegroundColor Yellow
 git -C $WebDir     add index.html version.json js/pwa.js
-git -C $AndroidDir add lib/main.dart lib/screens/settings/settings_screen.dart
+git -C $AndroidDir add lib/main.dart lib/screens/settings/settings_screen.dart lib/screens/shell_screen.dart
 git -C $Root       add package.json main.js
 git -C $Root       commit -m "Release v$NewVersion"
 git -C $Root       push

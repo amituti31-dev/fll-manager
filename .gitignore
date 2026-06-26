@@ -1,5 +1,6 @@
 .github-token
 **/.claude/settings.local.json
+**/.claude/settings.json
 dist/
 backup/
 node_modules/
