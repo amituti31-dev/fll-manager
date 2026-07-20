@@ -4,7 +4,7 @@
 //  §01  UTILITIES .............. sanitize, sanitizeUrl, formatDate, notify
 //  §02  CONSTANTS & STATE ....... MISSIONS_2026, OFFICIAL_RUBRICS, state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
-//  §04  PIN SYSTEM .............. pinBuffer, pinInput, checkPin
+//  §04  AUTH LOGIN .............. Firebase Auth (Google / email)
 //  §05  TEAM SETUP .............. loginGoTo, create team, join team
 //  §06  APP CORE ................ initApp, navigate, populateAll, sidebar
 //  §07  THEME & ROLE ............ setTheme, applyTheme, toggleRole
@@ -24,7 +24,7 @@
 //  §21  CHECKLIST ............... renderChecklist, toggleChecklist
 //  §22  ARCHIVE & SEASONS ....... renderSeasons, viewArchivedSeason
 //  §23  EXPORT & PDF ............ exportData, exportSeasonData
-//  §24  SETTINGS ................ changePin, saveTeamSettings, adminChangeName
+//  §24  SETTINGS ................ saveTeamSettings, adminChangeName
 //  §25  STATS & CHARTS .......... updateStats, initCharts, updateCharts
 //  §26  MODALS & NOTIFICATIONS .. openModal, closeModal, notify
 //  §27  PWA ..................... installPWA, service worker

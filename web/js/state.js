@@ -100,16 +100,33 @@ async function saveState() {
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(async () => {
     if (!window.db) return;
-  try {
     const { members, logs, improvements, findings, rubrics, scores, checklist, seasons, missionChecks, setup, teamName, teamLogo, currentSeason } = state;
-    await window.db.collection(window.FB_PROJECT).doc("settings").set({ setup, teamName, teamLogo: teamLogo || null, currentSeason, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null }, { merge: true });
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
     const customMissions = state.customMissions || [];
     const links = state.links || [];
     const judgingDoc = state.judgingDoc || null;
-    await window.db.collection(window.FB_PROJECT).doc("data").set({ members, logs, improvements, findings, rubrics, scores, checklist, seasons, missionChecks, stickies, memberTasks, customMissions, links, judgingDoc }, { merge: true });
-  } catch(e) { console.error("Firestore save error:", e); }
+    const col = window.db.collection(window.FB_PROJECT);
+
+    // Sensitive team config — mentor-only per Firestore rules.
+    const settingsDoc = { setup, teamName, teamLogo: teamLogo || null, currentSeason, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null };
+    // Shared data every member (incl. students) may edit.
+    const sharedData = { logs, improvements, findings, stickies, memberTasks };
+    // Sensitive data — mentor-only per Firestore rules.
+    const adminData = { members, scores, rubrics, checklist, seasons, customMissions, links, judgingDoc, missionChecks };
+
+    // Write the three docs independently so that a legitimate student
+    // write to `data` still succeeds even when the mentor-only writes
+    // to `settings`/`admin-data` are rejected by the rules.
+    const docNames = ['settings', 'data', 'admin-data'];
+    const results = await Promise.allSettled([
+      col.doc('settings').set(settingsDoc, { merge: true }),
+      col.doc('data').set(sharedData, { merge: true }),
+      col.doc('admin-data').set(adminData, { merge: true }),
+    ]);
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') console.warn(`Firestore save (${docNames[i]}) skipped:`, r.reason && (r.reason.code || r.reason.message || r.reason));
+    });
   }, 1000);
 }
 
@@ -129,12 +146,14 @@ async function loadState() {
   }
 
   try {
-    const [settingsSnap, dataSnap] = await Promise.all([
+    const [settingsSnap, dataSnap, adminSnap] = await Promise.all([
       window.db.collection(window.FB_PROJECT).doc("settings").get(),
       window.db.collection(window.FB_PROJECT).doc("data").get(),
+      window.db.collection(window.FB_PROJECT).doc("admin-data").get(),
     ]);
     if (settingsSnap.exists) Object.assign(state, settingsSnap.data());
     if (dataSnap.exists) Object.assign(state, dataSnap.data());
+    if (adminSnap.exists) Object.assign(state, adminSnap.data());
     console.log("Loaded from Firestore, project:", window.FB_PROJECT);
     return;
   } catch(e) {
@@ -157,11 +176,23 @@ async function findTeamForUser(email) {
   return null;
 }
 
-// רושם מייל ברגיסטרי — קושר אותו לקבוצה
-async function registerUserToTeam(email, teamId) {
+// רושם מייל ברגיסטרי — קושר אותו לקבוצה + שומר את התפקיד
+// כדי שחוקי ה-Firestore יוכלו לאכוף הרשאות מנטור בצד השרת.
+async function registerUserToTeam(email, teamId, role) {
   if (!window.db) return;
   try {
     const key = email.replace(/[.@]/g, '_');
-    await window.db.collection(window.FB_REGISTRY).doc(key).set({ teamId, email });
+    await window.db.collection(window.FB_REGISTRY).doc(key).set({ teamId, email, role: role || 'student' });
   } catch(e) { console.warn('Registry write failed:', e); }
+}
+
+// מחזיר את התפקיד הרשום ל-email עבור הקבוצה (או null אם לא נמצא)
+async function getRegistryRole(email) {
+  if (!window.db) return null;
+  try {
+    const key = email.replace(/[.@]/g, '_');
+    const snap = await window.db.collection(window.FB_REGISTRY).doc(key).get();
+    if (snap.exists) return snap.data().role || 'student';
+  } catch(e) {}
+  return null;
 }
