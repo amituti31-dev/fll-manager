@@ -822,18 +822,6 @@
             <div id="name-change-info" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
             <button class="btn btn-ghost" onclick="changeMyName()">✏️ שנה שם</button>
           </div>
-          <div class="card">
-            <div class="card-header"><span class="card-icon">🔐</span><span class="card-title">אבטחה</span></div>
-            <div class="form-group">
-              <label class="form-label">שינוי קוד PIN</label>
-              <input type="password" class="form-input" id="new-pin" maxlength="6" placeholder="קוד חדש (6 ספרות)" inputmode="numeric">
-            </div>
-            <button class="btn btn-ghost" onclick="changePin()">🔒 שנה קוד</button>
-            <div style="margin-top:12px">
-              <button class="btn btn-ghost" style="font-size:12px" onclick="setupBiometric()">👆 הגדר טביעת אצבע</button>
-            </div>
-          </div>
-
           <div class="card admin-only">
             <div class="card-header"><span class="card-icon">🔗</span><span class="card-title">קודי הצטרפות לקבוצה</span></div>
             <p style="color:var(--text2);font-size:13px;margin-bottom:12px">שתף את הקוד המתאים עם כל חבר</p>
@@ -1058,10 +1046,6 @@
         <option value="student">תלמיד</option>
         <option value="admin">מנטור</option>
       </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">PIN ראשוני (ברירת מחדל: 123456)</label>
-      <input type="text" class="form-input" id="member-pin" value="123456" maxlength="6" inputmode="numeric">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="closeModal('modal-member')">ביטול</button>

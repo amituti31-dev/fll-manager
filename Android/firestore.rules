@@ -8,7 +8,7 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email != null;
     }
 
-    // Replicates the Dart key: email.replaceAll(RegExp(r'[.@]'), '_')
+    // Replicates the JS/Dart key: email.replaceAll(RegExp(r'[.@]'), '_')
     // e.g. "amit@gmail.com" → "amit_gmail_com"
     function emailKey() {
       return request.auth.token.email
@@ -27,30 +27,70 @@ service cloud.firestore {
         && get(myRegistryDoc()).data.teamId == teamId;
     }
 
+    // True when the signed-in user is a registered MENTOR (role == 'admin')
+    // of this team. Enforced server-side so a student cannot perform
+    // mentor-only actions by tampering with the client.
+    function isMentor(teamId) {
+      return isMember(teamId)
+        && get(myRegistryDoc()).data.role == 'admin';
+    }
+
     // ── Registry (fll-teams-registry) ──────────────────────────────────
     //
     // Read  — any authenticated user: needed to look up join codes
     //         before the user has their own registry entry.
-    // Write — any authenticated user: needed for self-registration
-    //         (registerUserToTeam) and join-code creation (saveJoinCodes).
+    // Write — restricted so a user can only:
+    //         * write their OWN registry entry (self-registration on
+    //           join / leave — key derived from their email), or
+    //         * as a mentor, add/update an entry within their own team
+    //           (adding members, saving join codes), or
+    //         * as a mentor, delete an entry within their own team
+    //           (removing members, deleting the team).
+    //         This stops a student from rewriting another member's role
+    //         or otherwise tampering with the registry.
     //
     match /fll-teams-registry/{doc} {
-      allow read, write: if isAuth();
+      allow read: if isAuth();
+      allow write: if isAuth() && (
+        doc == emailKey()
+        || (request.resource != null
+            && request.resource.data.teamId is string
+            && isMentor(request.resource.data.teamId))
+        || (resource != null
+            && resource.data.teamId is string
+            && isMentor(resource.data.teamId))
+      );
     }
 
     // ── Team data (/{teamId}/…) ────────────────────────────────────────
     //
-    // Existing members can read and write everything in their team.
+    // Members can READ everything in their team, and WRITE the shared,
+    // student-editable documents (data, chats, gallery, links, …).
     //
-    // 'create' also allowed for a document that doesn't yet exist when
-    // /settings hasn't been written — this covers the initTeamData()
-    // call during team creation (the user isn't in the registry yet).
-    // teamIds are long random strings so collision risk is negligible.
+    // 'settings' and 'admin-data' hold sensitive data (team config,
+    // members, scores, rubrics, checklist, …) and may only be written by
+    // a mentor of the team.
+    //
+    // 'create' is allowed for the initial team-creation write, when
+    // /settings doesn't exist yet (the creator isn't in the registry
+    // yet). teamIds are long random strings so collision risk is
+    // negligible.
     //
     match /{teamId}/{document} {
-      allow read, write: if isMember(teamId);
+      allow read: if isMember(teamId);
+      allow write: if isMember(teamId)
+        && document != 'settings'
+        && document != 'admin-data';
       allow create: if isAuth()
         && !exists(/databases/$(database)/documents/$(teamId)/settings);
+    }
+
+    match /{teamId}/settings {
+      allow write: if isMentor(teamId);
+    }
+
+    match /{teamId}/admin-data {
+      allow write: if isMentor(teamId);
     }
   }
 }

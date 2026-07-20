@@ -88,13 +88,6 @@ function adminChangeName(memberId) {
     notify(`✅ שם שונה ל-${newName}`, 'success');
   }
 }
-function changePin() {
-  const np = document.getElementById('new-pin').value.trim();
-  if (!np || np.length !== 6 || !/^\d+$/.test(np)) { notify('קוד חייב להיות 6 ספרות', 'error'); return; }
-  if (state.currentUser) { state.currentUser.pin = np; const m = state.members.find(m => m.id === state.currentUser.id); if (m) m.pin = np; }
-  saveState(); notify('✅ קוד שונה בהצלחה', 'success');
-  document.getElementById('new-pin').value = '';
-}
 function setupBiometric() {
   if (!window.PublicKeyCredential) { notify('הדפדפן לא תומך ב-WebAuthn', 'error'); return; }
   notify('👆 הגדרת טביעת אצבע בתהליך...', 'success');
