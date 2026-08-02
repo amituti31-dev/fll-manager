@@ -129,6 +129,12 @@ class AppProvider extends ChangeNotifier {
     );
     currentUser = member;
     isAdmin = member.isAdmin;
+    // Self-heal: keep the registry's role in sync on every login, so a role
+    // recorded before this field existed (or changed since) stays correct
+    // for the Firestore isMentor() check without needing a manual rejoin.
+    if (member.id.isNotEmpty) {
+      await FirebaseService.registerUserToTeam(email, tid, member.role);
+    }
     status = AppStatus.ready;
     notifyListeners();
   }
@@ -139,6 +145,7 @@ class AppProvider extends ChangeNotifier {
     if (teamId == null) return;
     final settings = await FirebaseService.loadSettings(teamId!);
     final data = await FirebaseService.loadData(teamId!);
+    final adminData = await FirebaseService.loadAdminData(teamId!);
 
     if (settings != null) {
       teamName = settings['teamName'] as String? ?? 'FLL Team';
@@ -165,35 +172,38 @@ class AppProvider extends ChangeNotifier {
     strategyBoards = strategyRaw.map(StrategyBoard.fromMap).toList();
 
     if (data != null) {
-      members = _parseList(data['members'], Member.fromMap);
       logs = _parseList(data['logs'], LogEntry.fromMap);
       innovationProblem = data['innovationProblem'] as String? ?? '';
       innovationSolution = data['innovationSolution'] as String? ?? '';
       improvements = _parseList(data['improvements'], Improvement.fromMap);
-      scores = _parseList(data['scores'], ScoreRun.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
+    }
 
-      if (data['checklist'] != null) {
-        checklist = _parseList(data['checklist'], ChecklistItem.fromMap);
+    if (adminData != null) {
+      members = _parseList(adminData['members'], Member.fromMap);
+      scores = _parseList(adminData['scores'], ScoreRun.fromMap);
+
+      if (adminData['checklist'] != null) {
+        checklist = _parseList(adminData['checklist'], ChecklistItem.fromMap);
       }
-      if (data['missionChecks'] != null) {
-        final raw = data['missionChecks'] as Map<String, dynamic>;
+      if (adminData['missionChecks'] != null) {
+        final raw = adminData['missionChecks'] as Map<String, dynamic>;
         missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
       }
-      if (data['missions'] != null) {
-        missions = _parseList(data['missions'], Mission.fromMap);
+      if (adminData['missions'] != null) {
+        missions = _parseList(adminData['missions'], Mission.fromMap);
       }
-      if (data['rubrics'] != null) {
-        final raw = data['rubrics'] as Map<String, dynamic>;
+      if (adminData['rubrics'] != null) {
+        final raw = adminData['rubrics'] as Map<String, dynamic>;
         rubrics = {
           'values': _parseList(raw['values'], RubricItem.fromMap),
           'robot': _parseList(raw['robot'], RubricItem.fromMap),
           'innovation': _parseList(raw['innovation'], RubricItem.fromMap),
         };
       }
-      if (data['judgingQuestions'] != null) {
-        judgingQuestions = _parseList(data['judgingQuestions'], JudgingQuestion.fromMap);
+      if (adminData['judgingQuestions'] != null) {
+        judgingQuestions = _parseList(adminData['judgingQuestions'], JudgingQuestion.fromMap);
       }
     }
   }
@@ -225,27 +235,38 @@ class AppProvider extends ChangeNotifier {
     await _saveSettings();
   }
 
+  // "data" — writable by any team member (students included).
   Future<void> _saveData() async {
     if (teamId == null) return;
     await FirebaseService.saveData(teamId!, {
       'innovationProblem': innovationProblem,
       'innovationSolution': innovationSolution,
-      'members': members.map((m) => m.toMap()).toList(),
       'logs': logs.map((l) => l.toMap()).toList(),
       'improvements': improvements.map((i) => i.toMap()).toList(),
-      'scores': scores.map((s) => s.toMap()).toList(),
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
-      'checklist': checklist.map((c) => c.toMap()).toList(),
-      'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
-      'missions': missions.map((m) => m.toMap()).toList(),
-      'rubrics': {
-        'values': rubrics['values']!.map((r) => r.toMap()).toList(),
-        'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
-        'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
-      },
-      'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
     });
+
+    // "admin-data" — mentor-only per Firestore rules. A non-mentor calling
+    // this (e.g. leaving the team removes them from `members` locally)
+    // will have this write rejected server-side; swallow it rather than
+    // let it block the rest of the flow (matches the web client, which
+    // catches Firestore write errors around this same data).
+    try {
+      await FirebaseService.saveAdminData(teamId!, {
+        'members': members.map((m) => m.toMap()).toList(),
+        'scores': scores.map((s) => s.toMap()).toList(),
+        'checklist': checklist.map((c) => c.toMap()).toList(),
+        'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
+        'missions': missions.map((m) => m.toMap()).toList(),
+        'rubrics': {
+          'values': rubrics['values']!.map((r) => r.toMap()).toList(),
+          'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
+          'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
+        },
+        'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
+      });
+    } catch (_) {}
   }
 
   Future<void> save() async {
@@ -325,22 +346,25 @@ class AppProvider extends ChangeNotifier {
       'mentorCode': mc,
       'studentCode': sc,
     }, {
-      'members': [founder.toMap()],
       'logs': [],
       'improvements': [],
-      'scores': [],
       'stickies': [],
       'memberTasks': [],
+      'innovationProblem': '',
+      'innovationSolution': '',
+    }, {
+      'members': [founder.toMap()],
+      'scores': [],
       'checklist': checklist.map((c) => c.toMap()).toList(),
       'missionChecks': {},
       'missions': missions.map((m) => m.toMap()).toList(),
       'rubrics': {'values': [], 'robot': [], 'innovation': []},
-      'innovationProblem': '',
-      'innovationSolution': '',
     });
 
+    // Register before writing join codes — the Firestore rules require the
+    // caller to already be recorded as this team's mentor to write them.
+    await FirebaseService.registerUserToTeam(email, tid, 'admin');
     await FirebaseService.saveJoinCodes(teamId: tid, teamName: tName, mentorCode: mc, studentCode: sc);
-    await FirebaseService.registerUserToTeam(email, tid);
 
     status = AppStatus.ready;
     notifyListeners();
@@ -354,13 +378,13 @@ class AppProvider extends ChangeNotifier {
     _resetToDefaults();
     teamId = tid;
 
-    await FirebaseService.registerUserToTeam(email, tid);
     await loadTeamData();
 
     final existing = members.firstWhere((m) => m.email == email, orElse: () => Member(id: '', name: '', email: '', role: '', color: AppColors.avatarColors[0]));
     if (existing.id.isNotEmpty) {
       currentUser = existing;
       isAdmin = existing.isAdmin;
+      await FirebaseService.registerUserToTeam(email, tid, existing.role);
     } else {
       final newMember = Member(
         id: FirebaseService.currentUser!.uid,
@@ -373,6 +397,7 @@ class AppProvider extends ChangeNotifier {
       currentUser = newMember;
       isAdmin = newMember.isAdmin;
       await _saveData();
+      await FirebaseService.registerUserToTeam(email, tid, role);
     }
     status = AppStatus.ready;
     notifyListeners();
@@ -507,7 +532,7 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
     await _saveData();
     if (teamId != null) {
-      await FirebaseService.registerUserToTeam(m.email, teamId!);
+      await FirebaseService.registerUserToTeam(m.email, teamId!, m.role);
     }
   }
 

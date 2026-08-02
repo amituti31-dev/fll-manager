@@ -94,9 +94,9 @@ class FirebaseService {
     return null;
   }
 
-  static Future<void> registerUserToTeam(String email, String teamId) async {
+  static Future<void> registerUserToTeam(String email, String teamId, String role) async {
     final key = email.replaceAll(RegExp(r'[.@]'), '_');
-    await _db.collection(_registry).doc(key).set({'teamId': teamId, 'email': email});
+    await _db.collection(_registry).doc(key).set({'teamId': teamId, 'email': email, 'role': role});
   }
 
   static Future<String?> findTeamByJoinCode(String code) async {
@@ -156,6 +156,13 @@ class FirebaseService {
     return snap.exists ? snap.data() : null;
   }
 
+  // "admin-data" — mentor-only per Firestore rules (members, scores,
+  // checklist, missionChecks, missions, rubrics, judgingQuestions).
+  static Future<Map<String, dynamic>?> loadAdminData(String teamId) async {
+    final snap = await _db.collection(teamId).doc('admin-data').get();
+    return snap.exists ? snap.data() : null;
+  }
+
   static Future<void> saveSettings(String teamId, Map<String, dynamic> data) async {
     await _db.collection(teamId).doc('settings').set(data, SetOptions(merge: true));
   }
@@ -164,11 +171,21 @@ class FirebaseService {
     await _db.collection(teamId).doc('data').set(data, SetOptions(merge: true));
   }
 
+  static Future<void> saveAdminData(String teamId, Map<String, dynamic> data) async {
+    await _db.collection(teamId).doc('admin-data').set(data, SetOptions(merge: true));
+  }
+
   // Full overwrite — used on team creation to wipe any stale data at that ID
-  static Future<void> initTeamData(String teamId, Map<String, dynamic> settings, Map<String, dynamic> data) async {
+  static Future<void> initTeamData(
+    String teamId,
+    Map<String, dynamic> settings,
+    Map<String, dynamic> data,
+    Map<String, dynamic> adminData,
+  ) async {
     await Future.wait([
       _db.collection(teamId).doc('settings').set(settings),
       _db.collection(teamId).doc('data').set(data),
+      _db.collection(teamId).doc('admin-data').set(adminData),
     ]);
   }
 
@@ -181,6 +198,7 @@ class FirebaseService {
     final futures = <Future>[
       _db.collection(teamId).doc('settings').delete(),
       _db.collection(teamId).doc('data').delete(),
+      _db.collection(teamId).doc('admin-data').delete(),
       _db.collection(teamId).doc('chats').delete(),
       _db.collection(teamId).doc('archives').delete(),
       _db.collection(teamId).doc('gallery').delete(),

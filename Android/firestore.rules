@@ -39,6 +39,19 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/$(teamId)/settings);
     }
 
+    // Mentor-only team documents, shared by the web and Android clients.
+    // 'settings' (config + join codes) and 'admin-data' (members, scores,
+    // rubrics, checklist, missionChecks, customMissions/missions,
+    // judgingQuestions/judgingDoc) are written by both clients. 'archives'
+    // (season history) and 'links' are Android-only documents that hold
+    // the same kind of mentor-managed data the web client folds into
+    // 'admin-data'. Everything else ('data', 'chats', 'gallery',
+    // 'strategy', 'judging_pdf', …) stays read/write for any team member.
+    function isProtectedDoc(document) {
+      return document == 'settings' || document == 'admin-data'
+        || document == 'archives' || document == 'links';
+    }
+
     // ── Registry (fll-teams-registry) ──────────────────────────────────
     //
     // Read  — any authenticated user: needed to look up join codes
@@ -49,7 +62,10 @@ service cloud.firestore {
     //   1. Self-registration: a user may create their own email-keyed
     //      entry (registerUserToTeam), and may later update it only if
     //      the recorded role doesn't change — this blocks a member from
-    //      flipping their own already-recorded role to 'admin'.
+    //      flipping their own already-recorded role to 'admin'. An entry
+    //      written before the 'role' field existed may set it once (the
+    //      client self-heals this on every login); after that, the role
+    //      is locked the same way.
     //   2. A mentor may create/update entries whose teamId is their own
     //      team — this covers generating the mentor_<code>/student_<code>
     //      join-code lookup docs (Settings screen) and fixing up another
@@ -63,7 +79,7 @@ service cloud.firestore {
 
       allow create: if isAuth() && doc == emailKey();
       allow update: if isAuth() && doc == emailKey()
-        && request.resource.data.role == resource.data.role;
+        && (!('role' in resource.data) || request.resource.data.role == resource.data.role);
 
       allow create, update: if isAuth() && isMentor(request.resource.data.teamId);
 
@@ -72,12 +88,8 @@ service cloud.firestore {
 
     // ── Team data (/{teamId}/…) ────────────────────────────────────────
     //
-    // 'settings' (team config + join codes) and 'admin-data' (member
-    // roster, scores, rubrics, checklist, seasons, custom missions,
-    // links, judging doc) hold mentor-only data. Any team member can
-    // READ them, but only a mentor can WRITE. Everything else — 'data'
-    // (logs/improvements/findings/stickies/memberTasks) and 'chats' —
-    // stays read/write for any team member.
+    // Any team member can READ every document in their team, but only a
+    // mentor can WRITE a protected one (see isProtectedDoc above).
     //
     // 'create' is additionally allowed for a document that doesn't yet
     // exist when 'settings' hasn't been written — this covers the
@@ -85,22 +97,11 @@ service cloud.firestore {
     // registry entry yet. teamIds are long random strings so collision
     // risk is negligible.
     //
-    match /{teamId}/settings {
-      allow read: if isMember(teamId);
-      allow create: if isAuth() && !teamCreated(teamId);
-      allow update, delete: if isMentor(teamId);
-    }
-
-    match /{teamId}/admin-data {
-      allow read: if isMember(teamId);
-      allow create: if isAuth() && !teamCreated(teamId);
-      allow update, delete: if isMentor(teamId);
-    }
-
     match /{teamId}/{document} {
-      allow read, write: if isMember(teamId) && document != 'settings' && document != 'admin-data';
-      allow create: if isAuth() && !teamCreated(teamId)
-        && document != 'settings' && document != 'admin-data';
+      allow read: if isMember(teamId);
+      allow write: if isMember(teamId) && !isProtectedDoc(document);
+      allow write: if isMentor(teamId) && isProtectedDoc(document);
+      allow create: if isAuth() && !teamCreated(teamId);
     }
   }
 }
