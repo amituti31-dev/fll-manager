@@ -800,7 +800,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div class="card admin-only">
             <div class="card-header"><span class="card-icon">👥</span><span class="card-title">פרטי קבוצה</span></div>
             <div class="form-group">
               <label class="form-label">שם הקבוצה</label>
@@ -1058,10 +1058,6 @@
         <option value="student">תלמיד</option>
         <option value="admin">מנטור</option>
       </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">PIN ראשוני (ברירת מחדל: 123456)</label>
-      <input type="text" class="form-input" id="member-pin" value="123456" maxlength="6" inputmode="numeric">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="closeModal('modal-member')">ביטול</button>

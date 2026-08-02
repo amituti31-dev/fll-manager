@@ -101,14 +101,23 @@ async function saveState() {
   _saveTimer = setTimeout(async () => {
     if (!window.db) return;
   try {
-    const { members, logs, improvements, findings, rubrics, scores, checklist, seasons, missionChecks, setup, teamName, teamLogo, currentSeason } = state;
+    const { setup, teamName, teamLogo, currentSeason } = state;
     await window.db.collection(window.FB_PROJECT).doc("settings").set({ setup, teamName, teamLogo: teamLogo || null, currentSeason, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null }, { merge: true });
+
+    // "data" — writable by any team member (students included).
+    const { logs, improvements, findings } = state;
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
+    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks }, { merge: true });
+
+    // "admin-data" — mentor-only per Firestore rules. Never sync raw PINs
+    // to clients: strip them from the members list before writing.
+    const { scores, rubrics, checklist, seasons, missionChecks } = state;
+    const members = (state.members || []).map(({ pin, ...rest }) => rest);
     const customMissions = state.customMissions || [];
     const links = state.links || [];
     const judgingDoc = state.judgingDoc || null;
-    await window.db.collection(window.FB_PROJECT).doc("data").set({ members, logs, improvements, findings, rubrics, scores, checklist, seasons, missionChecks, stickies, memberTasks, customMissions, links, judgingDoc }, { merge: true });
+    await window.db.collection(window.FB_PROJECT).doc("admin-data").set({ members, scores, rubrics, checklist, seasons, missionChecks, customMissions, links, judgingDoc }, { merge: true });
   } catch(e) { console.error("Firestore save error:", e); }
   }, 1000);
 }
@@ -129,12 +138,14 @@ async function loadState() {
   }
 
   try {
-    const [settingsSnap, dataSnap] = await Promise.all([
+    const [settingsSnap, dataSnap, adminDataSnap] = await Promise.all([
       window.db.collection(window.FB_PROJECT).doc("settings").get(),
       window.db.collection(window.FB_PROJECT).doc("data").get(),
+      window.db.collection(window.FB_PROJECT).doc("admin-data").get(),
     ]);
     if (settingsSnap.exists) Object.assign(state, settingsSnap.data());
     if (dataSnap.exists) Object.assign(state, dataSnap.data());
+    if (adminDataSnap.exists) Object.assign(state, adminDataSnap.data());
     console.log("Loaded from Firestore, project:", window.FB_PROJECT);
     return;
   } catch(e) {
@@ -157,11 +168,12 @@ async function findTeamForUser(email) {
   return null;
 }
 
-// רושם מייל ברגיסטרי — קושר אותו לקבוצה
-async function registerUserToTeam(email, teamId) {
+// רושם מייל ברגיסטרי — קושר אותו לקבוצה ולתפקיד (מנטור/תלמיד), כדי
+// שחוקי ה-Firestore יוכלו לאכוף הרשאות בצד השרת
+async function registerUserToTeam(email, teamId, role) {
   if (!window.db) return;
   try {
     const key = email.replace(/[.@]/g, '_');
-    await window.db.collection(window.FB_REGISTRY).doc(key).set({ teamId, email });
+    await window.db.collection(window.FB_REGISTRY).doc(key).set({ teamId, email, role });
   } catch(e) { console.warn('Registry write failed:', e); }
 }

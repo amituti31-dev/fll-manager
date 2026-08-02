@@ -1,53 +1,4 @@
 // ═══════════════════════════════════════════════════════
-// § 04 · PIN SYSTEM
-// ═══════════════════════════════════════════════════════
-let pinBuffer = '';
-let selectedLoginRole = 'student'; // default
-
-function selectLoginRole(role) {
-  selectedLoginRole = role;
-  const sBtn = document.getElementById('role-btn-student');
-  const mBtn = document.getElementById('role-btn-mentor');
-  if (role === 'student') {
-    sBtn.style.background = 'var(--accent)'; sBtn.style.color = '#fff';
-    mBtn.style.background = 'transparent'; mBtn.style.color = 'var(--text2)';
-  } else {
-    mBtn.style.background = 'var(--accent3)'; mBtn.style.color = '#fff';
-    sBtn.style.background = 'transparent'; sBtn.style.color = 'var(--text2)';
-  }
-  pinBuffer = ''; updatePinDots();
-  document.getElementById('pin-error').textContent = '';
-}
-
-function pinInput(d) {
-  if (d === '') return;
-  if (pinBuffer.length < 6) { pinBuffer += d; updatePinDots(); }
-  if (pinBuffer.length === 6) setTimeout(checkPin, 100);
-}
-function clearPin() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
-function updatePinDots() {
-  document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
-}
-function checkPin() {
-  document.getElementById('pin-error').textContent = '';
-  // Filter members by selected role
-  const roleFilter = selectedLoginRole === 'mentor' ? 'admin' : 'student';
-  const user = state.members.find(m => m.pin === pinBuffer && m.role === roleFilter);
-  if (user) {
-    state.currentUser = user;
-    // Admin mode only if user is actually a mentor
-    state.isAdmin = user.role === 'admin';
-    document.getElementById('pin-screen').style.display = 'none';
-    initApp();
-  } else {
-    document.getElementById('pin-error').textContent = '❌ קוד שגוי או תפקיד לא מתאים';
-    pinBuffer = '';
-    updatePinDots();
-  }
-}
-function showForgotPin() { notify('📧 בקשת איפוס נשלחה לאימייל', 'success'); }
-
-// ═══════════════════════════════════════════════════════
 // § 05 · TEAM SETUP
 // ═══════════════════════════════════════════════════════
 function loginGoTo(step) {
@@ -173,7 +124,7 @@ async function joinWithCode() {
     if (existing) {
       state.currentUser = existing;
       state.isAdmin = existing.role === 'admin';
-      await registerUserToTeam(fbUser.email, teamId);
+      await registerUserToTeam(fbUser.email, teamId, existing.role);
       try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
       window._joiningInProgress = false;
       document.getElementById('pin-screen').style.display = 'none';
@@ -186,13 +137,13 @@ async function joinWithCode() {
     const colors = ['#3d7fff','#00d4a0','#ff6b35','#f5c842','#ff4d6d','#9c6fe4'];
     const newMember = {
       id: fbUser.uid, name: fullName, role, email: fbUser.email,
-      color: colors[state.members.length % colors.length], pin: '',
+      color: colors[state.members.length % colors.length],
     };
     state.members.push(newMember);
     state.currentUser = newMember;
     state.isAdmin = (role === 'admin');
     await saveState();
-    await registerUserToTeam(fbUser.email, teamId);
+    await registerUserToTeam(fbUser.email, teamId, role);
     try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
     window._joiningInProgress = false;
     document.getElementById('pin-screen').style.display = 'none';
@@ -307,7 +258,7 @@ async function completeSetup() {
 
   const firstMentor = {
     id: fbUser.uid, name, role: 'admin',
-    email: fbUser.email, color: '#3d7fff', pin: '',
+    email: fbUser.email, color: '#3d7fff',
   };
 
   state.setup = true;
@@ -320,6 +271,10 @@ async function completeSetup() {
 
   // שמור נתונים
   await saveState();
+
+  // רשום מנטור ב-registry — לפני יצירת קודי ההצטרפות, כי חוקי ה-Firestore
+  // דורשים שהמשתמש כבר יהיה רשום כמנטור של הקבוצה כדי לכתוב אותם
+  await registerUserToTeam(fbUser.email, teamId, 'admin');
 
   // יצור קוד נפרד למנטורים ולתלמידים
   const mentorCode  = generateJoinCode();
@@ -336,9 +291,6 @@ async function completeSetup() {
       ]);
     } catch(e) { console.warn('Join code registry failed:', e); }
   }
-
-  // רשום מנטור ב-registry
-  await registerUserToTeam(fbUser.email, teamId);
 
   // שמור ב-localStorage
   try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
@@ -397,7 +349,7 @@ async function joinTeam() {
       // כבר חבר — פשוט היכנס
       state.currentUser = existing;
       state.isAdmin = existing.role === 'admin';
-      await registerUserToTeam(fbUser.email, teamId);
+      await registerUserToTeam(fbUser.email, teamId, existing.role);
       try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
       document.getElementById('setup-screen').style.display = 'none';
       initApp();
@@ -411,15 +363,14 @@ async function joinTeam() {
       id: fbUser.uid, name, role: joinRole,
       email: fbUser.email,
       color: colors[state.members.length % colors.length],
-      pin: '',
     };
 
     state.members.push(newMember);
     state.currentUser = newMember;
-    state.isAdmin = false;
+    state.isAdmin = (joinRole === 'admin');
 
     await saveState();
-    await registerUserToTeam(fbUser.email, teamId);
+    await registerUserToTeam(fbUser.email, teamId, joinRole);
     try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
 
     document.getElementById('setup-screen').style.display = 'none';
@@ -569,15 +520,12 @@ async function boot() {
     window._joiningInProgress = false;
     window.FB_REGISTRY = 'fll-teams-registry'; // קולקציה ראשית שמחזיקה את מפת אימייל → קבוצה
     console.log('Firebase connected!');
-    // IMPORTANT: Set Firestore rules in Firebase Console to:
-    // rules_version = '2';
-    // service cloud.firestore {
-    //   match /databases/{database}/documents {
-    //     match /{document=**} {
-    //       allow read, write: if request.auth != null;
-    //     }
-    //   }
-    // }
+    // IMPORTANT: Role-based access is enforced server-side via
+    // Android/firestore.rules (isMember/isMentor) — publish that file's
+    // rules in the Firebase Console. Do NOT fall back to a blanket
+    // "allow read, write: if request.auth != null" — that would let any
+    // signed-in user (including students) write mentor-only data such as
+    // /{teamId}/settings and /{teamId}/admin-data.
   } catch(e) {
     console.warn('Firebase failed:', e);
     window.db = null; window.auth = null;

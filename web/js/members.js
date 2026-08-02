@@ -62,11 +62,12 @@ async function saveMember() {
   // Validate email format
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { notify('אימייל לא תקין', 'error'); return; }
   if (state.members.find(m => m.email === email)) { notify('אימייל כבר קיים בקבוצה', 'error'); return; }
+  const role = document.getElementById('member-role').value;
   const colors = ['#3d7fff','#00d4a0','#ff6b35','#f5c842','#ff4d6d','#9c6fe4'];
   state.members.push({
     id: Date.now().toString(),
     name,
-    role: document.getElementById('member-role').value,
+    role,
     email,
     color: colors[state.members.length % colors.length],
   });
@@ -75,7 +76,7 @@ async function saveMember() {
   // רשום את החבר החדש ב-registry כדי שיוכל למצוא את הקבוצה
   if (window.FB_PROJECT) {
     try {
-      await registerUserToTeam(email, window.FB_PROJECT);
+      await registerUserToTeam(email, window.FB_PROJECT, role);
       notify(`✅ ${name} נוסף לקבוצה — יכול להתחבר עם האימייל הזה`, 'success');
     } catch(e) {
       notify(`✅ ${name} נוסף, אך ההרשמה לרשת נכשלה — שלח לו את קוד ההצטרפות`, 'warning');
@@ -179,6 +180,7 @@ async function deleteTeam() {
       const deletions = [
         window.db.collection(teamId).doc('settings').delete().catch(() => {}),
         window.db.collection(teamId).doc('data').delete().catch(() => {}),
+        window.db.collection(teamId).doc('admin-data').delete().catch(() => {}),
       ];
       if (state.mentorCode)  deletions.push(window.db.collection(window.FB_REGISTRY).doc('mentor_'  + state.mentorCode).delete().catch(() => {}));
       if (state.studentCode) deletions.push(window.db.collection(window.FB_REGISTRY).doc('student_' + state.studentCode).delete().catch(() => {}));

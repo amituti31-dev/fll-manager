@@ -27,30 +27,80 @@ service cloud.firestore {
         && get(myRegistryDoc()).data.teamId == teamId;
     }
 
+    // True when the signed-in user is a registered MENTOR of this team.
+    // Role is only ever read from the caller's OWN registry entry — never
+    // trust a role value supplied by the incoming request itself.
+    function isMentor(teamId) {
+      return isMember(teamId)
+        && get(myRegistryDoc()).data.role == 'admin';
+    }
+
+    function teamCreated(teamId) {
+      return exists(/databases/$(database)/documents/$(teamId)/settings);
+    }
+
     // ── Registry (fll-teams-registry) ──────────────────────────────────
     //
     // Read  — any authenticated user: needed to look up join codes
     //         before the user has their own registry entry.
-    // Write — any authenticated user: needed for self-registration
-    //         (registerUserToTeam) and join-code creation (saveJoinCodes).
+    //
+    // Write — split so a student can never grant themselves the 'admin'
+    //         role:
+    //   1. Self-registration: a user may create their own email-keyed
+    //      entry (registerUserToTeam), and may later update it only if
+    //      the recorded role doesn't change — this blocks a member from
+    //      flipping their own already-recorded role to 'admin'.
+    //   2. A mentor may create/update entries whose teamId is their own
+    //      team — this covers generating the mentor_<code>/student_<code>
+    //      join-code lookup docs (Settings screen) and fixing up another
+    //      member's entry.
+    //   3. Deleting an entry: a user may remove their own, or a mentor
+    //      may remove any entry belonging to their own team (removing a
+    //      member / deleting the team, including stale join codes).
     //
     match /fll-teams-registry/{doc} {
-      allow read, write: if isAuth();
+      allow read: if isAuth();
+
+      allow create: if isAuth() && doc == emailKey();
+      allow update: if isAuth() && doc == emailKey()
+        && request.resource.data.role == resource.data.role;
+
+      allow create, update: if isAuth() && isMentor(request.resource.data.teamId);
+
+      allow delete: if isAuth() && (doc == emailKey() || isMentor(resource.data.teamId));
     }
 
     // ── Team data (/{teamId}/…) ────────────────────────────────────────
     //
-    // Existing members can read and write everything in their team.
+    // 'settings' (team config + join codes) and 'admin-data' (member
+    // roster, scores, rubrics, checklist, seasons, custom missions,
+    // links, judging doc) hold mentor-only data. Any team member can
+    // READ them, but only a mentor can WRITE. Everything else — 'data'
+    // (logs/improvements/findings/stickies/memberTasks) and 'chats' —
+    // stays read/write for any team member.
     //
-    // 'create' also allowed for a document that doesn't yet exist when
-    // /settings hasn't been written — this covers the initTeamData()
-    // call during team creation (the user isn't in the registry yet).
-    // teamIds are long random strings so collision risk is negligible.
+    // 'create' is additionally allowed for a document that doesn't yet
+    // exist when 'settings' hasn't been written — this covers the
+    // initial writes during team creation, before the creator has a
+    // registry entry yet. teamIds are long random strings so collision
+    // risk is negligible.
     //
+    match /{teamId}/settings {
+      allow read: if isMember(teamId);
+      allow create: if isAuth() && !teamCreated(teamId);
+      allow update, delete: if isMentor(teamId);
+    }
+
+    match /{teamId}/admin-data {
+      allow read: if isMember(teamId);
+      allow create: if isAuth() && !teamCreated(teamId);
+      allow update, delete: if isMentor(teamId);
+    }
+
     match /{teamId}/{document} {
-      allow read, write: if isMember(teamId);
-      allow create: if isAuth()
-        && !exists(/databases/$(database)/documents/$(teamId)/settings);
+      allow read, write: if isMember(teamId) && document != 'settings' && document != 'admin-data';
+      allow create: if isAuth() && !teamCreated(teamId)
+        && document != 'settings' && document != 'admin-data';
     }
   }
 }
