@@ -41,15 +41,16 @@ service cloud.firestore {
 
     // Mentor-only team documents, shared by the web and Android clients.
     // 'settings' (config + join codes) and 'admin-data' (members, scores,
-    // rubrics, checklist, missionChecks, customMissions/missions,
-    // judgingQuestions/judgingDoc) are written by both clients. 'archives'
-    // (season history) and 'links' are Android-only documents that hold
-    // the same kind of mentor-managed data the web client folds into
-    // 'admin-data'. Everything else ('data', 'chats', 'gallery',
-    // 'strategy', 'judging_pdf', …) stays read/write for any team member.
+    // rubrics, checklist, customMissions/missions, judgingQuestions/
+    // judgingDoc) are written by both clients. 'archives' (season history)
+    // is an Android-only document holding the same kind of mentor-managed
+    // data the web client folds into 'admin-data'. Everything else
+    // ('data', 'links', 'chats', 'gallery', 'strategy', 'judging_pdf', …)
+    // stays read/write for any team member — missionChecks and links are
+    // things any member can legitimately add/toggle.
     function isProtectedDoc(document) {
       return document == 'settings' || document == 'admin-data'
-        || document == 'archives' || document == 'links';
+        || document == 'archives';
     }
 
     // ── Registry (fll-teams-registry) ──────────────────────────────────

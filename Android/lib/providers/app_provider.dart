@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/firebase_service.dart';
@@ -178,6 +179,10 @@ class AppProvider extends ChangeNotifier {
       improvements = _parseList(data['improvements'], Improvement.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
+      if (data['missionChecks'] != null) {
+        final raw = data['missionChecks'] as Map<String, dynamic>;
+        missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
+      }
     }
 
     if (adminData != null) {
@@ -187,7 +192,8 @@ class AppProvider extends ChangeNotifier {
       if (adminData['checklist'] != null) {
         checklist = _parseList(adminData['checklist'], ChecklistItem.fromMap);
       }
-      if (adminData['missionChecks'] != null) {
+      // Fallback for teams that haven't saved since this moved to "data".
+      if (data?['missionChecks'] == null && adminData['missionChecks'] != null) {
         final raw = adminData['missionChecks'] as Map<String, dynamic>;
         missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
       }
@@ -235,7 +241,8 @@ class AppProvider extends ChangeNotifier {
     await _saveSettings();
   }
 
-  // "data" — writable by any team member (students included).
+  // "data" — writable by any team member (students included). missionChecks
+  // is here too: any member can toggle a mission as done.
   Future<void> _saveData() async {
     if (teamId == null) return;
     await FirebaseService.saveData(teamId!, {
@@ -245,6 +252,7 @@ class AppProvider extends ChangeNotifier {
       'improvements': improvements.map((i) => i.toMap()).toList(),
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
+      'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
     });
 
     // "admin-data" — mentor-only per Firestore rules. A non-mentor calling
@@ -257,7 +265,8 @@ class AppProvider extends ChangeNotifier {
         'members': members.map((m) => m.toMap()).toList(),
         'scores': scores.map((s) => s.toMap()).toList(),
         'checklist': checklist.map((c) => c.toMap()).toList(),
-        'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
+        // Clean up the copy written by v1.0.8, before this moved to "data".
+        'missionChecks': FieldValue.delete(),
         'missions': missions.map((m) => m.toMap()).toList(),
         'rubrics': {
           'values': rubrics['values']!.map((r) => r.toMap()).toList(),

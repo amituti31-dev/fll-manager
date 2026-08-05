@@ -104,20 +104,26 @@ async function saveState() {
     const { setup, teamName, teamLogo, currentSeason } = state;
     await window.db.collection(window.FB_PROJECT).doc("settings").set({ setup, teamName, teamLogo: teamLogo || null, currentSeason, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null }, { merge: true });
 
-    // "data" — writable by any team member (students included).
-    const { logs, improvements, findings } = state;
+    // "data" — writable by any team member (students included). missionChecks
+    // and links are here too: any member can toggle a mission or add a link.
+    const { logs, improvements, findings, missionChecks } = state;
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
-    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks }, { merge: true });
+    const links = state.links || [];
+    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks, missionChecks, links }, { merge: true });
 
     // "admin-data" — mentor-only per Firestore rules. Never sync raw PINs
     // to clients: strip them from the members list before writing.
-    const { scores, rubrics, checklist, seasons, missionChecks } = state;
+    const { scores, rubrics, checklist, seasons } = state;
     const members = (state.members || []).map(({ pin, ...rest }) => rest);
     const customMissions = state.customMissions || [];
-    const links = state.links || [];
     const judgingDoc = state.judgingDoc || null;
-    await window.db.collection(window.FB_PROJECT).doc("admin-data").set({ members, scores, rubrics, checklist, seasons, missionChecks, customMissions, links, judgingDoc }, { merge: true });
+    await window.db.collection(window.FB_PROJECT).doc("admin-data").set({
+      members, scores, rubrics, checklist, seasons, customMissions, judgingDoc,
+      // Clean up the copies written by v1.0.8, before these moved to "data".
+      missionChecks: firebase.firestore.FieldValue.delete(),
+      links: firebase.firestore.FieldValue.delete(),
+    }, { merge: true });
   } catch(e) { console.error("Firestore save error:", e); }
   }, 1000);
 }
