@@ -25,7 +25,7 @@ class _InnovationScreenState extends State<InnovationScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -45,9 +45,12 @@ class _InnovationScreenState extends State<InnovationScreen>
           labelColor: AppColors.accent2,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.accent2,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(text: '🎯 פרויקט'),
             Tab(text: '🔬 מחקר'),
+            Tab(text: '🎙️ ראיונות'),
             Tab(text: '💡 רעיונות'),
           ],
         ),
@@ -58,6 +61,7 @@ class _InnovationScreenState extends State<InnovationScreen>
           children: [
             _ProjectTab(prov: prov),
             _ResearchTab(prov: prov),
+            _InterviewsTab(prov: prov),
             _IdeasTab(prov: prov),
           ],
         ),
@@ -812,7 +816,228 @@ class _AddFindingSheetState extends State<_AddFindingSheet> {
   }
 }
 
-// ─── Tab 3: Ideas ─────────────────────────────────────
+// ─── Tab 3: Interviews ────────────────────────────────
+
+class _InterviewsTab extends StatelessWidget {
+  final AppProvider prov;
+  const _InterviewsTab({required this.prov});
+
+  @override
+  Widget build(BuildContext context) {
+    final interviews = prov.interviews.reversed.toList();
+
+    return ListView(padding: const EdgeInsets.all(16), children: [
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [Color(0x1A9C6FE4), Color(0x0A00D4A0)]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text('🎙️', style: TextStyle(fontSize: 22)),
+            SizedBox(width: 8),
+            Text('ראיונות עם מומחים', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.textPrimary)),
+          ]),
+          SizedBox(height: 4),
+          Text('תעדו את מי ראיינתם, מה תפקידם ומה למדתם',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5)),
+          if (interviews.isNotEmpty) ...[
+            SizedBox(height: 8),
+            _StatChip('🎙️', '${interviews.length}', 'ראיונות'),
+          ],
+        ]),
+      ),
+      SizedBox(height: 12),
+
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => _showAddInterview(context),
+          icon: Text('➕'),
+          label: Text('הוסף ראיון'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF9C6FE4),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      ),
+      SizedBox(height: 16),
+
+      if (interviews.isEmpty)
+        Container(
+          height: 140, alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.surface, borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('🎙️', style: TextStyle(fontSize: 36)),
+            SizedBox(height: 8),
+            Text('טרם נוספו ראיונות עם מומחים', style: TextStyle(color: AppColors.textTertiary)),
+            Text('לחץ + להוסיף ראיון ראשון', style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+          ]),
+        )
+      else
+        for (final i in interviews) _InterviewCard(interview: i),
+    ]);
+  }
+
+  static void _showAddInterview(BuildContext context) {
+    showModalBottomSheet(
+      context: context, isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => const _AddInterviewSheet(),
+    );
+  }
+}
+
+class _InterviewCard extends StatelessWidget {
+  final Interview interview;
+  const _InterviewCard({required this.interview});
+
+  @override
+  Widget build(BuildContext context) {
+    final isAdmin = context.read<AppProvider>().isAdmin;
+    final i = interview;
+    final subtitle = [i.role, i.org].where((s) => s.isNotEmpty).join(' · ');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface, borderRadius: BorderRadius.circular(14),
+        border: Border(left: BorderSide(color: Color(0xFF9C6FE4), width: 3)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('🎙️ ${i.expert}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              if (subtitle.isNotEmpty)
+                Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ]),
+          ),
+          if (isAdmin)
+            GestureDetector(
+              onTap: () => context.read<AppProvider>().deleteInterview(i.id),
+              child: Text('🗑️', style: TextStyle(fontSize: 14)),
+            ),
+        ]),
+        SizedBox(height: 4),
+        Text('${i.author} · ${i.date}', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+        if (i.text.isNotEmpty) ...[
+          SizedBox(height: 6),
+          Text(i.text, style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
+        ],
+        if (i.quotes.isNotEmpty) ...[
+          SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.bg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border(right: BorderSide(color: Color(0xFF9C6FE4), width: 3)),
+            ),
+            child: Text(i.quotes,
+                style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: AppColors.textSecondary, height: 1.5)),
+          ),
+        ],
+      ]),
+    );
+  }
+}
+
+class _AddInterviewSheet extends StatefulWidget {
+  const _AddInterviewSheet();
+  @override
+  State<_AddInterviewSheet> createState() => _AddInterviewSheetState();
+}
+
+class _AddInterviewSheetState extends State<_AddInterviewSheet> {
+  final _expertCtrl = TextEditingController();
+  final _roleCtrl = TextEditingController();
+  final _orgCtrl = TextEditingController();
+  final _textCtrl = TextEditingController();
+  final _quotesCtrl = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _expertCtrl.dispose();
+    _roleCtrl.dispose();
+    _orgCtrl.dispose();
+    _textCtrl.dispose();
+    _quotesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final expert = _expertCtrl.text.trim();
+    final text = _textCtrl.text.trim();
+    if (expert.isEmpty || text.isEmpty) return;
+    final prov = context.read<AppProvider>();
+    setState(() => _saving = true);
+    await prov.addInterview(Interview(
+      id: DateTime.now().millisecondsSinceEpoch,
+      expert: expert,
+      role: _roleCtrl.text.trim(),
+      org: _orgCtrl.text.trim(),
+      text: text,
+      quotes: _quotesCtrl.text.trim(),
+      author: prov.currentUser?.name ?? 'אנונימי',
+      date: DateTime.now().toIso8601String().split('T')[0],
+    ));
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('🎙️ הוסף ראיון עם מומחה',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+        SizedBox(height: 16),
+        TextField(controller: _expertCtrl, autofocus: true,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'שם המומחה *')),
+        SizedBox(height: 8),
+        TextField(controller: _roleCtrl,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'תפקיד (למשל: מהנדסת מים)')),
+        SizedBox(height: 8),
+        TextField(controller: _orgCtrl,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'ארגון / מוסד')),
+        SizedBox(height: 8),
+        TextField(controller: _textCtrl, maxLines: 3,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'מה למדתם? *')),
+        SizedBox(height: 8),
+        TextField(controller: _quotesCtrl, maxLines: 3,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'ציטוטים מרכזיים (אופציונלי)')),
+        SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF9C6FE4)),
+            child: _saving
+                ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Text('💾 שמור ראיון'),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ─── Tab 4: Ideas ──────────────────────────────────────
 
 class _IdeasTab extends StatelessWidget {
   final AppProvider prov;

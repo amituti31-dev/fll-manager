@@ -30,6 +30,7 @@ class AppProvider extends ChangeNotifier {
   List<ArchivedSeason> archives = [];
   List<Mission> missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
   List<Improvement> improvements = [];
+  List<Interview> interviews = [];
   List<ScoreRun> scores = [];
   Map<int, bool> missionChecks = {};
   Map<String, List<RubricItem>> rubrics = {'values': [], 'robot': [], 'innovation': []};
@@ -87,6 +88,7 @@ class AppProvider extends ChangeNotifier {
     archives = [];
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     improvements = [];
+    interviews = [];
     scores = [];
     missionChecks = {};
     rubrics = {'values': [], 'robot': [], 'innovation': []};
@@ -177,6 +179,7 @@ class AppProvider extends ChangeNotifier {
       innovationProblem = data['innovationProblem'] as String? ?? '';
       innovationSolution = data['innovationSolution'] as String? ?? '';
       improvements = _parseList(data['improvements'], Improvement.fromMap);
+      interviews = _parseList(data['interviews'], Interview.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
       if (data['missionChecks'] != null) {
@@ -250,6 +253,7 @@ class AppProvider extends ChangeNotifier {
       'innovationSolution': innovationSolution,
       'logs': logs.map((l) => l.toMap()).toList(),
       'improvements': improvements.map((i) => i.toMap()).toList(),
+      'interviews': interviews.map((i) => i.toMap()).toList(),
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
       'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
@@ -440,6 +444,20 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  // ─── Interviews ───────────────────────────────────
+
+  Future<void> addInterview(Interview interview) async {
+    interviews.add(interview);
+    notifyListeners();
+    await _saveData();
+  }
+
+  Future<void> deleteInterview(int id) async {
+    interviews.removeWhere((i) => i.id == id);
+    notifyListeners();
+    await _saveData();
+  }
+
   // ─── Missions ─────────────────────────────────────
 
   Future<void> toggleMission(int id) async {
@@ -607,6 +625,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> resetAllData() async {
     logs = [];
     improvements = [];
+    interviews = [];
     scores = [];
     missionChecks = {};
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();

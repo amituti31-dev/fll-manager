@@ -92,6 +92,51 @@ class LogEntry {
   };
 }
 
+// ─── Interview ────────────────────────────────────────
+class Interview {
+  final int id;
+  final String expert;
+  final String role;
+  final String org;
+  final String text;
+  final String quotes;
+  final String author;
+  final String date;
+
+  Interview({
+    required this.id,
+    required this.expert,
+    this.role = '',
+    this.org = '',
+    required this.text,
+    this.quotes = '',
+    required this.author,
+    required this.date,
+  });
+
+  factory Interview.fromMap(Map<String, dynamic> m) => Interview(
+    id: (m['id'] as num).toInt(),
+    expert: m['expert'] as String? ?? '',
+    role: m['role'] as String? ?? '',
+    org: m['org'] as String? ?? '',
+    text: m['text'] as String? ?? '',
+    quotes: m['quotes'] as String? ?? '',
+    author: m['author'] as String? ?? '',
+    date: m['date'] as String? ?? '',
+  );
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'expert': expert,
+    'role': role,
+    'org': org,
+    'text': text,
+    'quotes': quotes,
+    'author': author,
+    'date': date,
+  };
+}
+
 // ─── Mission ──────────────────────────────────────────
 class Mission {
   final int id;

@@ -1118,12 +1118,24 @@
   <div class="modal">
     <div class="modal-title">🎙️ הוסף ראיון עם מומחה</div>
     <div class="form-group">
-      <label class="form-label">שם המומחה / הארגון *</label>
-      <input type="text" class="form-input" id="interview-expert" placeholder="למשל: ד״ר כהן, אוניברסיטת תל אביב">
+      <label class="form-label">שם המומחה *</label>
+      <input type="text" class="form-input" id="interview-expert" placeholder="למשל: ד״ר כהן">
+    </div>
+    <div class="form-group">
+      <label class="form-label">תפקיד</label>
+      <input type="text" class="form-input" id="interview-role" placeholder="למשל: מהנדסת מים">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ארגון / מוסד</label>
+      <input type="text" class="form-input" id="interview-org" placeholder="למשל: אוניברסיטת תל אביב">
     </div>
     <div class="form-group">
       <label class="form-label">מה למדתם? *</label>
       <textarea class="form-input" id="interview-text" rows="4" placeholder="סכמו את עיקרי השיחה..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ציטוטים מרכזיים</label>
+      <textarea class="form-input" id="interview-quotes" rows="3" placeholder="ציטוטים בולטים מהשיחה (אופציונלי)"></textarea>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="closeModal('modal-interview')">ביטול</button>

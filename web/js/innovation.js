@@ -119,19 +119,25 @@ function showAddInterviewModal() { openModal('modal-interview'); }
 
 function saveInterview() {
   const expert = document.getElementById('interview-expert').value.trim().slice(0, 200);
+  const role   = document.getElementById('interview-role').value.trim().slice(0, 200);
+  const org    = document.getElementById('interview-org').value.trim().slice(0, 200);
   const text   = document.getElementById('interview-text').value.trim().slice(0, 3000);
+  const quotes = document.getElementById('interview-quotes').value.trim().slice(0, 2000);
   if (!expert) { notify('נדרש שם מומחה', 'error'); return; }
   if (!text)   { notify('נדרש תוכן', 'error'); return; }
   if (!state.interviews) state.interviews = [];
   state.interviews.push({
-    id: Date.now(), expert, text,
+    id: Date.now(), expert, role, org, text, quotes,
     date: new Date().toISOString().split('T')[0],
     author: state.currentUser?.name || 'אנונימי',
   });
   saveState();
   closeModal('modal-interview');
   document.getElementById('interview-expert').value = '';
+  document.getElementById('interview-role').value   = '';
+  document.getElementById('interview-org').value    = '';
   document.getElementById('interview-text').value   = '';
+  document.getElementById('interview-quotes').value = '';
   renderInterviewsList();
   renderInnovProject();
   notify('✅ ראיון נשמר', 'success');
@@ -162,9 +168,11 @@ function renderInterviewsList() {
                 border-radius:var(--radius-sm);padding:14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1">
-          <div style="font-weight:700;font-size:14px;margin-bottom:4px">🎙️ ${sanitize(i.expert)}</div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:2px">🎙️ ${sanitize(i.expert)}</div>
+          ${(i.role || i.org) ? `<div style="font-size:12px;color:var(--text2);margin-bottom:4px">${sanitize([i.role, i.org].filter(Boolean).join(' · '))}</div>` : ''}
           <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${sanitize(i.author)} · ${formatDate(i.date)}</div>
           <div style="font-size:13px;line-height:1.6;color:var(--text2)">${sanitize(i.text)}</div>
+          ${i.quotes ? `<div style="margin-top:8px;padding:8px 10px;border-right:3px solid #9c6fe4;background:var(--surface);border-radius:6px;font-size:12px;font-style:italic;color:var(--text2);white-space:pre-wrap">${sanitize(i.quotes)}</div>` : ''}
         </div>
         ${state.isAdmin ? `<button onclick="deleteInterview(${i.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:2px 4px" title="מחק">🗑️</button>` : ''}
       </div>

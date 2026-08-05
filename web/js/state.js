@@ -14,6 +14,7 @@ let state = {
   logs: [],
   improvements: [],
   findings: [],
+  interviews: [],
   rubrics: { values: [], robot: [], innovation: [] },
   scores: [],
   checklist: [
@@ -110,7 +111,8 @@ async function saveState() {
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
     const links = state.links || [];
-    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks, missionChecks, links }, { merge: true });
+    const interviews = state.interviews || [];
+    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks, missionChecks, links, interviews }, { merge: true });
 
     // "admin-data" — mentor-only per Firestore rules. Never sync raw PINs
     // to clients: strip them from the members list before writing.
