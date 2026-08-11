@@ -213,49 +213,49 @@
       </div>
     </div>
     <div class="sidebar-nav">
-      <div class="nav-item active" onclick="navigate('dashboard')" title="דשבורד">
+      <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')" title="דשבורד">
         <span class="nav-icon">🏠</span><span class="nav-label">דשבורד ראשי</span>
       </div>
-      <div class="nav-item" onclick="navigate('daily')" title="תיעוד יומי">
+      <div class="nav-item" id="nav-daily" onclick="navigate('daily')" title="תיעוד יומי">
         <span class="nav-icon">📅</span><span class="nav-label">תיעוד יומי</span>
       </div>
-      <div class="nav-item" onclick="navigate('values')" title="ערכי יסוד">
+      <div class="nav-item" id="nav-values" onclick="navigate('values')" title="ערכי יסוד">
         <span class="nav-icon">⭐</span><span class="nav-label">ערכי יסוד</span>
       </div>
-      <div class="nav-item" onclick="navigate('robot')" title="תיעוד רובוט">
+      <div class="nav-item" id="nav-robot" onclick="navigate('robot')" title="תיעוד רובוט">
         <span class="nav-icon">🤖</span><span class="nav-label">תכנון רובוט</span>
       </div>
-      <div class="nav-item" onclick="navigate('innovation')" title="פרויקט חדשנות">
+      <div class="nav-item" id="nav-innovation" onclick="navigate('innovation')" title="פרויקט חדשנות">
         <span class="nav-icon">💡</span><span class="nav-label">פרויקט חדשנות</span>
       </div>
-      <div class="nav-item" onclick="navigate('scoring')" title="מחשבון ניקוד">
+      <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')" title="מחשבון ניקוד">
         <span class="nav-icon">🎯</span><span class="nav-label">הכנה לתחרות</span>
       </div>
-      <div class="nav-item" onclick="navigate('mytasks')" title="המשימות שלי">
+      <div class="nav-item" id="nav-mytasks" onclick="navigate('mytasks')" title="המשימות שלי">
         <span class="nav-icon">✅</span><span class="nav-label">המשימות שלי</span>
       </div>
-      <div class="nav-item" onclick="navigate('team')" title="ניהול קבוצה">
+      <div class="nav-item" id="nav-team" onclick="navigate('team')" title="ניהול קבוצה">
         <span class="nav-icon">👥</span><span class="nav-label">ניהול קבוצה</span>
       </div>
-      <div class="nav-item" onclick="navigate('chat')" title="צ'אט קבוצה">
+      <div class="nav-item" id="nav-chat" onclick="navigate('chat')" title="צ'אט קבוצה">
         <span class="nav-icon">💬</span><span class="nav-label">צ'אט קבוצה</span>
       </div>
-      <div class="nav-item" onclick="navigate('archive')" title="עונות וארכיון">
+      <div class="nav-item" id="nav-archive" onclick="navigate('archive')" title="עונות וארכיון">
         <span class="nav-icon">📦</span><span class="nav-label">עונות וארכיון</span>
       </div>
-      <div class="nav-item" onclick="navigate('gallery')" title="גלריית עונה">
+      <div class="nav-item" id="nav-gallery" onclick="navigate('gallery')" title="גלריית עונה">
         <span class="nav-icon">🖼️</span><span class="nav-label">גלריית עונה</span>
       </div>
-      <div class="nav-item" onclick="navigate('judging')" title="שאלות שיפוט">
+      <div class="nav-item" id="nav-judging" onclick="navigate('judging')" title="שאלות שיפוט">
         <span class="nav-icon">🎓</span><span class="nav-label">שאלות שיפוט</span>
       </div>
-      <div class="nav-item" onclick="navigate('links')" title="ספריית קישורים">
+      <div class="nav-item" id="nav-links" onclick="navigate('links')" title="ספריית קישורים">
         <span class="nav-icon">🔗</span><span class="nav-label">ספריית קישורים</span>
       </div>
-      <div class="nav-item" onclick="navigate('strategy')" title="לוח אסטרטגיה">
+      <div class="nav-item" id="nav-strategy" onclick="navigate('strategy')" title="לוח אסטרטגיה">
         <span class="nav-icon">🗺️</span><span class="nav-label">לוח אסטרטגיה</span>
       </div>
-      <div class="nav-item" onclick="navigate('settings')" title="הגדרות">
+      <div class="nav-item" id="nav-settings" onclick="navigate('settings')" title="הגדרות">
         <span class="nav-icon">⚙️</span><span class="nav-label">הגדרות</span>
       </div>
     </div>
@@ -279,7 +279,7 @@
           <button class="theme-btn active" id="dark-btn" onclick="setTheme('dark')">🌙</button>
           <button class="theme-btn" id="light-btn" onclick="setTheme('light')">☀️</button>
         </div>
-        <button class="btn btn-primary btn-icon" onclick="showAddModal()" title="הוסף תיעוד">＋</button>
+        <button class="btn btn-primary btn-icon" id="topbar-add-btn" onclick="showAddModal()" title="הוסף תיעוד">＋</button>
         <button class="btn btn-ghost btn-icon" onclick="signOut()" title="התנתק" style="font-size:16px">🚪</button>
       </div>
     </div>
@@ -289,7 +289,7 @@
 
       <!-- ═══ DASHBOARD ═══ -->
       <div class="screen active" id="screen-dashboard">
-        <div class="grid-4" style="margin-bottom:16px">
+        <div class="grid-4" style="margin-bottom:16px" id="dashboard-stats">
           <div class="stat-card blue">
             <div class="stat-value" id="stat-missions">0/15</div>
             <div class="stat-label">משימות הושלמו</div>
@@ -321,7 +321,7 @@
           <div id="competition-countdown-total" class="countdown-total"></div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-2" id="dashboard-charts">
           <div class="card">
             <div class="card-header">
               <span class="card-icon">📊</span>
@@ -338,7 +338,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="dashboard-recent-logs">
           <div class="card-header">
             <span class="card-icon">📋</span>
             <span class="card-title">עדכונים אחרונים</span>
@@ -349,7 +349,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card" id="dashboard-quick-actions">
           <div class="card-header">
             <span class="card-icon">⚡</span>
             <span class="card-title">פעולות מהירות</span>
@@ -822,6 +822,12 @@
             <div id="name-change-info" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
             <button class="btn btn-ghost" onclick="changeMyName()">✏️ שנה שם</button>
           </div>
+          <div class="card">
+            <div class="card-header"><span class="card-icon">🎓</span><span class="card-title">עזרה</span></div>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px">סיור מודרך שמסביר איך להשתמש באפליקציה, כפתור-כפתור.</p>
+            <button class="btn btn-ghost" onclick="startTour()">🎓 התחל הסבר</button>
+          </div>
+
           <div class="card">
             <div class="card-header"><span class="card-icon">🔐</span><span class="card-title">אבטחה</span></div>
             <div class="form-group">
@@ -1360,6 +1366,7 @@
   <script src="js/judging.js"></script>
   <script src="js/links.js"></script>
   <script src="js/strategy.js"></script>
+  <script src="js/tour.js"></script>
   <script src="js/pwa.js"></script>
   <script src="js/auth.js"></script>
 </body>

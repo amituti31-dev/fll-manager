@@ -11,6 +11,7 @@ function initApp() {
   populateAll();
   navigate('dashboard');
   try { checkTaskReminders(); } catch(e) {}
+  try { maybeAutoStartTour(); } catch(e) {}
 }
 
 function updateAdminUI() {
