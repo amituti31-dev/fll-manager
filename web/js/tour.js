@@ -65,9 +65,9 @@ function buildTourSteps() {
     { screen: 'values', selector: '#values-admin-box', title: '🔵 כלים למנטור',
       text: 'מנטורים יכולים לייבא את המחוון הרשמי של FIRST או להוסיף שאלות מותאמות אישית.', adminOnly: true },
     { screen: 'values', before: () => switchValuesTab('sticky'), selector: '#values-tab-sticky', title: '📝 לוח פתקים',
-      text: 'מקום חופשי לרשום רעיונות, תובנות ותזכורות — כמו לוח פתקים דיגיטלי.' },
+      text: 'תיעוד רגעים בהם הקבוצה הפגינה אחד מערכי הליבה של FLL — כל פתק משויך לערך ספציפי (גילוי, חדשנות, השפעה, שילוב, עבודת צוות או כיף).' },
     { screen: 'values', selector: '#values-sticky-add-btn', title: '➕ הוספת פתק',
-      text: 'כל חבר קבוצה יכול להוסיף פתק חדש בכל רגע.' },
+      text: 'כל חבר קבוצה יכול להוסיף פתק — בוחרים ערך ומתארים את הרגע.' },
 
     // ── Robot ──
     { screen: 'robot', selector: '#nav-robot', title: '🤖 תכנון רובוט',
