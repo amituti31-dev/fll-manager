@@ -367,7 +367,7 @@
       <!-- ═══ DAILY LOG ═══ -->
       <div class="screen" id="screen-daily">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-          <div class="search-wrap">
+          <div class="search-wrap" id="daily-search">
             <span class="search-icon">🔍</span>
             <input class="search-input" placeholder="חיפוש..." id="log-search" oninput="filterLogs()">
           </div>
@@ -379,7 +379,7 @@
               <option value="values">⭐ ערכים</option>
               <option value="general">📌 כללי</option>
             </select>
-            <button class="btn btn-primary" onclick="showAddLogModal()">＋ עדכון חדש</button>
+            <button class="btn btn-primary" id="daily-add-btn" onclick="showAddLogModal()">＋ עדכון חדש</button>
           </div>
         </div>
         <div id="timeline-container"><!-- populated --></div>
@@ -407,7 +407,7 @@
         <!-- Panel: Rubrics (default) -->
         <div id="values-panel-rubrics">
           <div id="values-rubrics"><!-- populated --></div>
-          <div class="admin-only" style="margin-top:16px">
+          <div class="admin-only" id="values-admin-box" style="margin-top:16px">
             <div class="card" style="border-color:var(--accent);background:rgba(61,127,255,0.05)">
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
@@ -421,7 +421,7 @@
         <!-- Panel: Sticky board (hidden by default) -->
         <div id="values-panel-sticky" style="display:none">
           <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-            <button class="btn btn-primary" onclick="showAddStickyModal()">＋ הוסף פתק</button>
+            <button class="btn btn-primary" id="values-sticky-add-btn" onclick="showAddStickyModal()">＋ הוסף פתק</button>
           </div>
           <div id="values-sticky-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
             <!-- populated by JS -->
@@ -441,7 +441,7 @@
               </div>
             </div>
           </div>
-          <div class="card">
+          <div class="card" id="robot-actions-card">
             <div class="card-header"><span class="card-icon">📸</span><span class="card-title">פעולות</span></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-success" onclick="openAddImprovement()">📸 הוסף שיפור</button>
@@ -482,7 +482,7 @@
           </div>
         </div>
 
-        <div class="admin-only" style="margin-top:16px">
+        <div class="admin-only" id="robot-admin-box" style="margin-top:16px">
           <div class="card" style="border-color:var(--accent)">
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
               <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
@@ -520,7 +520,7 @@
           <div id="innov-steps-list"><!-- rendered by JS --></div>
           <!-- Rubrics + Admin -->
           <div id="innovation-rubrics" style="margin-top:16px"></div>
-          <div class="admin-only" style="margin-top:16px">
+          <div class="admin-only" id="innov-admin-box" style="margin-top:16px">
             <div class="card" style="border-color:var(--accent2)">
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <span style="font-size:14px;font-weight:700;color:var(--accent2)">🟢 מצב אדמין</span>
@@ -535,7 +535,7 @@
         <div id="innov-panel-research" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="font-weight:700;font-size:15px">📚 ממצאי מחקר</h3>
-            <button class="btn btn-primary" onclick="showAddFindingModal()">＋ הוסף ממצא</button>
+            <button class="btn btn-primary" id="innov-add-finding-btn" onclick="showAddFindingModal()">＋ הוסף ממצא</button>
           </div>
           <div id="research-hub">
             <div style="color:var(--text3);font-size:13px;text-align:center;padding:40px">
@@ -549,10 +549,10 @@
         <div id="innov-panel-interviews" style="display:none">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="font-weight:700;font-size:15px">🎙️ ראיונות עם מומחים</h3>
-            <button class="btn btn-primary" onclick="showAddInterviewModal()">＋ הוסף ראיון</button>
+            <button class="btn btn-primary" id="innov-add-interview-btn" onclick="showAddInterviewModal()">＋ הוסף ראיון</button>
           </div>
           <div id="interviews-list"><!-- rendered by JS --></div>
-          <div class="card" style="margin-top:16px">
+          <div class="card" id="innov-record-card" style="margin-top:16px">
             <div class="card-header">
               <span class="card-icon">🎤</span>
               <span class="card-title">הקלטת פגישה</span>
@@ -580,7 +580,7 @@
         <!-- ── JUDGING PANEL ── -->
         <div id="scoring-panel-judging">
           <div id="sq-doc-card" class="card" style="margin-bottom:12px"><!-- populated by renderScoringJudgingDoc() --></div>
-          <div class="card">
+          <div class="card" id="judging-timer-card">
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
               <div class="j-phase-icon active" onclick="jumpToPhase(0)" title="קבלת פני הקבוצה">⏰</div>
               <div class="j-phase-icon" onclick="jumpToPhase(1)" title="פרויקט חדשנות">💡</div>
@@ -649,7 +649,7 @@
 
         <!-- ── ROBOT PANEL (hidden by default) ── -->
         <div id="scoring-panel-robot" style="display:none">
-          <div class="score-total" style="margin-bottom:12px">
+          <div class="score-total" id="total-score-card" style="margin-bottom:12px">
             <div class="score-total-num" id="total-score">0</div>
             <div class="score-total-label">נקודות סה"כ</div>
           </div>
@@ -658,11 +658,11 @@
             <div class="card-header"><span class="card-icon">⏱️</span><span class="card-title">טיימר ריצת רובוט</span></div>
             <div class="timer-display" id="robot-timer">2:30</div>
             <div style="display:flex;gap:8px;justify-content:center">
-              <button class="btn btn-primary" style="border-radius:40px;padding:10px 24px" onclick="startTimer('robot')">▶ התחל</button>
+              <button class="btn btn-primary" id="scoring-robot-timer-btn" style="border-radius:40px;padding:10px 24px" onclick="startTimer('robot')">▶ התחל</button>
               <button class="btn btn-ghost" style="border-radius:40px;padding:10px 24px" onclick="resetTimer('robot')">↺ אפס</button>
             </div>
           </div>
-          <div class="card" style="margin-bottom:12px">
+          <div class="card" id="scoring-missions-card" style="margin-bottom:12px">
             <div class="card-header"><span class="card-icon">📋</span><span class="card-title">משימות Unearthed 2026</span></div>
             <div id="scoring-missions"><!-- populated --></div>
           </div>
@@ -700,14 +700,14 @@
             <div style="color:var(--text2);font-size:12px">חברי קבוצה</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary admin-only" onclick="showAddMemberModal()">＋ הוסף חבר</button>
+            <button class="btn btn-primary admin-only" id="team-add-btn" onclick="showAddMemberModal()">＋ הוסף חבר</button>
           </div>
         </div>
 
         <h3 style="font-weight:700;margin-bottom:12px;color:var(--text2);font-size:13px;text-transform:uppercase">חברי הקבוצה</h3>
         <div id="members-list" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><!-- populated --></div>
 
-        <div class="admin-only" style="margin-top:24px">
+        <div class="admin-only" id="team-checklist-box" style="margin-top:24px">
           <div class="card" style="border-color:var(--accent3)">
             <div class="card-header"><span class="card-icon">✅</span><span class="card-title">צ'קליסט הכנה לתחרות</span></div>
             <div id="competition-checklist"><!-- populated --></div>
@@ -738,8 +738,8 @@
           <div id="chat-mentor-notice" style="display:none;text-align:center;padding:8px;color:var(--text3);font-size:13px">👁️ צ'אט מנטורים — קריאה בלבד לתלמידים</div>
           <div id="chat-input-row" style="display:flex;gap:8px;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
             <input type="text" class="form-input" id="chat-input" placeholder="כתוב הודעה..." style="flex:1" onkeydown="if(event.key==='Enter')sendChatMessage()">
-            <button class="btn btn-ghost admin-only" onclick="openModal('modal-poll')"    title="צור הצבעה קבוצתית"       style="font-size:16px;padding:8px 10px">🗳️</button>
-            <button class="btn btn-ghost admin-only" onclick="openModal('modal-announce')" title="שלח הכרזה לכל הקבוצה" style="font-size:16px;padding:8px 10px">📣</button>
+            <button class="btn btn-ghost admin-only" id="chat-poll-btn" onclick="openModal('modal-poll')"    title="צור הצבעה קבוצתית"       style="font-size:16px;padding:8px 10px">🗳️</button>
+            <button class="btn btn-ghost admin-only" id="chat-announce-btn" onclick="openModal('modal-announce')" title="שלח הכרזה לכל הקבוצה" style="font-size:16px;padding:8px 10px">📣</button>
             <button class="btn btn-primary" onclick="sendChatMessage()">שלח ›</button>
           </div>
         </div>
@@ -762,7 +762,7 @@
             </div>
           </div>
           <div id="seasons-list"><!-- populated --></div>
-          <div class="card" style="margin-top:16px">
+          <div class="card" id="archive-export-card" style="margin-top:16px">
             <div class="card-header"><span class="card-icon">💾</span><span class="card-title">ייצוא נתונים</span></div>
             <p style="color:var(--text2);font-size:12px;margin-bottom:12px">ייצוא נתוני העונה הנוכחית</p>
             <div class="export-row">
@@ -789,7 +789,7 @@
       <!-- ═══ SETTINGS ═══ -->
       <div class="screen" id="screen-settings">
         <div class="grid-2">
-          <div class="card">
+          <div class="card" id="settings-theme-card">
             <div class="card-header"><span class="card-icon">🎨</span><span class="card-title">מראה ועיצוב</span></div>
             <div class="form-group">
               <label class="form-label">ערכת צבעים</label>
@@ -800,7 +800,7 @@
             </div>
           </div>
 
-          <div class="card admin-only">
+          <div class="card admin-only" id="settings-team-card">
             <div class="card-header"><span class="card-icon">👥</span><span class="card-title">פרטי קבוצה</span></div>
             <div class="form-group">
               <label class="form-label">שם הקבוצה</label>
@@ -825,7 +825,7 @@
           <div class="card">
             <div class="card-header"><span class="card-icon">🎓</span><span class="card-title">עזרה</span></div>
             <p style="color:var(--text2);font-size:13px;margin-bottom:12px">סיור מודרך שמסביר איך להשתמש באפליקציה, כפתור-כפתור.</p>
-            <button class="btn btn-ghost" onclick="startTour()">🎓 התחל הסבר</button>
+            <button class="btn btn-ghost" id="settings-help-btn" onclick="startTour()">🎓 התחל הסבר</button>
           </div>
 
           <div class="card">
@@ -840,7 +840,7 @@
             </div>
           </div>
 
-          <div class="card admin-only">
+          <div class="card admin-only" id="settings-codes-card">
             <div class="card-header"><span class="card-icon">🔗</span><span class="card-title">קודי הצטרפות לקבוצה</span></div>
             <p style="color:var(--text2);font-size:13px;margin-bottom:12px">שתף את הקוד המתאים עם כל חבר</p>
             <div style="background:linear-gradient(135deg,var(--accent3),var(--gold));border-radius:12px;padding:14px;text-align:center;margin-bottom:10px">
@@ -856,7 +856,7 @@
             <button class="btn btn-ghost" style="width:100%;font-size:13px" onclick="regenerateCodes()">🔄 צור קודים חדשים</button>
           </div>
 
-          <div class="card">
+          <div class="card" id="settings-competition-date-card">
             <div class="card-header"><span class="card-icon">📅</span><span class="card-title">תאריך תחרות</span></div>
             <div class="form-group">
               <label class="form-label">תאריך תחרות הקבוצה</label>
@@ -865,7 +865,7 @@
             <button class="btn btn-primary" onclick="saveCompetitionDate()">💾 שמור תאריך</button>
           </div>
 
-          <div class="card" style="border-color:var(--red)">
+          <div class="card" id="settings-account-card" style="border-color:var(--red)">
             <div class="card-header"><span class="card-icon">🗑️</span><span class="card-title">פעולות חשבון</span></div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div>
@@ -879,7 +879,7 @@
             </div>
           </div>
 
-          <div class="card admin-only" style="border-color:var(--red)">
+          <div class="card admin-only" id="settings-admin-card" style="border-color:var(--red)">
             <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">פעולות אדמין</span></div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div>
@@ -916,7 +916,7 @@
             <button id="sb-btn-pen"    class="btn btn-primary sb-tool-btn" onclick="sbSetTool('pen')">🖊 עט</button>
             <button id="sb-btn-eraser" class="btn btn-ghost   sb-tool-btn" onclick="sbSetTool('eraser')">○ מחק</button>
             <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
-            <div class="sb-colors">
+            <div class="sb-colors" id="sb-colors">
               <div class="sb-color" style="background:#ff4d6d" onclick="sbSetColor('#ff4d6d')"></div>
               <div class="sb-color" style="background:#3d7fff" onclick="sbSetColor('#3d7fff')"></div>
               <div class="sb-color" style="background:#00d4a0" onclick="sbSetColor('#00d4a0')"></div>
@@ -938,7 +938,7 @@
               <input type="file" accept="image/*" style="display:none" onchange="sbUploadBackground(event)">
             </label>
             <button class="btn btn-ghost admin-only" onclick="sbClearBackground()" style="color:var(--red);font-size:12px">✕ הסר</button>
-            <button class="btn btn-success" onclick="sbSaveImage()">💾 שמור</button>
+            <button class="btn btn-success" id="sb-save-btn" onclick="sbSaveImage()">💾 שמור</button>
           </div>
         </div>
         <div class="sb-canvas-wrap" id="sb-canvas-wrap">
@@ -961,7 +961,7 @@
 
       <!-- ═══ GALLERY ═══ -->
       <div class="screen" id="screen-gallery">
-        <div class="card" style="margin-bottom:16px">
+        <div class="card" id="gallery-header-card" style="margin-bottom:16px">
           <div class="card-header">
             <span class="card-icon">🖼️</span>
             <span class="card-title">גלריית עונה</span>
@@ -988,10 +988,10 @@
             <span class="card-icon">🔗</span>
             <span class="card-title">ספריית קישורים</span>
             <span id="links-count" style="font-size:12px;color:var(--text3);margin-right:auto">0 קישורים</span>
-            <button class="btn btn-primary" style="font-size:13px" onclick="showAddLinkModal()">＋ הוסף קישור</button>
+            <button class="btn btn-primary" id="links-add-btn" style="font-size:13px" onclick="showAddLinkModal()">＋ הוסף קישור</button>
           </div>
         </div>
-        <div class="links-filter-bar">
+        <div class="links-filter-bar" id="links-filter-bar">
           <button id="lf-all"        class="btn btn-primary" onclick="filterLinks('all')">📋 הכל</button>
           <button id="lf-general"    class="btn btn-ghost"   onclick="filterLinks('general')">📌 כללי</button>
           <button id="lf-robot"      class="btn btn-ghost"   onclick="filterLinks('robot')">🤖 רובוט</button>

@@ -23,13 +23,17 @@ function maybeAutoStartTour() {
   setTimeout(() => startTour(), 700);
 }
 
-// Demo tour: covers the sidebar + dashboard screen only, for now.
+// Full app tour — one pass over every screen in sidebar order.
 // Steps support: selector ('#id'), screen (navigate() there first),
-// action:'click' (advance only when the real element is clicked).
+// before (a function run before rendering, e.g. to switch an in-screen
+// tab), action:'click' (advance only when the real element is clicked),
+// adminOnly (skip entirely for non-mentors — most admin-only selectors
+// are already skipped automatically because they're display:none).
 function buildTourSteps() {
   const steps = [
+    // ── Welcome + Dashboard ──
     { screen: 'dashboard', title: '👋 ברוכים הבאים ל-FLL Manager!',
-      text: 'בואו נעשה סיור קצר על המסך הראשי. אפשר להפעיל את הסיור הזה שוב בכל רגע דרך ההגדרות.' },
+      text: 'בואו נעשה סיור מלא באפליקציה, מסך אחר מסך. אפשר להפעיל את הסיור הזה שוב בכל רגע דרך ההגדרות.' },
     { screen: 'dashboard', selector: '#nav-dashboard', title: '🏠 דשבורד ראשי',
       text: 'התפריט הצדדי מוביל לכל מסכי האפליקציה. "דשבורד" הוא מסך הבית — תמיד יראה סיכום מהיר של מצב הקבוצה.' },
     { screen: 'dashboard', selector: '#dashboard-stats', title: '📊 כרטיסי סיכום',
@@ -42,10 +46,170 @@ function buildTourSteps() {
       text: 'קיצורי דרך לפעולות נפוצות — תיעוד חדש, הוספת תמונת שיפור, מחשבון ניקוד וטיימר ריצה.' },
     { screen: 'dashboard', selector: '#light-btn', title: '🌙 / ☀️ ערכת נושא',
       text: 'אפשר להחליף בין מצב כהה למצב בהיר בכל רגע. נסו ללחוץ על הכפתור עכשיו!', action: 'click' },
-    { screen: 'dashboard', selector: '#nav-settings', title: '⚙️ עוד בדרך',
-      text: 'זה היה סיור לדוגמה על מסך אחד — בהמשך יתווספו כאן סיורים גם לשאר המסכים. את הסיור הזה תמיד אפשר להפעיל שוב מההגדרות.' },
+
+    // ── Daily log ──
+    { screen: 'daily', selector: '#nav-daily', title: '📅 תיעוד יומי',
+      text: 'כאן כותבים "מה עשינו היום" — כל פעילות שכדאי לתעד. זה גם מה ששופטים אוהבים לראות: תיעוד רציף לאורך העונה.' },
+    { screen: 'daily', selector: '#daily-search', title: '🔍 חיפוש וסינון',
+      text: 'אפשר לחפש תיעוד ישן, או לסנן לפי נושא — רובוט, חדשנות, ערכים או כללי.' },
+    { screen: 'daily', selector: '#daily-add-btn', title: '➕ עדכון חדש',
+      text: 'לחצו כאן בכל פעם שיש משהו לתעד — אפשר גם לצרף תמונה.' },
+    { screen: 'daily', selector: '#timeline-container', title: '🕒 ציר הזמן',
+      text: 'כל התיעודים מוצגים כאן לפי סדר כרונולוגי, עם שם הכותב והתאריך.' },
+
+    // ── Values ──
+    { screen: 'values', selector: '#nav-values', title: '⭐ ערכי יסוד',
+      text: 'מסך שמרכז את מחוון ערכי הליבה של FLL, ולוח פתקים לרעיונות ומחשבות של הקבוצה.' },
+    { screen: 'values', before: () => switchValuesTab('rubrics'), selector: '#values-rubrics', title: '📋 המחוון',
+      text: 'לכל קריטריון אפשר לדרג את הקבוצה ולהוסיף הערות — בדיוק כמו ששופט יעשה.' },
+    { screen: 'values', selector: '#values-admin-box', title: '🔵 כלים למנטור',
+      text: 'מנטורים יכולים לייבא את המחוון הרשמי של FIRST או להוסיף שאלות מותאמות אישית.', adminOnly: true },
+    { screen: 'values', before: () => switchValuesTab('sticky'), selector: '#values-tab-sticky', title: '📝 לוח פתקים',
+      text: 'מקום חופשי לרשום רעיונות, תובנות ותזכורות — כמו לוח פתקים דיגיטלי.' },
+    { screen: 'values', selector: '#values-sticky-add-btn', title: '➕ הוספת פתק',
+      text: 'כל חבר קבוצה יכול להוסיף פתק חדש בכל רגע.' },
+
+    // ── Robot ──
+    { screen: 'robot', selector: '#nav-robot', title: '🤖 תכנון רובוט',
+      text: 'המסך המרכזי לניהול 15 המשימות הרשמיות של העונה, תיעוד שיפורים, ומחווני עיצוב הרובוט.' },
+    { screen: 'robot', selector: '#robot-actions-card', title: '📸 הוספת שיפור',
+      text: 'תעדו שיפור ברובוט עם תמונה — ישירות מהנייד או מהמחשב.' },
+    { screen: 'robot', selector: '#missions-grid', title: '📋 15 המשימות',
+      text: 'לחצו על משימה כדי לסמן שהצליחה. אפשר גם לסנן לפי "הושלמו"/"לא הושלמו", ולעדכן סטטוס לכל משימה.' },
+    { screen: 'robot', selector: '#robot-gallery', title: '🖼️ גלריית שיפורים',
+      text: 'כל התמונות שצילמתם מצטברות כאן — ואפשר אפילו ליצור מהן סרטון טיים-לאפס של ההתקדמות.' },
+    { screen: 'robot', selector: '#robot-admin-box', title: '🔵 כלים למנטור',
+      text: 'ייבוא מחוון עיצוב הרובוט הרשמי, או הוספת קריטריונים משלכם.', adminOnly: true },
+    { screen: 'robot', selector: '#robot-rubrics', title: '⭐ מחוון עיצוב הרובוט',
+      text: 'דירוג הקבוצה מול קריטריוני העיצוב הרשמיים.' },
+
+    // ── Innovation project ──
+    { screen: 'innovation', selector: '#nav-innovation', title: '💡 פרויקט חדשנות',
+      text: 'ניהול כל שלבי פרויקט החדשנות: הגדרת הבעיה, מחקר, ראיונות עם מומחים, והפתרון.' },
+    { screen: 'innovation', before: () => switchInnovTab('project'), selector: '#innov-steps-list', title: '🎯 שלבי הפרויקט',
+      text: 'חמישה שלבים שמובילים אתכם משלב הגדרת הבעיה ועד שיתוף הפתרון עם הקהילה.' },
+    { screen: 'innovation', selector: '#innov-admin-box', title: '🟢 כלים למנטור',
+      text: 'ייבוא מחוון חדשנות רשמי או הוספת שאלות מותאמות.', adminOnly: true },
+    { screen: 'innovation', before: () => switchInnovTab('research'), selector: '#innov-add-finding-btn', title: '🔬 ממצאי מחקר',
+      text: 'כל מקור, נתון או תובנה שמצאתם במחקר — מתעדים כאן.' },
+    { screen: 'innovation', before: () => switchInnovTab('interviews'), selector: '#innov-add-interview-btn', title: '🎙️ ראיונות עם מומחים',
+      text: 'תיעוד ראיונות: שם המומחה, תפקידו, מה למדתם, וציטוטים מרכזיים.' },
+    { screen: 'innovation', selector: '#innov-record-card', title: '🎤 הקלטת פגישה',
+      text: 'אפשר גם להקליט את הריאיון ולהוריד כקובץ שמע.' },
+
+    // ── Scoring / competition prep ──
+    { screen: 'scoring', selector: '#nav-scoring', title: '🎯 הכנה לתחרות',
+      text: 'שני חלקים: חדר שיפוט (טיימר לריאיון) וריצת רובוט (מחשבון ניקוד וטיימר).' },
+    { screen: 'scoring', before: () => switchScoringTab('judging'), selector: '#judging-timer-card', title: '🏛️ טיימר חדר שיפוט',
+      text: 'עוקב אחרי שלבי הריאיון (קבלת פנים → חדשנות → רובוט → סיום) עם טיימר לכל שלב.' },
+    { screen: 'scoring', selector: '#scoring-innovation-rubrics', title: '⭐ מחווני שיפוט',
+      text: 'כל מחווני השיפוט הרשמיים — חדשנות, ערכים ורובוט — במקום אחד, מתקפלים לחיסכון במקום.' },
+    { screen: 'scoring', before: () => switchScoringTab('robot'), selector: '#total-score-card', title: '🤖 ריצת רובוט וניקוד',
+      text: 'מחשבון ניקוד חי שמתעדכן לפי המשימות שסימנתם.' },
+    { screen: 'scoring', selector: '#scoring-robot-timer-btn', title: '⏱️ טיימר ריצה',
+      text: 'טיימר של 2:30 דקות — בדיוק כמו בתחרות. נסו ללחוץ עליו!', action: 'click' },
+    { screen: 'scoring', selector: '#scoring-missions-card', title: '📋 סימון משימות',
+      text: 'סמנו אילו משימות ביצעתם בריצה הזו — הניקוד מתעדכן אוטומטית.' },
+
+    // ── My tasks ──
+    { screen: 'mytasks', selector: '#nav-mytasks', title: '✅ המשימות שלי',
+      text: 'כל המשימות שהוקצו לכם אישית — מהמנטור או מהקבוצה — במקום אחד.' },
+    { screen: 'mytasks', selector: '#mytasks-tab-pending', title: '📋 פתוחות מול הושלמו',
+      text: 'עברו בין מה שעוד צריך לעשות למה שכבר סיימתם.' },
+
+    // ── Team ──
+    { screen: 'team', selector: '#nav-team', title: '👥 ניהול קבוצה',
+      text: 'רשימת כל חברי הקבוצה, התפקידים שלהם, ומשימות אישיות שהוקצו לכל אחד.' },
+    { screen: 'team', selector: '#team-add-btn', title: '➕ הוספת חבר',
+      text: 'מנטורים יכולים להוסיף חברי קבוצה חדשים ולתת להם קוד הצטרפות.', adminOnly: true },
+    { screen: 'team', selector: '#members-list', title: '👤 רשימת חברים',
+      text: 'לחיצה על חבר פותחת צ׳אט פרטי איתו. מנטורים יכולים גם להקצות משימות אישיות ולערוך פרטים.' },
+    { screen: 'team', selector: '#team-checklist-box', title: '✅ צ׳קליסט הכנה לתחרות',
+      text: 'רשימת ציוד ומטלות לפני יום התחרות — עדכנו אותה ככל שמתקדמים.', adminOnly: true },
+
+    // ── Chat ──
+    { screen: 'chat', selector: '#nav-chat', title: '💬 צ׳אט קבוצה',
+      text: 'תקשורת פנים-קבוצתית — כללי, לפי נושא, או פרטי בין שני חברים.' },
+    { screen: 'chat', selector: '#chat-tab-general', title: '📌 ערוצים',
+      text: 'ערוץ כללי, וערוצים ייעודיים לרובוט ולחדשנות — כדי לשמור על סדר.' },
+    { screen: 'chat', selector: '#chat-input-row', title: '⌨️ שליחת הודעה',
+      text: 'כתבו הודעה ולחצו Enter או על "שלח".' },
+    { screen: 'chat', selector: '#chat-poll-btn', title: '🗳️ הצבעה קבוצתית',
+      text: 'מנטורים יכולים ליצור הצבעה מהירה לכל הקבוצה.', adminOnly: true },
+    { screen: 'chat', selector: '#chat-announce-btn', title: '📣 הכרזה',
+      text: 'הודעה שנשארת נעוצה למעלה, לכל הקבוצה.', adminOnly: true },
+
+    // ── Archive ──
+    { screen: 'archive', selector: '#nav-archive', title: '📦 עונות וארכיון',
+      text: 'כשעונה מסתיימת, אפשר לארכב אותה ולהתחיל עונה חדשה — כל הנתונים ההיסטוריים נשמרים.' },
+    { screen: 'archive', selector: '#seasons-list', title: '📅 רשימת עונות',
+      text: 'לחצו על עונה ארכיונית כדי לצפות בנתונים שלה בכל רגע.' },
+    { screen: 'archive', selector: '#archive-export-card', title: '💾 ייצוא נתונים',
+      text: 'ייצוא כל נתוני העונה כ-PDF, Excel או JSON — לגיבוי או לשיתוף.' },
+
+    // ── Gallery ──
+    { screen: 'gallery', selector: '#nav-gallery', title: '🖼️ גלריית עונה',
+      text: 'אלבום תמונות משותף לכל הקבוצה — מהאימונים ומהתחרות.' },
+    { screen: 'gallery', selector: '#gallery-header-card', title: '📷 הוספת תמונה',
+      text: 'כל חבר קבוצה יכול להוסיף תמונות לגלריה המשותפת.' },
+
+    // ── Judging ──
+    { screen: 'judging', selector: '#nav-judging', title: '🎓 שאלות שיפוט',
+      text: 'בנק שאלות נפוצות מראיון השיפוט, מחולק לפי רובוט / חדשנות / ערכים — טוב להתכונן מראש.' },
+    { screen: 'judging', selector: '#judging-doc-card', title: '📄 מסמך שיפוט',
+      text: 'ניתן להעלות ולשמור כאן את מסמך ההגשה הרשמי לשיפוט.' },
+    { screen: 'judging', selector: '#judg-tab-robot', title: '🗂️ קטגוריות',
+      text: 'מעבר בין קטגוריות השאלות: רובוט, חדשנות וערכים.' },
+
+    // ── Links ──
+    { screen: 'links', selector: '#nav-links', title: '🔗 ספריית קישורים',
+      text: 'מקום לשמור קישורים שימושיים לקבוצה — מחקר, כלים, השראה ועוד.' },
+    { screen: 'links', selector: '#links-add-btn', title: '➕ הוספת קישור',
+      text: 'כל חבר קבוצה יכול להוסיף קישור ולתייג אותו לפי קטגוריה.' },
+    { screen: 'links', selector: '#links-filter-bar', title: '🗂️ סינון לפי קטגוריה',
+      text: 'קישורים כלליים, רובוט, חדשנות או שיפוט — כדי למצוא מה שצריך מהר.' },
+
+    // ── Strategy board ──
+    { screen: 'strategy', selector: '#nav-strategy', title: '🗺️ לוח אסטרטגיה',
+      text: 'לוח ציור חופשי לתכנון מסלול הרובוט על גבי מפת המשחק.' },
+    { screen: 'strategy', selector: '#sb-btn-pen', title: '🖊️ כלי ציור',
+      text: 'עט או מחק — פשוט התחילו לצייר על הלוח.' },
+    { screen: 'strategy', selector: '#sb-colors', title: '🎨 צבעים ועובי קו',
+      text: 'בחרו צבע ועובי קו לפני שמתחילים לתכנן.' },
+    { screen: 'strategy', selector: '#sb-save-btn', title: '💾 שמירה',
+      text: 'שמרו את התכנון כדי שכל הקבוצה תוכל לראות אותו.' },
+
+    // ── Settings ──
+    { screen: 'settings', selector: '#nav-settings', title: '⚙️ הגדרות',
+      text: 'ניהול החשבון שלכם, מראה האפליקציה, ופעולות ניהול לקבוצה.' },
+    { screen: 'settings', selector: '#settings-theme-card', title: '🎨 מראה',
+      text: 'ערכת נושא כהה או בהירה — לפי מה שנוח לכם.' },
+    { screen: 'settings', selector: '#settings-team-card', title: '👥 פרטי קבוצה',
+      text: 'שינוי שם הקבוצה והלוגו — למנטורים בלבד.', adminOnly: true },
+    { screen: 'settings', selector: '#settings-codes-card', title: '🔗 קודי הצטרפות',
+      text: 'קוד נפרד למנטורים ולתלמידים — שתפו את הקוד המתאים עם כל חבר חדש.', adminOnly: true },
+    { screen: 'settings', selector: '#settings-competition-date-card', title: '📅 תאריך תחרות',
+      text: 'הגדירו את תאריך התחרות כדי לראות ספירה לאחור בדשבורד.' },
+    { screen: 'settings', selector: '#settings-account-card', title: '🚪 פעולות חשבון',
+      text: 'יציאה מהקבוצה או מחיקת החשבון — בזהירות!' },
+    { screen: 'settings', selector: '#settings-admin-card', title: '⚠️ פעולות אדמין',
+      text: 'איפוס נתונים או מחיקת הקבוצה כולה — פעולות בלתי הפיכות, שמורות למנטורים בלבד.', adminOnly: true },
+    { screen: 'settings', selector: '#settings-help-btn', title: '🎓 סיימנו!',
+      text: 'עברתם על כל האפליקציה 🎉 את הסיור הזה תמיד אפשר להפעיל שוב מכאן.' },
   ];
-  return steps.filter(s => !s.selector || document.querySelector(s.selector));
+  return steps;
+}
+
+// Some steps target elements that only exist/show for mentors (.admin-only
+// sections use display:none for students) — skip those dynamically instead
+// of pre-filtering, since visibility depends on which screen is active.
+function _tourStepUsable(step) {
+  if (step.adminOnly && !state.isAdmin) return false;
+  if (!step.selector) return true;
+  const el = document.querySelector(step.selector);
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0 && el.offsetParent !== null;
 }
 
 function startTour() {
@@ -86,10 +250,18 @@ function _addTourMask(overlay, x, y, w, h) {
   overlay.appendChild(m);
 }
 
-function _renderTourStep() {
+function _renderTourStep(direction = 1) {
   const step = _tourSteps[_tourIndex];
   if (!step) { endTour(); return; }
   if (step.screen) navigate(step.screen);
+  if (step.before) { try { step.before(); } catch(e) {} }
+
+  if (!_tourStepUsable(step)) {
+    _tourIndex += direction;
+    if (_tourIndex < 0 || _tourIndex >= _tourSteps.length) { endTour(); return; }
+    _renderTourStep(direction);
+    return;
+  }
 
   _tourClearHighlights();
   const overlay = document.getElementById('tour-overlay');
@@ -178,13 +350,14 @@ function _tourAdvance() {
   _tourClearHighlights();
   _tourIndex++;
   if (_tourIndex >= _tourSteps.length) { endTour(); return; }
-  _renderTourStep();
+  _renderTourStep(1);
 }
 
 function _tourBack() {
   _tourClearHighlights();
-  _tourIndex = Math.max(0, _tourIndex - 1);
-  _renderTourStep();
+  _tourIndex--;
+  if (_tourIndex < 0) { _tourIndex = 0; return; }
+  _renderTourStep(-1);
 }
 
 function endTour() {
