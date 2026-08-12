@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 import '../scoring/scoring_screen.dart' show EditMissionsSheet;
@@ -57,6 +58,7 @@ class _RobotScreenState extends State<RobotScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
       // Progress header
       Container(
+        key: TourKeys.robotProgressHeader,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [Color(0x1A3D7FFF), Color(0x0A00D4A0)]),
@@ -160,6 +162,7 @@ class _RobotScreenState extends State<RobotScreen> {
 
       // Missions grid
       GridView.builder(
+        key: TourKeys.robotMissionsGrid,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -209,7 +212,7 @@ class _RobotScreenState extends State<RobotScreen> {
       SizedBox(height: 20),
 
       // Improvements gallery header
-      Row(children: [
+      Row(key: TourKeys.robotGallerySection, children: [
         const _SectionTitle('📸', 'תמונות שיפורים'),
         const Spacer(),
         if (imagesOnly.length >= 2)

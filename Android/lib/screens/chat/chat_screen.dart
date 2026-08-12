@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../services/firebase_service.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -134,6 +135,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Column(children: [
       // Channel tabs
       Container(
+        key: TourKeys.chatChannelTabs,
         color: AppColors.surface,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(children: [
@@ -221,6 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Input bar
       Container(
+        key: TourKeys.chatInputBar,
         padding: EdgeInsets.only(
           left: 12, right: 12, top: 8,
           bottom: MediaQuery.of(context).viewInsets.bottom + 8,
@@ -233,6 +236,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (prov.isAdmin) ...[
             // Announcement button
             _InputAction(
+              key: TourKeys.chatAnnounceBtn,
               emoji: '📢',
               color: AppColors.gold,
               onTap: () => _showAnnouncementDialog(prov),
@@ -240,6 +244,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 6),
             // Poll button
             _InputAction(
+              key: TourKeys.chatPollBtn,
               emoji: '🗳️',
               color: AppColors.accent,
               onTap: () => _showPollDialog(prov),
@@ -282,7 +287,7 @@ class _InputAction extends StatelessWidget {
   final String emoji;
   final Color color;
   final VoidCallback onTap;
-  const _InputAction({required this.emoji, required this.color, required this.onTap});
+  const _InputAction({super.key, required this.emoji, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) => GestureDetector(

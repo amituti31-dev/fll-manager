@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class DailyScreen extends StatefulWidget {
@@ -40,6 +41,7 @@ class _DailyScreenState extends State<DailyScreen> {
     return Column(children: [
       // Filter bar
       Container(
+        key: TourKeys.dailyFilterBar,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         color: AppColors.surface,
         child: Row(children: [
@@ -73,6 +75,7 @@ class _DailyScreenState extends State<DailyScreen> {
       ),
       // Timeline
       Expanded(
+        key: TourKeys.dailyTimeline,
         child: items.isEmpty
             ? Center(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 // ─── Category metadata ────────────────────────────────
@@ -127,6 +128,7 @@ class _LinksScreenState extends State<LinksScreen>
     return Column(children: [
       // ── Tab bar ────────────────────────────────────
       Container(
+        key: TourKeys.linksTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,

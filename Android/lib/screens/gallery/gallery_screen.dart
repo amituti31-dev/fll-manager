@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 
@@ -110,6 +111,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
+        key: TourKeys.galleryHeaderBar,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: AppColors.surface,

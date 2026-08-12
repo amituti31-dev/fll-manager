@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class MyTasksScreen extends StatefulWidget {
@@ -43,6 +44,7 @@ class _MyTasksScreenState extends State<MyTasksScreen>
     return Column(children: [
       // ── Stats bar ──────────────────────────────────
       Container(
+        key: TourKeys.myTasksStatsBar,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         color: AppColors.surface,
         child: Row(children: [
@@ -57,6 +59,7 @@ class _MyTasksScreenState extends State<MyTasksScreen>
       ),
       // ── Tab bar ────────────────────────────────────
       Container(
+        key: TourKeys.myTasksTabBar,
         decoration: BoxDecoration(
           color: AppColors.surface,
           border: Border(bottom: BorderSide(color: AppColors.border)),

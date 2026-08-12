@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class ArchiveScreen extends StatelessWidget {
@@ -43,6 +44,7 @@ class ArchiveScreen extends StatelessWidget {
       // Archive current season (admins only)
       if (prov.isAdmin) ...[
         Container(
+          key: TourKeys.archiveCurrentSeasonCard,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -79,35 +81,38 @@ class ArchiveScreen extends StatelessWidget {
       ],
 
       // Archives list
-      if (archives.isEmpty)
-        Container(
-          height: 180,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('📦', style: TextStyle(fontSize: 48)),
-            SizedBox(height: 12),
-            Text('אין עונות בארכיון', style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
-            SizedBox(height: 4),
-            Text('לחץ "שמור עונה בארכיון" לשמירת העונה הנוכחית',
-                style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
-                textAlign: TextAlign.center),
-          ]),
-        )
-      else ...[
-        Row(children: [
-          Text('📋', style: TextStyle(fontSize: 18)),
-          SizedBox(width: 8),
-          Text('עונות שמורות', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
-        ]),
-        SizedBox(height: 10),
-        for (final archive in archives)
-          _ArchiveCard(archive: archive, isAdmin: prov.isAdmin),
-      ],
+      KeyedSubtree(
+        key: TourKeys.archivesList,
+        child: archives.isEmpty
+            ? Container(
+                height: 180,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text('📦', style: TextStyle(fontSize: 48)),
+                  SizedBox(height: 12),
+                  Text('אין עונות בארכיון', style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
+                  SizedBox(height: 4),
+                  Text('לחץ "שמור עונה בארכיון" לשמירת העונה הנוכחית',
+                      style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+                      textAlign: TextAlign.center),
+                ]),
+              )
+            : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Text('📋', style: TextStyle(fontSize: 18)),
+                  SizedBox(width: 8),
+                  Text('עונות שמורות', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                ]),
+                SizedBox(height: 10),
+                for (final archive in archives)
+                  _ArchiveCard(archive: archive, isAdmin: prov.isAdmin),
+              ]),
+      ),
     ]);
   }
 

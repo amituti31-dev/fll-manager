@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/app_provider.dart';
+import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 // ─── Main screen ──────────────────────────────────────
@@ -69,18 +70,22 @@ class StrategyBoardScreen extends StatelessWidget {
     final boards = prov.strategyBoards;
 
     if (boards.isEmpty) {
-      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('🗺️', style: TextStyle(fontSize: 48)),
-        const SizedBox(height: 12),
-        Text('אין לוחות אסטרטגיה',
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
-        const SizedBox(height: 6),
-        Text('לחץ ➕ ליצירת לוח חדש',
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-      ]));
+      return KeyedSubtree(
+        key: TourKeys.strategyBoardsGrid,
+        child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('🗺️', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          Text('אין לוחות אסטרטגיה',
+              style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
+          const SizedBox(height: 6),
+          Text('לחץ ➕ ליצירת לוח חדש',
+              style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+        ])),
+      );
     }
 
     return GridView.builder(
+      key: TourKeys.strategyBoardsGrid,
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,

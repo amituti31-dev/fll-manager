@@ -99,6 +99,241 @@ class TourController {
       title: '➕ הוספה מהירה',
       text: 'כפתור זה זמין מכל מסך, ופותח את הפעולה המתאימה לאותו מסך — למשל תיעוד חדש.',
     ),
+
+    // ── Daily log ──
+    TourStep(
+      screenIndex: 1,
+      targetKey: TourKeys.dailyFilterBar,
+      title: '📅 תיעוד יומי',
+      text: 'כאן כותבים "מה עשינו היום". אפשר לחפש תיעוד ישן, או לסנן לפי נושא — רובוט, חדשנות, ערכים או כללי.',
+    ),
+    TourStep(
+      screenIndex: 1,
+      targetKey: TourKeys.dailyTimeline,
+      title: '🕒 ציר הזמן',
+      text: 'כל התיעודים מוצגים כאן לפי סדר כרונולוגי, עם שם הכותב והתאריך. זה גם מה ששופטים אוהבים לראות — תיעוד רציף לאורך העונה.',
+    ),
+
+    // ── Robot ──
+    TourStep(
+      screenIndex: 2,
+      targetKey: TourKeys.robotProgressHeader,
+      title: '🤖 תכנון רובוט',
+      text: 'המסך המרכזי לניהול 15 המשימות הרשמיות של העונה, תיעוד שיפורים, ומחווני עיצוב הרובוט.',
+    ),
+    TourStep(
+      screenIndex: 2,
+      targetKey: TourKeys.robotMissionsGrid,
+      title: '📋 15 המשימות',
+      text: 'לחצו על משימה כדי לסמן שהצליחה. לחיצה ארוכה מעדכנת סטטוס תרגול (לא ניסינו/בעבודה/מוכן).',
+    ),
+    TourStep(
+      screenIndex: 2,
+      targetKey: TourKeys.robotGallerySection,
+      title: '📸 גלריית שיפורים',
+      text: 'כל התמונות שצילמתם מצטברות כאן — ואפשר אפילו ליצור מהן סרטון של ההתקדמות.',
+    ),
+
+    // ── Scoring ──
+    TourStep(
+      screenIndex: 3,
+      before: () => TourNav.switchTab('scoring', 0),
+      targetKey: TourKeys.scoringRobotTimer,
+      title: '⏱️ טיימר ריצת רובוט',
+      text: 'טיימר של 2:30 דקות — בדיוק כמו בתחרות. נסו ללחוץ על "התחל"!',
+      actionClick: true,
+    ),
+    TourStep(
+      screenIndex: 3,
+      targetKey: TourKeys.scoringMissions,
+      title: '🎯 משימות',
+      text: 'סמנו אילו משימות ביצעתם בריצה הזו — הניקוד למעלה מתעדכן אוטומטית.',
+    ),
+    TourStep(
+      screenIndex: 3,
+      before: () => TourNav.switchTab('scoring', 1),
+      targetKey: TourKeys.scoringJudgeTimer,
+      title: '🏛️ טיימר ישיבת שיפוט',
+      text: 'עוקב אחרי שלבי הריאיון (קבלת פנים → רובוט → חדשנות → שאלות → סיום) עם טיימר לכל שלב.',
+    ),
+    TourStep(
+      screenIndex: 3,
+      targetKey: TourKeys.scoringRubrics,
+      title: '⭐ מחווני שיפוט',
+      text: 'מחווני חדשנות וערכים — דירוג הקבוצה מול הקריטריונים הרשמיים, ישירות מכאן.',
+    ),
+
+    // ── Values ──
+    TourStep(
+      screenIndex: 4,
+      before: () => TourNav.switchTab('values', 0),
+      targetKey: TourKeys.valuesStickiesTab,
+      title: '⭐ ערכי FLL',
+      text: 'תיעוד רגעים בהם הקבוצה הפגינה אחד מערכי הליבה — כל פתק משויך לערך ספציפי (גילוי, חדשנות, השפעה, הכלה, עבודת צוות או כיף).',
+    ),
+    TourStep(
+      screenIndex: 4,
+      before: () => TourNav.switchTab('values', 1),
+      targetKey: TourKeys.valuesBoardTab,
+      title: '📌 לוח פתקים',
+      text: 'כל הפתקים מרוכזים כאן לפי ערך, לתצוגה כללית מהירה.',
+    ),
+
+    // ── Innovation project ──
+    TourStep(
+      screenIndex: 5,
+      before: () => TourNav.switchTab('innovation', 0),
+      targetKey: TourKeys.innovationProjectTab,
+      title: '🎯 שלבי הפרויקט',
+      text: 'ניהול כל שלבי פרויקט החדשנות: הגדרת הבעיה, מחקר, ראיונות, והפתרון.',
+    ),
+    TourStep(
+      screenIndex: 5,
+      before: () => TourNav.switchTab('innovation', 1),
+      targetKey: TourKeys.innovationResearchTab,
+      title: '🔬 מחקר',
+      text: 'כל מקור, נתון או תובנה שמצאתם במחקר — מתעדים כאן, כולל תמונה או הקלטה.',
+    ),
+    TourStep(
+      screenIndex: 5,
+      before: () => TourNav.switchTab('innovation', 2),
+      targetKey: TourKeys.innovationInterviewsTab,
+      title: '🎙️ ראיונות עם מומחים',
+      text: 'תיעוד ראיונות: שם המומחה, תפקידו, מה למדתם, וציטוטים מרכזיים.',
+    ),
+    TourStep(
+      screenIndex: 5,
+      before: () => TourNav.switchTab('innovation', 3),
+      targetKey: TourKeys.innovationIdeasTab,
+      title: '💡 רעיונות',
+      text: 'סיעור מוחות — רשמו כל רעיון לפתרון, גם המוזרים ביותר.',
+    ),
+
+    // ── Chat ──
+    TourStep(
+      screenIndex: 6,
+      targetKey: TourKeys.chatChannelTabs,
+      title: '💬 ערוצים',
+      text: 'ערוץ כללי, וערוצים ייעודיים לרובוט ולחדשנות — כדי לשמור על סדר.',
+    ),
+    TourStep(
+      screenIndex: 6,
+      targetKey: TourKeys.chatInputBar,
+      title: '⌨️ שליחת הודעה',
+      text: 'כתבו הודעה ולחצו Enter כדי לשלוח.',
+    ),
+    TourStep(
+      screenIndex: 6,
+      targetKey: TourKeys.chatAnnounceBtn,
+      title: '📣 הכרזה',
+      text: 'הודעה שנשארת נעוצה למעלה, לכל הקבוצה.',
+      adminOnly: true,
+    ),
+    TourStep(
+      screenIndex: 6,
+      targetKey: TourKeys.chatPollBtn,
+      title: '🗳️ הצבעה קבוצתית',
+      text: 'יצירת הצבעה מהירה לכל הקבוצה.',
+      adminOnly: true,
+    ),
+
+    // ── Team ──
+    TourStep(
+      screenIndex: 7,
+      before: () => TourNav.switchTab('team', 0),
+      targetKey: TourKeys.teamAddButtons,
+      title: '➕ הוספת חבר / משימה',
+      text: 'הוסיפו חבר קבוצה חדש (מקבל קוד הצטרפות), או משימה לחבר ספציפי או לכל הקבוצה.',
+      adminOnly: true,
+    ),
+    TourStep(
+      screenIndex: 7,
+      targetKey: TourKeys.teamMembersList,
+      title: '👥 רשימת חברים',
+      text: 'לחיצה על חבר פותחת צ׳אט פרטי איתו.',
+    ),
+    TourStep(
+      screenIndex: 7,
+      targetKey: TourKeys.teamChecklist,
+      title: '✅ צ׳קליסט הכנה לתחרות',
+      text: 'רשימת ציוד ומטלות לפני יום התחרות — עדכנו אותה ככל שמתקדמים.',
+      adminOnly: true,
+    ),
+
+    // ── My tasks ──
+    TourStep(
+      screenIndex: 8,
+      targetKey: TourKeys.myTasksStatsBar,
+      title: '📋 המשימות שלי',
+      text: 'כל המשימות שהוקצו לכם אישית — מהמנטור או לכל הקבוצה — במקום אחד, כולל אילו פגו תוקף.',
+    ),
+    TourStep(
+      screenIndex: 8,
+      targetKey: TourKeys.myTasksTabBar,
+      title: '✅ ממתין / הושלמו',
+      text: 'עברו בין מה שעוד צריך לעשות למה שכבר סיימתם.',
+    ),
+
+    // ── Archive ──
+    TourStep(
+      screenIndex: 9,
+      targetKey: TourKeys.archiveCurrentSeasonCard,
+      title: '📦 ארכוב העונה',
+      text: 'כשעונה מסתיימת, שמרו אותה בארכיון לפני שמתחילים עונה חדשה — כל הנתונים ההיסטוריים נשמרים.',
+      adminOnly: true,
+    ),
+    TourStep(
+      screenIndex: 9,
+      targetKey: TourKeys.archivesList,
+      title: '📋 עונות שמורות',
+      text: 'לחצו על עונה ארכיונית כדי לצפות בנתונים שלה בכל רגע.',
+    ),
+
+    // ── Gallery ──
+    TourStep(
+      screenIndex: 10,
+      targetKey: TourKeys.galleryHeaderBar,
+      title: '🖼️ גלריית עונה',
+      text: 'אלבום תמונות משותף לכל הקבוצה — מהאימונים ומהתחרות. כל חבר יכול להוסיף תמונה.',
+    ),
+
+    // ── Judging ──
+    TourStep(
+      screenIndex: 11,
+      targetKey: TourKeys.judgingTabBar,
+      title: '🗂️ קטגוריות שיפוט',
+      text: 'בנק שאלות נפוצות מראיון השיפוט, מחולק לפי רובוט, חדשנות וערכים — טוב להתכונן מראש.',
+    ),
+    TourStep(
+      screenIndex: 11,
+      targetKey: TourKeys.judgingProgressHeader,
+      title: '📊 התקדמות',
+      text: 'רואים כמה שאלות כבר נענו בכל קטגוריה.',
+    ),
+    TourStep(
+      screenIndex: 11,
+      targetKey: TourKeys.judgingQuestionsList,
+      title: '❓ שאלות ותשובות',
+      text: 'לחצו על שאלה כדי לכתוב/לערוך תשובה — כדאי להכין תשובות מראש לפני התחרות.',
+    ),
+
+    // ── Links ──
+    TourStep(
+      screenIndex: 12,
+      targetKey: TourKeys.linksTabBar,
+      title: '🔗 ספריית קישורים',
+      text: 'קישורים שימושיים לקבוצה — מחקר, כלים, השראה ועוד — מסודרים לפי קטגוריה: כללי, רובוט, חדשנות ושיפוט.',
+    ),
+
+    // ── Strategy board ──
+    TourStep(
+      screenIndex: 13,
+      targetKey: TourKeys.strategyBoardsGrid,
+      title: '🗺️ לוח אסטרטגיה',
+      text: 'לוחות ציור חופשי לתכנון מסלול הרובוט על גבי מפת המשחק. לחצו על לוח כדי לצייר עליו.',
+    ),
+
+    // ── Settings ──
     TourStep(
       screenIndex: 14,
       targetKey: TourKeys.settingsThemeSwitch,
@@ -110,7 +345,7 @@ class TourController {
       screenIndex: 14,
       targetKey: TourKeys.settingsHelpButton,
       title: '🎓 סיימנו!',
-      text: 'זה היה סיור לדוגמה על הדשבורד וההגדרות — בהמשך יתווספו כאן סיורים גם לשאר המסכים. את הסיור הזה תמיד אפשר להפעיל שוב מכאן.',
+      text: 'עברתם על כל האפליקציה 🎉 את הסיור הזה תמיד אפשר להפעיל שוב מכאן.',
     ),
   ];
 

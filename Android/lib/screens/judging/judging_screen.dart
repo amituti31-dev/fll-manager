@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
+import '../../services/tour_keys.dart';
+import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
 
 class JudgingScreen extends StatefulWidget {
@@ -19,10 +21,12 @@ class _JudgingScreenState extends State<JudgingScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
+    TourNav.registerTabs('judging', (i) => setState(() => _tabCtrl.index = i));
   }
 
   @override
   void dispose() {
+    TourNav.unregisterTabs('judging');
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -32,6 +36,7 @@ class _JudgingScreenState extends State<JudgingScreen>
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
+        key: TourKeys.judgingTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,
@@ -101,6 +106,7 @@ class _CategoryTab extends StatelessWidget {
     return Column(children: [
       // Progress bar header
       Container(
+        key: TourKeys.judgingProgressHeader,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: AppColors.surface,
@@ -132,6 +138,7 @@ class _CategoryTab extends StatelessWidget {
         ]),
       ),
       Expanded(
+        key: TourKeys.judgingQuestionsList,
         child: questions.isEmpty
             ? Center(child: Text('אין שאלות',
                 style: TextStyle(color: AppColors.textTertiary, fontSize: 14)))
