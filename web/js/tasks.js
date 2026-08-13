@@ -20,7 +20,7 @@ function renderMyTasks() {
   const taskHtml = (tasks, isDone) => tasks.length ? tasks.map(t => `
     <div class="card" style="padding:12px 16px;margin-bottom:8px">
       <div style="display:flex;align-items:center;gap:12px">
-        <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleMemberTask(${t.id})" style="accent-color:var(--accent2);width:20px;height:20px;flex-shrink:0">
+        <input type="checkbox" ${isDone ? 'checked' : ''} data-onchange="toggle-member-task" data-id="${t.id}" style="accent-color:var(--accent2);width:20px;height:20px;flex-shrink:0">
         <div style="flex:1">
           <div style="${isDone ? 'text-decoration:line-through;color:var(--text3)' : 'font-weight:600'};font-size:14px">${sanitize(t.desc)}</div>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">

@@ -18,12 +18,12 @@ function renderRubrics(cat) {
     <div class="rubric-item">
       <div class="rubric-q">${sanitize(r.q)}</div>
       <div class="score-group">
-        ${[1,2,3,4].map(s => `<button class="score-btn ${r.score === s ? 'active' : ''}" onclick="setScore('${sanitize(cat)}',${Number(r.id)},${s})">${s}<br><small style="font-weight:400">${scoreLabel(s)}</small></button>`).join('')}
+        ${[1,2,3,4].map(s => `<button class="score-btn ${r.score === s ? 'active' : ''}" data-action="set-score" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" data-score="${s}">${s}<br><small style="font-weight:400">${scoreLabel(s)}</small></button>`).join('')}
       </div>
       <div class="rubric-notes">
-        <textarea class="form-input" rows="2" placeholder="הערות..." onchange="setNotes('${sanitize(cat)}',${Number(r.id)},this.value)" style="font-size:12px">${sanitize(r.notes)}</textarea>
+        <textarea class="form-input" rows="2" placeholder="הערות..." data-onchange="set-notes" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" style="font-size:12px">${sanitize(r.notes)}</textarea>
       </div>
-      ${state.isAdmin ? `<button onclick="deleteRubric('${sanitize(cat)}',${Number(r.id)})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;margin-top:4px">🗑️ מחק</button>` : ''}
+      ${state.isAdmin ? `<button data-action="delete-rubric" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;margin-top:4px">🗑️ מחק</button>` : ''}
     </div>
   `).join('') || '<div style="color:var(--text3);padding:20px;text-align:center">אין שאלות עדיין. הוסף שאלות או ייבא מחוון רשמי.</div>';
 

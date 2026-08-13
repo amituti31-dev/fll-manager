@@ -44,14 +44,14 @@ function renderLinks() {
         <div class="link-cat-icon">${icon}</div>
         <div class="link-body">
           <div class="link-title">${sanitize(link.title)}</div>
-          <a class="link-url" href="${safeUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${sanitize(link.url)}</a>
+          <a class="link-url" href="${safeUrl}" target="_blank" rel="noopener noreferrer">${sanitize(link.url)}</a>
           <div class="link-meta">
             <span class="link-cat-badge">${catLabel}</span>
             <span>${sanitize(link.author || '')}</span>
             <span>${link.date || ''}</span>
           </div>
         </div>
-        ${canDelete ? `<button class="link-delete" onclick="deleteLink(${link.id})" title="מחק">🗑️</button>` : ''}
+        ${canDelete ? `<button class="link-delete" data-action="delete-link" data-id="${link.id}" title="מחק">🗑️</button>` : ''}
       </div>
     `;
   }).join('');

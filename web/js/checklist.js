@@ -6,9 +6,9 @@ function renderChecklist() {
   if (!el) return;
   el.innerHTML = state.checklist.map(c => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${c.done ? 'checked' : ''} onchange="toggleChecklist(${c.id})">
-      <span style="font-size:14px;${c.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${c.text}</span>
-      <button onclick="removeChecklistItem(${c.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;margin-right:auto">✕</button>
+      <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${c.done ? 'checked' : ''} data-onchange="toggle-checklist" data-id="${c.id}">
+      <span style="font-size:14px;${c.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${sanitize(c.text)}</span>
+      <button data-action="remove-checklist-item" data-id="${c.id}" style="background:none;border:none;color:var(--text3);cursor:pointer;margin-right:auto">✕</button>
     </div>
   `).join('');
 }

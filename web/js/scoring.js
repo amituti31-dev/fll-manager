@@ -29,7 +29,7 @@ function renderScoring() {
   const el = document.getElementById('scoring-missions');
   el.innerHTML = MISSIONS_2026.map(m => `
     <div class="mission-row">
-      <input type="checkbox" class="mission-checkbox" id="sc-${m.id}" ${state.missionChecks[m.id] ? 'checked' : ''} onchange="toggleScoringMission(${m.id})">
+      <input type="checkbox" class="mission-checkbox" id="sc-${m.id}" ${state.missionChecks[m.id] ? 'checked' : ''} data-onchange="toggle-scoring-mission" data-id="${m.id}">
       <label class="mission-row-name" for="sc-${m.id}">${m.name}</label>
       <span class="mission-row-pts">${m.pts}</span>
     </div>
@@ -295,7 +295,7 @@ function renderStickyBoard() {
         <div class="sticky-column-title" style="color:${cfg.bg}">${cfg.label}</div>
         ${notes.map(s => `
           <div class="sticky-note" style="background:${cfg.bg};color:${cfg.text};margin-bottom:10px">
-            ${state.isAdmin ? `<button class="sticky-note-delete" onclick="deleteSticky(${s.id})">✕</button>` : ''}
+            ${state.isAdmin ? `<button class="sticky-note-delete" data-action="delete-sticky" data-id="${s.id}">✕</button>` : ''}
             <div class="sticky-note-text">${sanitize(s.text)}</div>
             <div class="sticky-note-date">${formatDate(s.date)}</div>
           </div>

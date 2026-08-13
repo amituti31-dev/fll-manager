@@ -68,9 +68,8 @@ function renderInnovProject() {
 
     const hasContent = done;
     const btnStyle = `background:${s.color}20;border:1px solid ${s.color};color:${s.color};padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit`;
-    const btnClick = s.tab
-      ? `switchInnovTab('${s.tab}')`
-      : `openInnovStepModal('${s.key}')`;
+    const btnAction = s.tab ? 'switch-innov-tab' : 'open-innov-step-modal';
+    const btnArg = s.tab || s.key;
 
     return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
               border-right:4px solid ${s.color};padding:16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start">
@@ -85,7 +84,7 @@ function renderInnovProject() {
           ${sanitize(contentText)}
         </div>
       </div>
-      <button style="${btnStyle}" onclick="${btnClick}">+ ${sanitize(s.btnLabel)}</button>
+      <button style="${btnStyle}" data-action="${btnAction}" data-arg="${btnArg}">+ ${sanitize(s.btnLabel)}</button>
     </div>`;
   }).join('');
 }
@@ -174,7 +173,7 @@ function renderInterviewsList() {
           <div style="font-size:13px;line-height:1.6;color:var(--text2)">${sanitize(i.text)}</div>
           ${i.quotes ? `<div style="margin-top:8px;padding:8px 10px;border-right:3px solid #9c6fe4;background:var(--surface);border-radius:6px;font-size:12px;font-style:italic;color:var(--text2);white-space:pre-wrap">${sanitize(i.quotes)}</div>` : ''}
         </div>
-        ${state.isAdmin ? `<button onclick="deleteInterview(${i.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:2px 4px" title="מחק">🗑️</button>` : ''}
+        ${state.isAdmin ? `<button data-action="delete-interview" data-id="${i.id}" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;padding:2px 4px" title="מחק">🗑️</button>` : ''}
       </div>
     </div>
   `).join('');
@@ -217,7 +216,7 @@ function startRecording() {
   if (mediaRec) {
     mediaRec.stop();
     document.getElementById('recording-status').style.display = 'none';
-    document.querySelector('[onclick="startRecording()"]').textContent = '🎤 התחל הקלטה';
+    document.querySelector('[data-action="start-recording"]').textContent = '🎤 התחל הקלטה';
     return;
   }
   if (!navigator.mediaDevices) { notify('הדפדפן לא תומך בהקלטה', 'error'); return; }
@@ -244,7 +243,7 @@ function startRecording() {
     };
     mediaRec.start();
     document.getElementById('recording-status').style.display = 'block';
-    document.querySelector('[onclick="startRecording()"]').textContent = '⏹️ עצור הקלטה';
+    document.querySelector('[data-action="start-recording"]').textContent = '⏹️ עצור הקלטה';
     notify('🎤 מקליט...', 'success');
   }).catch(() => notify('לא ניתן לגשת למיקרופון', 'error'));
 }

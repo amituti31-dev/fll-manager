@@ -105,7 +105,7 @@ async function installPWA() {
                 </div>
               </div>
             </div>
-            <button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">סגור</button>
+            <button data-action="close-dynamic-overlay" style="margin-top:16px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:14px;cursor:pointer">סגור</button>
           </div>
         `;
         document.body.appendChild(guide);

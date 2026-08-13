@@ -2,7 +2,8 @@
 //  FLL MANAGER — JavaScript Index
 //  ───────────────────────────────────────────────────────────────
 //  §01  UTILITIES .............. sanitize, sanitizeUrl, formatDate, notify
-//  §02  CONSTANTS & STATE ....... MISSIONS_2026, OFFICIAL_RUBRICS, state
+//  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, OFFICIAL_RUBRICS
+//  §02  CONSTANTS & STATE ....... state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
 //  §05  TEAM SETUP .............. loginGoTo, create team, join team
 //  §06  APP CORE ................ initApp, navigate, populateAll, sidebar

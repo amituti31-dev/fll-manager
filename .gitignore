@@ -7,3 +7,4 @@ node_modules/
 fll_manager/
 ios/
 *.bat
+*.bak

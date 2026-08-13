@@ -60,7 +60,7 @@ function renderJudging() {
   const pct = qs.length ? Math.round(answered / qs.length * 100) : 0;
 
   const adminBtns = state.isAdmin
-    ? `<button class="btn btn-ghost" style="font-size:12px" onclick="addJudgingQuestion()">＋ הוסף שאלה</button>`
+    ? `<button class="btn btn-ghost" style="font-size:12px" data-action="add-judging-question">＋ הוסף שאלה</button>`
     : '';
 
   el.innerHTML = `
@@ -76,11 +76,11 @@ function renderJudging() {
       : qs.map((q, i) => {
           const hasAns = q.answer && q.answer.trim();
           return `
-            <div class="judging-q-card ${hasAns ? 'answered' : ''}" onclick="editJudgingAnswer(${q.id})">
+            <div class="judging-q-card ${hasAns ? 'answered' : ''}" data-action="edit-judging-answer" data-id="${q.id}">
               <div class="judging-q-header">
                 <div class="judging-q-num">${i + 1}</div>
                 <div class="judging-q-text">${sanitize(q.question)}</div>
-                ${state.isAdmin ? `<button onclick="event.stopPropagation();deleteJudgingQuestion(${q.id})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 4px" title="מחק">🗑️</button>` : ''}
+                ${state.isAdmin ? `<button data-action="delete-judging-question" data-id="${q.id}" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px 4px" title="מחק">🗑️</button>` : ''}
                 <span style="font-size:14px;margin-right:2px">${hasAns ? '✅' : '✏️'}</span>
               </div>
               <div class="judging-q-answer">
@@ -141,7 +141,7 @@ function renderJudgingDoc() {
         <span style="color:var(--text3);font-size:13px">אין מסמך מצורף עדיין</span>
         ${state.isAdmin ? `<label class="btn btn-primary" style="cursor:pointer;font-size:13px;padding:8px 14px">
           📤 העלה PDF
-          <input type="file" accept="application/pdf" style="display:none" onchange="uploadJudgingDoc(event)">
+          <input type="file" accept="application/pdf" style="display:none" data-onchange="upload-judging-doc">
         </label>` : ''}
       </div>`;
   } else {
@@ -153,13 +153,13 @@ function renderJudgingDoc() {
           <div style="color:var(--text3);font-size:11px;margin-top:3px">${sanitize(doc.uploadedBy)} · ${sanitize(doc.date)}</div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
-          <button class="btn btn-primary" style="font-size:13px;padding:8px 14px" onclick="openJudgingDoc()">📂 פתח מסמך</button>
+          <button class="btn btn-primary" style="font-size:13px;padding:8px 14px" data-action="open-judging-doc">📂 פתח מסמך</button>
           ${state.isAdmin ? `
             <label class="btn btn-ghost" style="cursor:pointer;font-size:13px;padding:8px 12px" title="החלף מסמך">
               ↺ החלף
-              <input type="file" accept="application/pdf" style="display:none" onchange="uploadJudgingDoc(event)">
+              <input type="file" accept="application/pdf" style="display:none" data-onchange="upload-judging-doc">
             </label>
-            <button class="btn btn-ghost" style="color:var(--accent3);font-size:13px;padding:8px 10px" onclick="deleteJudgingDoc()" title="מחק מסמך">🗑️</button>
+            <button class="btn btn-ghost" style="color:var(--accent3);font-size:13px;padding:8px 10px" data-action="delete-judging-doc" title="מחק מסמך">🗑️</button>
           ` : ''}
         </div>
       </div>`;
@@ -228,7 +228,7 @@ function renderScoringJudgingDoc() {
       <div class="card-header" style="margin-bottom:10px"><span class="card-icon">📄</span><span class="card-title">מסמך חדר שיפוט</span></div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
         <span style="color:var(--text3);font-size:13px">אין מסמך מצורף עדיין</span>
-        ${state.isAdmin ? `<label class="btn btn-primary" style="cursor:pointer;font-size:13px;padding:8px 14px">📤 העלה PDF<input type="file" accept="application/pdf" style="display:none" onchange="uploadJudgingDoc(event)"></label>` : ''}
+        ${state.isAdmin ? `<label class="btn btn-primary" style="cursor:pointer;font-size:13px;padding:8px 14px">📤 העלה PDF<input type="file" accept="application/pdf" style="display:none" data-onchange="upload-judging-doc"></label>` : ''}
       </div>`;
   } else {
     el.innerHTML = `
@@ -239,10 +239,10 @@ function renderScoringJudgingDoc() {
           <div style="color:var(--text3);font-size:11px;margin-top:3px">${sanitize(doc.uploadedBy)} · ${sanitize(doc.date)}</div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
-          <button class="btn btn-primary" style="font-size:13px;padding:8px 14px" onclick="openJudgingDoc()">📂 פתח מסמך</button>
+          <button class="btn btn-primary" style="font-size:13px;padding:8px 14px" data-action="open-judging-doc">📂 פתח מסמך</button>
           ${state.isAdmin ? `
-            <label class="btn btn-ghost" style="cursor:pointer;font-size:13px;padding:8px 12px">↺ החלף<input type="file" accept="application/pdf" style="display:none" onchange="uploadJudgingDoc(event)"></label>
-            <button class="btn btn-ghost" style="color:var(--accent3);font-size:13px;padding:8px 10px" onclick="deleteJudgingDoc()" title="מחק">🗑️</button>
+            <label class="btn btn-ghost" style="cursor:pointer;font-size:13px;padding:8px 12px">↺ החלף<input type="file" accept="application/pdf" style="display:none" data-onchange="upload-judging-doc"></label>
+            <button class="btn btn-ghost" style="color:var(--accent3);font-size:13px;padding:8px 10px" data-action="delete-judging-doc" title="מחק">🗑️</button>
           ` : ''}
         </div>
       </div>`;

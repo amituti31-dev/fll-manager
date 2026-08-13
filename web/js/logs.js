@@ -18,13 +18,13 @@ function renderTimeline(filter = '', search = '') {
           <div style="flex:1">
             <div class="timeline-meta">${sanitize(l.author)} · ${formatDate(l.date)}</div>
             <div class="timeline-text">${sanitize(l.text)}</div>
-            ${l.image && l.image.startsWith('data:image') ? `<div style="margin-top:10px"><img src="${l.image}" alt="תמונה מצורפת" style="max-width:100%;max-height:260px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--border)" onclick="this.style.maxHeight=this.style.maxHeight==='none'?'260px':'none'" title="לחץ להגדלה"></div>` : ''}
+            ${l.image && l.image.startsWith('data:image') ? `<div style="margin-top:10px"><img src="${l.image}" alt="תמונה מצורפת" style="max-width:100%;max-height:260px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--border)" data-action="toggle-image-zoom" title="לחץ להגדלה"></div>` : ''}
             <span class="timeline-tag tag-${sanitize(l.topic)}">${topicLabel(l.topic)}</span>
           </div>
           ${state.isAdmin ? `
           <div style="display:flex;gap:2px;flex-shrink:0;margin-top:2px">
-            <button onclick="editLog(${l.id})" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:15px;padding:4px" title="ערוך">✏️</button>
-            <button onclick="deleteLog(${l.id})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:15px;padding:4px" title="מחק">🗑️</button>
+            <button data-action="edit-log" data-id="${l.id}" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:15px;padding:4px" title="ערוך">✏️</button>
+            <button data-action="delete-log" data-id="${l.id}" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:15px;padding:4px" title="מחק">🗑️</button>
           </div>` : ''}
         </div>
       </div>
@@ -123,20 +123,31 @@ function editLog(id) {
         <textarea class="form-input" id="edit-log-text" rows="5" style="resize:vertical">${log.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-        <button class="btn btn-ghost" onclick="this.closest('[style*=fixed]').remove()">ביטול</button>
-        <button class="btn btn-primary" onclick="
-          const txt = document.getElementById('edit-log-text').value.trim().slice(0,2000);
-          const top = document.getElementById('edit-log-topic').value;
-          if (!txt) return;
-          const entry = state.logs.find(l => l.id === ${id});
-          if (entry) { entry.text = txt; entry.topic = top; }
-          saveState(); renderTimeline(); renderRecentLogs();
-          this.closest('[style*=fixed]').remove();
-          notify('✅ רשומה עודכנה', 'success');
-        ">💾 שמור</button>
+        <button class="btn btn-ghost" data-action="close-dynamic-overlay">ביטול</button>
+        <button class="btn btn-primary" data-action="save-edited-log" data-id="${id}">💾 שמור</button>
       </div>
     </div>
   `;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function closeDynamicOverlay(el) {
+  const overlay = el.closest('[style*="fixed"]');
+  if (overlay) overlay.remove();
+}
+
+function saveEditedLog(el, id) {
+  const txt = document.getElementById('edit-log-text').value.trim().slice(0, 2000);
+  const top = document.getElementById('edit-log-topic').value;
+  if (!txt) return;
+  const entry = state.logs.find(l => l.id === id);
+  if (entry) { entry.text = txt; entry.topic = top; }
+  saveState(); renderTimeline(); renderRecentLogs();
+  closeDynamicOverlay(el);
+  notify('✅ רשומה עודכנה', 'success');
+}
+
+function toggleImageZoom(el) {
+  el.style.maxHeight = el.style.maxHeight === 'none' ? '260px' : 'none';
 }

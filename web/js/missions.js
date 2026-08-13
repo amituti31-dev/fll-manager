@@ -24,13 +24,13 @@ function renderMissions() {
     const status = (state.missionStatuses || {})[m.id] || 'not_tried';
     const statusLabels = { not_tried: 'לא ניסינו', in_progress: 'בתהליך', ready: 'מוכן ✓' };
     return `
-      <div class="mission-card ${done ? 'done' : ''}" onclick="toggleMission(${m.id})">
+      <div class="mission-card ${done ? 'done' : ''}" data-action="toggle-mission" data-id="${m.id}">
         <span class="mission-check">${done ? '✅' : '⬜'}</span>
         <div class="mission-icon">⛏️</div>
         <div class="mission-name">${m.name}</div>
         <div class="mission-pts">${m.pts} נקודות</div>
-        <div class="mission-status-row" onclick="event.stopPropagation()">
-          ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" onclick="setMissionStatus(${m.id},'${s}')">${statusLabels[s]}</button>`).join('')}
+        <div class="mission-status-row">
+          ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" data-action="set-mission-status" data-id="${m.id}" data-status="${s}">${statusLabels[s]}</button>`).join('')}
         </div>
       </div>
     `;

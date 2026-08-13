@@ -48,7 +48,7 @@ function renderGallery() {
     <div class="gallery-item" style="position:relative">
       <img src="${i.image && i.image.startsWith('data:image') ? i.image : ''}" alt="${sanitize(i.name)}">
       <div class="gallery-item-info">${sanitize(i.name)}<br><span style="opacity:0.7">${formatDate(i.date)}</span></div>
-      ${state.isAdmin ? `<button onclick="deleteImprovement(${i.id})" style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center" title="מחק">🗑️</button>` : ''}
+      ${state.isAdmin ? `<button data-action="delete-improvement" data-id="${i.id}" style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center" title="מחק">🗑️</button>` : ''}
     </div>
   `).join('');
 }
@@ -78,14 +78,14 @@ function renderTeamGallery() {
   el.innerHTML = items.map(item => {
     const canDelete = state.isAdmin || item.author === (state.currentUser?.name || '');
     return `
-      <div class="team-gallery-item" onclick="viewTeamPhoto(${item.id})">
+      <div class="team-gallery-item" data-action="view-team-photo" data-id="${item.id}">
         <img src="${item.image && item.image.startsWith('data:image') ? item.image : ''}" alt="${sanitize(item.caption || '')}">
         ${(item.caption || item.author || item.date) ? `
           <div class="team-gallery-caption">
             ${item.caption ? `<div class="team-gallery-caption-text">${sanitize(item.caption)}</div>` : ''}
             <div class="team-gallery-author">${sanitize(item.author || '')} · ${item.date || ''}</div>
           </div>` : ''}
-        ${canDelete ? `<button class="team-gallery-delete" onclick="event.stopPropagation();deleteTeamPhoto(${item.id})" title="מחק">🗑️</button>` : ''}
+        ${canDelete ? `<button class="team-gallery-delete" data-action="delete-team-photo" data-id="${item.id}" title="מחק">🗑️</button>` : ''}
       </div>
     `;
   }).join('');
@@ -141,7 +141,7 @@ function openVideoSelect() {
   if (!imgs.length) { notify('אין תמונות בגלריה', 'error'); return; }
   const el = document.getElementById('video-img-list');
   el.innerHTML = imgs.map(i => `
-    <label style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid var(--border);display:block" onclick="updateVideoCount()">
+    <label style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid var(--border);display:block">
       <input type="checkbox" data-id="${i.id}" style="position:absolute;width:1px;height:1px;opacity:0">
       <img src="${i.image}" style="width:100%;height:90px;object-fit:cover;display:block">
       <div style="padding:4px 6px;font-size:11px;background:var(--surface2);display:flex;align-items:center;gap:4px">

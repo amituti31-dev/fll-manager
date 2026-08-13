@@ -319,8 +319,8 @@ function _renderTourStep(direction = 1) {
     <div class="tour-tooltip-footer">
       <span class="tour-tooltip-progress">${_tourIndex + 1} / ${_tourSteps.length}</span>
       <div class="tour-tooltip-actions">
-        ${_tourIndex > 0 ? `<button class="tour-btn-back" onclick="_tourBack()">חזרה</button>` : ''}
-        ${step.action === 'click' ? '' : `<button class="tour-btn-next" onclick="_tourAdvance()">${_tourIndex === _tourSteps.length - 1 ? 'סיום' : 'הבא'}</button>`}
+        ${_tourIndex > 0 ? `<button class="tour-btn-back" data-action="tour-back">חזרה</button>` : ''}
+        ${step.action === 'click' ? '' : `<button class="tour-btn-next" data-action="tour-advance">${_tourIndex === _tourSteps.length - 1 ? 'סיום' : 'הבא'}</button>`}
       </div>
     </div>
   `;

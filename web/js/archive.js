@@ -21,7 +21,7 @@ function renderSeasons() {
           <div style="font-family:'Space Mono';font-weight:700;color:var(--accent2);font-size:16px">${s.topScore || 0}</div>
           <div style="font-size:11px;color:var(--text3)">ניקוד שיא</div>
         </div>
-        ${s.archived ? `<button class="btn btn-ghost btn-icon" style="font-size:12px" onclick="viewArchivedSeason(${state.seasons.indexOf(s)})">👁️ צפה</button>` : ''}
+        ${s.archived ? `<button class="btn btn-ghost btn-icon" style="font-size:12px" data-action="view-archived-season" data-index="${state.seasons.indexOf(s)}">👁️ צפה</button>` : ''}
       </div>
     </div>
   `).join('');

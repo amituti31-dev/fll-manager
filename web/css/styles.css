@@ -578,6 +578,10 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .poll-close-btn:hover { border-color:var(--red); color:var(--red); }
 .poll-closed-badge { font-size:11px; color:var(--text3); background:var(--surface2); border-radius:10px; padding:2px 8px; }
 
+/* ─── LOGIN CHOICE BUTTONS ─── */
+.login-choice-btn:hover { border-color: var(--accent); }
+.login-choice-btn.accent2:hover { border-color: var(--accent2); }
+
 /* ─── GUIDED TOUR ─── */
 #tour-overlay { position: fixed; inset: 0; z-index: 500; pointer-events: none; }
 .tour-mask { position: fixed; background: rgba(5,8,15,0.72); pointer-events: auto; }

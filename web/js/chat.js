@@ -101,7 +101,7 @@ function _renderPollBubble(poll, myId) {
     const isMyVote = myVoteIdx === i;
 
     if (canVote) {
-      return `<button class="poll-option-btn" onclick="castVote('${poll.id}',${i})">${sanitize(opt.text)}</button>`;
+      return `<button class="poll-option-btn" data-action="cast-vote" data-id="${poll.id}" data-option="${i}">${sanitize(opt.text)}</button>`;
     }
     return `
       <div class="poll-result-row">
@@ -116,7 +116,7 @@ function _renderPollBubble(poll, myId) {
       <span class="poll-total">${total} הצבעות</span>
       ${poll.closed
         ? `<span class="poll-closed-badge">🔒 סגורה</span>`
-        : (state.isAdmin ? `<button class="poll-close-btn" onclick="closePoll('${poll.id}')">🔒 סגור הצבעה</button>` : '')}
+        : (state.isAdmin ? `<button class="poll-close-btn" data-action="close-poll" data-id="${poll.id}">🔒 סגור הצבעה</button>` : '')}
     </div>`;
 
   return `
@@ -256,7 +256,7 @@ function _renderAnnouncements(items) {
         <span class="announcement-text">${sanitize(a.text)}</span>
       </div>
       <div class="announcement-meta">${sanitize(a.author || '')} · ${(a.ts || '').substring(0,10)}</div>
-      ${state.isAdmin ? `<button class="announcement-delete" onclick="deleteAnnouncement('${a.id}')" title="מחק הכרזה">✕</button>` : ''}
+      ${state.isAdmin ? `<button class="announcement-delete" data-action="delete-announcement" data-id="${a.id}" title="מחק הכרזה">✕</button>` : ''}
     </div>
   `).join('');
 }
