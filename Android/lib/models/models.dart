@@ -156,6 +156,24 @@ class Mission {
   Map<String, dynamic> toMap() => {'id': id, 'name': name, 'pts': pts, 'status': status};
 }
 
+// Free-text bonus/rule notes per mission, kept separate from Mission itself
+// so any team member can edit them (Mission lives in mentor-only admin-data).
+class MissionExtra {
+  String bonus;
+  String rules;
+  bool bonusDone;
+
+  MissionExtra({this.bonus = '', this.rules = '', this.bonusDone = false});
+
+  factory MissionExtra.fromMap(Map<String, dynamic> m) => MissionExtra(
+    bonus: m['bonus'] as String? ?? '',
+    rules: m['rules'] as String? ?? '',
+    bonusDone: m['bonusDone'] as bool? ?? false,
+  );
+
+  Map<String, dynamic> toMap() => {'bonus': bonus, 'rules': rules, 'bonusDone': bonusDone};
+}
+
 final List<Mission> missions2026 = [
   Mission(id: 1,  name: 'M01 – צמח קטן',         pts: 20),
   Mission(id: 2,  name: 'M02 – בית הצמחים',       pts: 20),

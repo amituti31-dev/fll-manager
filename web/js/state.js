@@ -23,6 +23,8 @@ let state = {
   ],
   missionChecks: {},
   missionStatuses: {},      // id → 'not_tried'|'in_progress'|'ready'
+  missionExtra: {},         // id → { bonus, rules, bonusDone } — free-text bonus/rule notes per mission
+  customMissions: [],       // mentor-imported mission list (overrides MISSIONS_2026 when populated)
   pendingRubricCategory: null,
   teamGallery: [],          // [{id, image, caption, date, author}]
   links: [],                // [{id, title, url, category, author, date}]
@@ -56,7 +58,8 @@ async function saveState() {
     const memberTasks = state.memberTasks || [];
     const links = state.links || [];
     const interviews = state.interviews || [];
-    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks, missionChecks, links, interviews }, { merge: true });
+    const missionExtra = state.missionExtra || {};
+    await window.db.collection(window.FB_PROJECT).doc("data").set({ logs, improvements, findings, stickies, memberTasks, missionChecks, links, interviews, missionExtra }, { merge: true });
 
     // "admin-data" — mentor-only per Firestore rules. Never sync raw PINs
     // to clients: strip them from the members list before writing.

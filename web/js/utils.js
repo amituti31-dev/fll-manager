@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 //  FLL MANAGER — JavaScript Index
 //  ───────────────────────────────────────────────────────────────
-//  §01  UTILITIES .............. sanitize, sanitizeUrl, formatDate, notify
+//  §01  UTILITIES .............. sanitize, sanitizeUrl, getMissions, notify
 //  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, OFFICIAL_RUBRICS
 //  §02  CONSTANTS & STATE ....... state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
@@ -57,6 +57,13 @@ function sanitizeUrl(url) {
     if (!['http:', 'https:'].includes(u.protocol)) return '';
     return url;
   } catch(e) { return ''; }
+}
+
+// getMissions() - the mission list currently in effect: a mentor-imported
+// list if one exists, otherwise the built-in MISSIONS_2026 fallback (kept
+// so offline/first-load teams always have a working mission set).
+function getMissions() {
+  return (state.customMissions && state.customMissions.length) ? state.customMissions : MISSIONS_2026;
 }
 
 // ═══════════════════════════════════════════════════════

@@ -33,6 +33,7 @@ class AppProvider extends ChangeNotifier {
   List<Interview> interviews = [];
   List<ScoreRun> scores = [];
   Map<int, bool> missionChecks = {};
+  Map<int, MissionExtra> missionExtra = {};
   Map<String, List<RubricItem>> rubrics = {'values': [], 'robot': [], 'innovation': []};
   List<StickyNote> stickies = [];
   List<MemberTask> memberTasks = [];
@@ -91,6 +92,7 @@ class AppProvider extends ChangeNotifier {
     interviews = [];
     scores = [];
     missionChecks = {};
+    missionExtra = {};
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     stickies = [];
     memberTasks = [];
@@ -186,6 +188,11 @@ class AppProvider extends ChangeNotifier {
         final raw = data['missionChecks'] as Map<String, dynamic>;
         missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
       }
+      if (data['missionExtra'] != null) {
+        final raw = data['missionExtra'] as Map<String, dynamic>;
+        missionExtra = raw.map((k, v) =>
+            MapEntry(int.tryParse(k) ?? 0, MissionExtra.fromMap(Map<String, dynamic>.from(v as Map))));
+      }
     }
 
     if (adminData != null) {
@@ -257,6 +264,7 @@ class AppProvider extends ChangeNotifier {
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
       'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
+      'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
     });
 
     // "admin-data" — mentor-only per Firestore rules. A non-mentor calling
@@ -470,6 +478,12 @@ class AppProvider extends ChangeNotifier {
       .where((m) => missionChecks[m.id] == true)
       .fold(0, (sum, m) => sum + m.pts);
 
+  Future<void> saveMissionExtra(int id, {required String bonus, required String rules, required bool bonusDone}) async {
+    missionExtra[id] = MissionExtra(bonus: bonus, rules: rules, bonusDone: bonusDone);
+    notifyListeners();
+    await _saveData();
+  }
+
   Future<void> updateMission(int id, String name, int pts) async {
     final m = missions.firstWhere((m) => m.id == id);
     m.name = name;
@@ -480,6 +494,19 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> resetMissions() async {
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    notifyListeners();
+    await _saveData();
+  }
+
+  // Full replace with a mentor-imported mission list (JSON import). Distinct
+  // from resetMissions(), which reverts to the built-in missions2026 —
+  // this replaces with an arbitrary list and, since ids may no longer line
+  // up with the old set, resets missionChecks/missionExtra to avoid stale
+  // notes/ticks pointing at the wrong mission.
+  Future<void> replaceMissions(List<Mission> newMissions) async {
+    missions = newMissions;
+    missionChecks = {};
+    missionExtra = {};
     notifyListeners();
     await _saveData();
   }
@@ -615,6 +642,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> resetScoringData() async {
     missionChecks = {};
+    missionExtra = {};
     scores = [];
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
@@ -628,6 +656,7 @@ class AppProvider extends ChangeNotifier {
     interviews = [];
     scores = [];
     missionChecks = {};
+    missionExtra = {};
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     stickies = [];

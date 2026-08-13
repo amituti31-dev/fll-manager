@@ -27,10 +27,10 @@ function importAllOfficialRubrics() {
 // ── Scoring ──
 function renderScoring() {
   const el = document.getElementById('scoring-missions');
-  el.innerHTML = MISSIONS_2026.map(m => `
+  el.innerHTML = getMissions().map(m => `
     <div class="mission-row">
       <input type="checkbox" class="mission-checkbox" id="sc-${m.id}" ${state.missionChecks[m.id] ? 'checked' : ''} data-onchange="toggle-scoring-mission" data-id="${m.id}">
-      <label class="mission-row-name" for="sc-${m.id}">${m.name}</label>
+      <label class="mission-row-name" for="sc-${m.id}">${sanitize(m.name)}</label>
       <span class="mission-row-pts">${m.pts}</span>
     </div>
   `).join('');
@@ -44,18 +44,18 @@ function toggleScoringMission(id) {
 }
 
 function updateScoreFromMissions() {
-  const total = MISSIONS_2026.reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const total = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
   document.getElementById('total-score').textContent = total;
   document.getElementById('stat-score').textContent = total;
   // sync checkboxes
-  MISSIONS_2026.forEach(m => {
+  getMissions().forEach(m => {
     const cb = document.getElementById('sc-' + m.id);
     if (cb) cb.checked = !!state.missionChecks[m.id];
   });
 }
 
 function saveRunScore() {
-  const total = MISSIONS_2026.reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const total = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
   state.scores.push({ date: new Date().toISOString().split('T')[0], score: total, notes: 'ריצה ' + (state.scores.length + 1) });
   saveState(); renderScoreHistory(); updateCharts();
   notify(`✅ ריצה נשמרה – ${total} נקודות`, 'success');

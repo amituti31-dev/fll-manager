@@ -66,6 +66,11 @@ const ACTIONS = {
   'filter-robot-by-mission': () => filterRobotByMission(),
   'toggle-mission': (el) => toggleMission(Number(el.dataset.id)),
   'set-mission-status': (el) => setMissionStatus(Number(el.dataset.id), el.dataset.status),
+  'open-mission-extra': (el) => openMissionExtraModal(Number(el.dataset.id)),
+  'save-mission-extra': () => saveMissionExtra(),
+  'import-missions-json': (el) => importMissionsJson(el),
+  'confirm-mission-import': () => confirmMissionImport(),
+  'cancel-mission-import': () => cancelMissionImport(),
   'open-video-select': () => openVideoSelect(),
 
   // Innovation

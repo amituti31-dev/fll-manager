@@ -436,7 +436,7 @@
               <span style="font-size:36px">🤖</span>
               <div>
                 <h3 style="font-weight:800;font-size:18px">תכנון רובוט</h3>
-                <p style="color:var(--text2);font-size:13px;margin-top:4px">Unearthed 2026 – 15 משימות</p>
+                <p style="color:var(--text2);font-size:13px;margin-top:4px" id="robot-header-mission-count">Unearthed 2026 – 15 משימות</p>
               </div>
             </div>
           </div>
@@ -454,7 +454,13 @@
         </div>
 
         <div class="card">
-          <div class="card-header"><span class="card-icon">📋</span><span class="card-title">15 משימות – Unearthed 2026</span></div>
+          <div class="card-header">
+            <span class="card-icon">📋</span><span class="card-title" id="missions-card-title">15 משימות – Unearthed 2026</span>
+            <label class="btn btn-ghost admin-only" style="font-size:11px;cursor:pointer;margin-right:auto;padding:6px 10px">
+              📥 ייבא משימות מ-JSON
+              <input type="file" accept=".json,application/json" style="display:none" data-onchange="import-missions-json">
+            </label>
+          </div>
           <div style="display:flex;gap:8px;margin-bottom:12px">
             <button id="mf-all"   class="btn btn-primary" style="flex:1;font-size:13px" data-action="filter-missions" data-arg="all">📋 הכול</button>
             <button id="mf-done"  class="btn btn-ghost"   style="flex:1;font-size:13px" data-action="filter-missions" data-arg="done">✅ הושלמו</button>
@@ -1098,6 +1104,44 @@
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-improvement">ביטול</button>
       <button class="btn btn-success" data-action="save-improvement">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mission Bonus / Extra Rules Modal -->
+<div class="modal-overlay" id="modal-mission-extra">
+  <div class="modal">
+    <div class="modal-title" id="mission-extra-title">📝 משימה</div>
+    <div class="form-group">
+      <label class="form-label">בונוסים שמתקיימים במשימה</label>
+      <textarea class="form-input" id="mission-extra-bonus" rows="3" placeholder="לדוגמה: בונוס נוסף אם..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">חוקים נוספים למשימה</label>
+      <textarea class="form-input" id="mission-extra-rules" rows="3" placeholder="הערות וחוקים נוספים..."></textarea>
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="mission-extra-done" style="width:18px;height:18px;accent-color:var(--accent2)">
+      <label class="form-label" style="margin:0" for="mission-extra-done">🎁 השגנו את הבונוס</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-mission-extra">ביטול</button>
+      <button class="btn btn-primary" data-action="save-mission-extra">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mission JSON Import Preview Modal -->
+<div class="modal-overlay" id="modal-mission-import">
+  <div class="modal">
+    <div class="modal-title">📥 ייבוא משימות מ-JSON<span id="mission-import-season"></span></div>
+    <div style="background:rgba(255,107,53,0.1);border:1px solid var(--accent3);border-radius:10px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text2)">
+      ⚠️ פעולה זו <b>תחליף את כל</b> המשימות הקיימות ב-<b id="mission-import-count">0</b> המשימות שלהלן, ו<b>תאפס את כל הסימונים</b> שנעשו על המשימות הישנות (כולל בונוסים וחוקים נוספים). לא ניתן לבטל לאחר האישור.
+    </div>
+    <div id="mission-import-list" style="max-height:280px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-ghost" data-action="cancel-mission-import">ביטול</button>
+      <button class="btn btn-primary" data-action="confirm-mission-import">✅ אשר והחלף</button>
     </div>
   </div>
 </div>

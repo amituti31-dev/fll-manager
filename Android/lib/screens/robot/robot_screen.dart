@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
@@ -39,6 +40,76 @@ class _RobotScreenState extends State<RobotScreen> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => EditMissionsSheet(prov: prov),
+    );
+  }
+
+  void _showMissionExtraSheet(BuildContext context, Mission m) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => _MissionExtraSheet(mission: m),
+    );
+  }
+
+  Future<void> _pickAndImportMissionsJson(BuildContext context, AppProvider prov) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+      withData: true,
+    );
+    if (result == null || result.files.single.bytes == null) return;
+
+    String raw;
+    try {
+      raw = utf8.decode(result.files.single.bytes!);
+    } catch (e) {
+      if (mounted) _showImportError(context, 'קובץ לא תקין (קידוד לא נתמך)');
+      return;
+    }
+
+    dynamic parsed;
+    try {
+      parsed = jsonDecode(raw);
+    } catch (e) {
+      if (mounted) _showImportError(context, 'קובץ JSON לא תקין: $e');
+      return;
+    }
+
+    final validation = _validateMissionsJson(parsed);
+    if (validation.error != null) {
+      if (mounted) _showImportError(context, validation.error!);
+      return;
+    }
+
+    if (!mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => _MissionImportPreviewSheet(
+        missions: validation.missions!,
+        season: validation.season,
+        prov: prov,
+      ),
+    );
+  }
+
+  void _showImportError(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('⚠️ ייבוא נכשל', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(message, style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('סגור')),
+        ],
+      ),
     );
   }
 
@@ -117,6 +188,24 @@ class _RobotScreenState extends State<RobotScreen> {
         ),
         if (prov.isAdmin)
           GestureDetector(
+            onTap: () => _pickAndImportMissionsJson(context, prov),
+            child: Container(
+              margin: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withAlpha(30),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.gold.withAlpha(80)),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.file_upload, size: 12, color: AppColors.gold),
+                SizedBox(width: 4),
+                Text('ייבא JSON', style: TextStyle(fontSize: 12, color: AppColors.gold, fontWeight: FontWeight.w600)),
+              ]),
+            ),
+          ),
+        if (prov.isAdmin)
+          GestureDetector(
             onTap: () => _showEditMissions(context, prov),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -172,41 +261,60 @@ class _RobotScreenState extends State<RobotScreen> {
         itemBuilder: (_, i) {
           final m = filtered[i];
           final isDone = prov.missionChecks[m.id] == true;
-          return GestureDetector(
-            onTap: () => context.read<AppProvider>().toggleMission(m.id),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDone ? AppColors.accent2.withAlpha(20) : AppColors.surface2,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDone ? AppColors.accent2 : AppColors.border),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Icon(
-                    isDone ? Icons.check_box : Icons.check_box_outline_blank,
-                    size: 18,
-                    color: isDone ? AppColors.accent2 : AppColors.border,
-                  ),
-                  Text('⛏️', style: TextStyle(fontSize: 18)),
-                ]),
-                const Spacer(),
-                Text(
-                  m.name.contains('–') ? m.name.split('–').last.trim() : m.name,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                      color: isDone ? AppColors.accent2 : AppColors.textPrimary),
-                  textAlign: TextAlign.end,
-                  maxLines: 2, overflow: TextOverflow.ellipsis,
+          final extra = prov.missionExtra[m.id];
+          final hasNotes = extra != null && (extra.bonus.isNotEmpty || extra.rules.isNotEmpty || extra.bonusDone);
+          return Stack(children: [
+            GestureDetector(
+              onTap: () => context.read<AppProvider>().toggleMission(m.id),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDone ? AppColors.accent2.withAlpha(20) : AppColors.surface2,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isDone ? AppColors.accent2 : AppColors.border),
                 ),
-                SizedBox(height: 2),
-                Text('${m.pts} נק\'', style: TextStyle(
-                  fontSize: 10, fontWeight: FontWeight.w600, fontFamily: 'monospace',
-                  color: isDone ? AppColors.accent2 : AppColors.textTertiary,
-                )),
-              ]),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Icon(
+                      isDone ? Icons.check_box : Icons.check_box_outline_blank,
+                      size: 18,
+                      color: isDone ? AppColors.accent2 : AppColors.border,
+                    ),
+                    Text('⛏️', style: TextStyle(fontSize: 18)),
+                  ]),
+                  const Spacer(),
+                  Text(
+                    m.name.contains('–') ? m.name.split('–').last.trim() : m.name,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                        color: isDone ? AppColors.accent2 : AppColors.textPrimary),
+                    textAlign: TextAlign.end,
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2),
+                  Text('${m.pts} נק\'', style: TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w600, fontFamily: 'monospace',
+                    color: isDone ? AppColors.accent2 : AppColors.textTertiary,
+                  )),
+                ]),
+              ),
             ),
-          );
+            Positioned(
+              bottom: 4, left: 4,
+              child: GestureDetector(
+                onTap: () => _showMissionExtraSheet(context, m),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: hasNotes ? AppColors.gold.withAlpha(50) : Colors.black26,
+                    borderRadius: BorderRadius.circular(20),
+                    border: hasNotes ? Border.all(color: AppColors.gold, width: 1) : null,
+                  ),
+                  child: Text(extra?.bonusDone == true ? '🎁' : '📝', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+            ),
+          ]);
         },
       ),
       SizedBox(height: 20),
@@ -584,6 +692,235 @@ class _AddImprovementSheetState extends State<_AddImprovementSheet> {
                 ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : Text('💾 שמור'),
           ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ─── Mission Bonus / Extra Rules Sheet ────────────────
+
+class _MissionExtraSheet extends StatefulWidget {
+  final Mission mission;
+  const _MissionExtraSheet({required this.mission});
+
+  @override
+  State<_MissionExtraSheet> createState() => _MissionExtraSheetState();
+}
+
+class _MissionExtraSheetState extends State<_MissionExtraSheet> {
+  late final TextEditingController _bonusCtrl;
+  late final TextEditingController _rulesCtrl;
+  late bool _bonusDone;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final extra = context.read<AppProvider>().missionExtra[widget.mission.id];
+    _bonusCtrl = TextEditingController(text: extra?.bonus ?? '');
+    _rulesCtrl = TextEditingController(text: extra?.rules ?? '');
+    _bonusDone = extra?.bonusDone ?? false;
+  }
+
+  @override
+  void dispose() {
+    _bonusCtrl.dispose();
+    _rulesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    await context.read<AppProvider>().saveMissionExtra(
+      widget.mission.id,
+      bonus: _bonusCtrl.text.trim(),
+      rules: _rulesCtrl.text.trim(),
+      bonusDone: _bonusDone,
+    );
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('📝 ${widget.mission.name}',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+            textAlign: TextAlign.center),
+        SizedBox(height: 16),
+        Text('בונוסים שמתקיימים במשימה', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        SizedBox(height: 4),
+        TextField(controller: _bonusCtrl, maxLines: 3,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'לדוגמה: בונוס נוסף אם...')),
+        SizedBox(height: 12),
+        Text('חוקים נוספים למשימה', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        SizedBox(height: 4),
+        TextField(controller: _rulesCtrl, maxLines: 3,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: 'הערות וחוקים נוספים...')),
+        SizedBox(height: 8),
+        CheckboxListTile(
+          value: _bonusDone,
+          onChanged: (v) => setState(() => _bonusDone = v ?? false),
+          title: Text('🎁 השגנו את הבונוס', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+          controlAffinity: ListTileControlAffinity.leading,
+          activeColor: AppColors.accent2,
+          contentPadding: EdgeInsets.zero,
+        ),
+        SizedBox(height: 12),
+        SizedBox(width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent2),
+            child: _saving
+                ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Text('💾 שמור'),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+// ─── Mission JSON Import ──────────────────────────────
+//
+// Validates a { season, missions:[{id,name,pts},...] } file (produced
+// externally — there is no in-app AI/Cloud Function). On confirm this
+// fully replaces the mission list; AppProvider.replaceMissions() resets
+// missionChecks/missionExtra too, since imported ids have no guaranteed
+// relationship to the previous set.
+
+class _MissionValidationResult {
+  final String? error;
+  final List<Mission>? missions;
+  final String? season;
+  _MissionValidationResult.error(String message) : error = message, missions = null, season = null;
+  _MissionValidationResult.ok(List<Mission> m, String? s) : error = null, missions = m, season = s;
+}
+
+_MissionValidationResult _validateMissionsJson(dynamic raw) {
+  if (raw is! Map || raw['missions'] is! List) {
+    return _MissionValidationResult.error('מבנה קובץ לא תקין — נדרש אובייקט עם שדה missions (מערך)');
+  }
+  final rawMissions = raw['missions'] as List;
+  if (rawMissions.length < 10) {
+    return _MissionValidationResult.error('מספר משימות נמוך מדי (${rawMissions.length}) — נדרשות לפחות 10');
+  }
+  final seenIds = <int>{};
+  final cleaned = <Mission>[];
+  for (int i = 0; i < rawMissions.length; i++) {
+    final m = rawMissions[i];
+    if (m is! Map) return _MissionValidationResult.error('משימה #${i + 1} אינה אובייקט תקין');
+    final idRaw = m['id'];
+    final id = idRaw is num ? idRaw.toInt() : int.tryParse('$idRaw');
+    final name = (m['name'] is String) ? (m['name'] as String).trim() : '';
+    final ptsRaw = m['pts'];
+    final pts = ptsRaw is num ? ptsRaw.toDouble() : double.tryParse('$ptsRaw');
+    if (id == null || id <= 0) return _MissionValidationResult.error('משימה #${i + 1}: מזהה (id) לא תקין');
+    if (seenIds.contains(id)) return _MissionValidationResult.error('מזהה משימה כפול: $id');
+    if (name.isEmpty) return _MissionValidationResult.error('משימה #${i + 1}: חסר שם');
+    if (pts == null || pts < 0 || pts > 200) return _MissionValidationResult.error('משימה #${i + 1}: ניקוד לא סביר ($ptsRaw)');
+    seenIds.add(id);
+    cleaned.add(Mission(id: id, name: name.length > 200 ? name.substring(0, 200) : name, pts: pts.round()));
+  }
+  final rawSeason = (raw['season'] is String) ? (raw['season'] as String).trim() : '';
+  final season = rawSeason.isEmpty ? null : (rawSeason.length > 100 ? rawSeason.substring(0, 100) : rawSeason);
+  return _MissionValidationResult.ok(cleaned, season);
+}
+
+class _MissionImportPreviewSheet extends StatefulWidget {
+  final List<Mission> missions;
+  final String? season;
+  final AppProvider prov;
+  const _MissionImportPreviewSheet({required this.missions, required this.season, required this.prov});
+
+  @override
+  State<_MissionImportPreviewSheet> createState() => _MissionImportPreviewSheetState();
+}
+
+class _MissionImportPreviewSheetState extends State<_MissionImportPreviewSheet> {
+  bool _saving = false;
+
+  Future<void> _confirm() async {
+    setState(() => _saving = true);
+    await widget.prov.replaceMissions(widget.missions);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.8,
+      maxChildSize: 0.95,
+      builder: (_, scroll) => Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(
+              widget.season != null ? '📥 ייבוא משימות — ${widget.season}' : '📥 ייבוא משימות מ-JSON',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withAlpha(25),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.gold.withAlpha(90)),
+              ),
+              child: Text(
+                '⚠️ פעולה זו תחליף את כל המשימות הקיימות ב-${widget.missions.length} המשימות שלהלן, ותאפס את כל הסימונים שנעשו על המשימות הישנות (כולל בונוסים וחוקים נוספים). לא ניתן לבטל לאחר האישור.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ),
+          ]),
+        ),
+        Divider(color: AppColors.border, height: 1),
+        Expanded(
+          child: ListView.separated(
+            controller: scroll,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            itemCount: widget.missions.length,
+            separatorBuilder: (_, __) => Divider(color: AppColors.border, height: 1),
+            itemBuilder: (_, i) {
+              final m = widget.missions[i];
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(children: [
+                  Expanded(child: Text(m.name, style: TextStyle(fontSize: 13, color: AppColors.textPrimary))),
+                  Text('${m.pts} נק\'', style: TextStyle(
+                    fontSize: 12, color: AppColors.accent2, fontFamily: 'monospace', fontWeight: FontWeight.w700)),
+                ]),
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _saving ? null : () => Navigator.pop(context),
+                child: Text('ביטול'),
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _saving ? null : _confirm,
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent2),
+                child: _saving
+                    ? SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('✅ אשר והחלף'),
+              ),
+            ),
+          ]),
         ),
       ]),
     );
