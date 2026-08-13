@@ -93,6 +93,7 @@ class _RobotScreenState extends State<RobotScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => _MissionImportPreviewSheet(
         missions: validation.missions!,
+        extras: validation.extras!,
         season: validation.season,
         prov: prov,
       ),
@@ -788,18 +789,23 @@ class _MissionExtraSheetState extends State<_MissionExtraSheet> {
 
 // ─── Mission JSON Import ──────────────────────────────
 //
-// Validates a { season, missions:[{id,name,pts},...] } file (produced
-// externally — there is no in-app AI/Cloud Function). On confirm this
-// fully replaces the mission list; AppProvider.replaceMissions() resets
+// Validates a { season, missions:[{id,name,pts,bonus?,rules?},...] } file
+// (produced externally — there is no in-app AI/Cloud Function). bonus/rules
+// are optional free text, pre-filled into missionExtra on confirm (the same
+// fields the "📝 בונוס/חוקים" sheet edits by hand). On confirm this fully
+// replaces the mission list; AppProvider.replaceMissions() resets
 // missionChecks/missionExtra too, since imported ids have no guaranteed
 // relationship to the previous set.
 
 class _MissionValidationResult {
   final String? error;
   final List<Mission>? missions;
+  final Map<int, MissionExtra>? extras;
   final String? season;
-  _MissionValidationResult.error(String message) : error = message, missions = null, season = null;
-  _MissionValidationResult.ok(List<Mission> m, String? s) : error = null, missions = m, season = s;
+  _MissionValidationResult.error(String message)
+      : error = message, missions = null, extras = null, season = null;
+  _MissionValidationResult.ok(List<Mission> m, Map<int, MissionExtra> e, String? s)
+      : error = null, missions = m, extras = e, season = s;
 }
 
 _MissionValidationResult _validateMissionsJson(dynamic raw) {
@@ -812,6 +818,7 @@ _MissionValidationResult _validateMissionsJson(dynamic raw) {
   }
   final seenIds = <int>{};
   final cleaned = <Mission>[];
+  final extras = <int, MissionExtra>{};
   for (int i = 0; i < rawMissions.length; i++) {
     final m = rawMissions[i];
     if (m is! Map) return _MissionValidationResult.error('משימה #${i + 1} אינה אובייקט תקין');
@@ -826,17 +833,26 @@ _MissionValidationResult _validateMissionsJson(dynamic raw) {
     if (pts == null || pts < 0 || pts > 200) return _MissionValidationResult.error('משימה #${i + 1}: ניקוד לא סביר ($ptsRaw)');
     seenIds.add(id);
     cleaned.add(Mission(id: id, name: name.length > 200 ? name.substring(0, 200) : name, pts: pts.round()));
+    final bonus = (m['bonus'] is String) ? (m['bonus'] as String).trim() : '';
+    final rules = (m['rules'] is String) ? (m['rules'] as String).trim() : '';
+    if (bonus.isNotEmpty || rules.isNotEmpty) {
+      extras[id] = MissionExtra(
+        bonus: bonus.length > 1000 ? bonus.substring(0, 1000) : bonus,
+        rules: rules.length > 1000 ? rules.substring(0, 1000) : rules,
+      );
+    }
   }
   final rawSeason = (raw['season'] is String) ? (raw['season'] as String).trim() : '';
   final season = rawSeason.isEmpty ? null : (rawSeason.length > 100 ? rawSeason.substring(0, 100) : rawSeason);
-  return _MissionValidationResult.ok(cleaned, season);
+  return _MissionValidationResult.ok(cleaned, extras, season);
 }
 
 class _MissionImportPreviewSheet extends StatefulWidget {
   final List<Mission> missions;
+  final Map<int, MissionExtra> extras;
   final String? season;
   final AppProvider prov;
-  const _MissionImportPreviewSheet({required this.missions, required this.season, required this.prov});
+  const _MissionImportPreviewSheet({required this.missions, required this.extras, required this.season, required this.prov});
 
   @override
   State<_MissionImportPreviewSheet> createState() => _MissionImportPreviewSheetState();
@@ -847,7 +863,7 @@ class _MissionImportPreviewSheetState extends State<_MissionImportPreviewSheet> 
 
   Future<void> _confirm() async {
     setState(() => _saving = true);
-    await widget.prov.replaceMissions(widget.missions);
+    await widget.prov.replaceMissions(widget.missions, extras: widget.extras);
     if (mounted) Navigator.pop(context);
   }
 
@@ -890,10 +906,13 @@ class _MissionImportPreviewSheetState extends State<_MissionImportPreviewSheet> 
             separatorBuilder: (_, __) => Divider(color: AppColors.border, height: 1),
             itemBuilder: (_, i) {
               final m = widget.missions[i];
+              final hasExtra = widget.extras.containsKey(m.id);
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(children: [
-                  Expanded(child: Text(m.name, style: TextStyle(fontSize: 13, color: AppColors.textPrimary))),
+                  Expanded(child: Text(
+                    hasExtra ? '${m.name} 🎁' : m.name,
+                    style: TextStyle(fontSize: 13, color: AppColors.textPrimary))),
                   Text('${m.pts} נק\'', style: TextStyle(
                     fontSize: 12, color: AppColors.accent2, fontFamily: 'monospace', fontWeight: FontWeight.w700)),
                 ]),

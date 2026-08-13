@@ -89,10 +89,12 @@ function saveMissionExtra() {
 }
 
 // ── JSON mission import (mentor-only, full replace) ──
-// Validates a { season, missions:[{id,name,pts},...] } file. On confirm,
-// this fully replaces the mission list and resets everything keyed by
-// mission id (missionChecks/missionExtra/missionStatuses), since imported
-// ids have no guaranteed relationship to the previous set.
+// Validates a { season, missions:[{id,name,pts,bonus?,rules?},...] } file.
+// bonus/rules are optional free text, pre-filled into missionExtra on
+// confirm (the same fields the "📝 בונוס/חוקים" modal edits by hand).
+// On confirm, this fully replaces the mission list and resets everything
+// keyed by mission id (missionChecks/missionExtra/missionStatuses), since
+// imported ids have no guaranteed relationship to the previous set.
 function validateMissionsJson(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !Array.isArray(raw.missions)) {
     return { error: 'מבנה קובץ לא תקין — נדרש אובייקט עם שדה missions (מערך)' };
@@ -103,6 +105,7 @@ function validateMissionsJson(raw) {
   }
   const seenIds = new Set();
   const cleaned = [];
+  const extras = {};
   for (let i = 0; i < missions.length; i++) {
     const m = missions[i];
     if (!m || typeof m !== 'object') return { error: `משימה #${i + 1} אינה אובייקט תקין` };
@@ -115,11 +118,15 @@ function validateMissionsJson(raw) {
     if (!Number.isFinite(pts) || pts < 0 || pts > 200) return { error: `משימה #${i + 1}: ניקוד לא סביר (${m.pts})` };
     seenIds.add(id);
     cleaned.push({ id, name: name.slice(0, 200), pts: Math.round(pts) });
+    const bonus = typeof m.bonus === 'string' ? m.bonus.trim().slice(0, 1000) : '';
+    const rules = typeof m.rules === 'string' ? m.rules.trim().slice(0, 1000) : '';
+    if (bonus || rules) extras[id] = { bonus, rules, bonusDone: false };
   }
-  return { missions: cleaned, season: typeof raw.season === 'string' ? raw.season.trim().slice(0, 100) : null };
+  return { missions: cleaned, extras, season: typeof raw.season === 'string' ? raw.season.trim().slice(0, 100) : null };
 }
 
 let _pendingMissionImport = null;
+let _pendingMissionImportExtras = null;
 function importMissionsJson(el) {
   const file = el.files && el.files[0];
   el.value = ''; // allow re-selecting the same file again later
@@ -132,16 +139,17 @@ function importMissionsJson(el) {
     const result = validateMissionsJson(parsed);
     if (result.error) { notify('⚠️ ' + result.error, 'error'); return; }
     _pendingMissionImport = result.missions;
-    showMissionImportPreview(result.missions, result.season);
+    _pendingMissionImportExtras = result.extras;
+    showMissionImportPreview(result.missions, result.extras, result.season);
   };
   reader.onerror = () => notify('⚠️ שגיאה בקריאת הקובץ', 'error');
   reader.readAsText(file);
 }
 
-function showMissionImportPreview(missions, season) {
+function showMissionImportPreview(missions, extras, season) {
   document.getElementById('mission-import-list').innerHTML = missions.map(m => `
     <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${sanitize(m.name)}</span>
+      <span>${sanitize(m.name)}${extras[m.id] ? ' <span style="color:var(--gold)">🎁</span>' : ''}</span>
       <span style="color:var(--accent2);font-family:'Space Mono'">${m.pts} נק'</span>
     </div>
   `).join('');
@@ -154,9 +162,10 @@ function confirmMissionImport() {
   if (!_pendingMissionImport) return;
   state.customMissions = _pendingMissionImport;
   state.missionChecks = {};
-  state.missionExtra = {};
+  state.missionExtra = _pendingMissionImportExtras || {};
   state.missionStatuses = {};
   _pendingMissionImport = null;
+  _pendingMissionImportExtras = null;
   saveState();
   renderMissions(); renderScoring(); populateMissionSelects();
   closeModal('modal-mission-import');
@@ -165,6 +174,7 @@ function confirmMissionImport() {
 
 function cancelMissionImport() {
   _pendingMissionImport = null;
+  _pendingMissionImportExtras = null;
   closeModal('modal-mission-import');
 }
 

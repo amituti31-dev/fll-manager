@@ -503,10 +503,10 @@ class AppProvider extends ChangeNotifier {
   // this replaces with an arbitrary list and, since ids may no longer line
   // up with the old set, resets missionChecks/missionExtra to avoid stale
   // notes/ticks pointing at the wrong mission.
-  Future<void> replaceMissions(List<Mission> newMissions) async {
+  Future<void> replaceMissions(List<Mission> newMissions, {Map<int, MissionExtra>? extras}) async {
     missions = newMissions;
     missionChecks = {};
-    missionExtra = {};
+    missionExtra = extras ?? {};
     notifyListeners();
     await _saveData();
   }
