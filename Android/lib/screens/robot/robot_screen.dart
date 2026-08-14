@@ -784,7 +784,7 @@ class _MissionImportPreviewSheetState extends State<_MissionImportPreviewSheet> 
 
   Future<void> _confirm() async {
     setState(() => _saving = true);
-    await widget.prov.replaceMissions(widget.missions, extras: widget.extras);
+    await widget.prov.replaceMissions(widget.missions, extras: widget.extras, season: widget.season);
     if (mounted) Navigator.pop(context);
   }
 

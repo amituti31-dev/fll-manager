@@ -501,6 +501,12 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  // NOTE: unlike web (where editing one mission has to snapshot the whole
+  // MISSIONS_2026 fallback into state.customMissions the first time it
+  // happens), `missions` here is always a concrete, directly-owned list —
+  // even freshly after resetMissions() it's a copy, never a live reference
+  // to missions2026. So there's no separate "locked in" moment on Android:
+  // it's effectively always been that way, from first boot.
   Future<void> updateMission(int id, String name, int pts) async {
     final m = missions.firstWhere((m) => m.id == id);
     m.name = name;
@@ -520,12 +526,17 @@ class AppProvider extends ChangeNotifier {
   // this replaces with an arbitrary list and, since ids may no longer line
   // up with the old set, resets missionChecks/missionExtra to avoid stale
   // notes/ticks pointing at the wrong mission.
-  Future<void> replaceMissions(List<Mission> newMissions, {Map<int, MissionExtra>? extras}) async {
+  Future<void> replaceMissions(List<Mission> newMissions, {Map<int, MissionExtra>? extras, String? season}) async {
     missions = newMissions;
     missionChecks = {};
     missionExtra = extras ?? {};
+    // Unlike web (which mixes an active + archived seasons into one array
+    // that must stay in sync), currentSeason here is a plain string with no
+    // parallel list to desync — just overwrite it.
+    if (season != null && season.isNotEmpty) currentSeason = season;
     notifyListeners();
     await _saveData();
+    if (season != null && season.isNotEmpty) await _saveSettings();
   }
 
   int get doneMissions => missionChecks.values.where((v) => v).length;

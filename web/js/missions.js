@@ -49,6 +49,8 @@ function renderMissions() {
   if (headerCount) headerCount.textContent = `${seasonLabel} – ${missions.length} משימות`;
   const cardTitle = document.getElementById('missions-card-title');
   if (cardTitle) cardTitle.textContent = `${missions.length} משימות – ${seasonLabel}`;
+  const customBadge = document.getElementById('missions-custom-badge');
+  if (customBadge) customBadge.style.display = (state.customMissions && state.customMissions.length) ? '' : 'none';
 
   // Status stats
   const statuses = state.missionStatuses || {};
@@ -96,6 +98,14 @@ function saveMissionExtra() {
     const name = document.getElementById('mission-extra-name').value.trim().slice(0, 200);
     const pts = Math.max(0, Math.min(200, Math.round(Number(document.getElementById('mission-extra-pts').value) || 0)));
     const id = _missionExtraId;
+    // NOTE: editing a single mission snapshots the *entire* current list into
+    // state.customMissions, not just this one mission's diff. From this point
+    // the team stops following MISSIONS_2026 automatically — future changes
+    // to that built-in fallback (e.g. an app update) won't reach them, since
+    // they're now on their own frozen copy. This is intentional (Android's
+    // `missions` list works the same way, always a concrete copy, never a
+    // live reference) but worth knowing: "🔄 איפוס משימות" is the only way
+    // back to a live-following default list, and it discards this edit too.
     state.customMissions = getMissions().map(m => m.id === id ? { id, name: name || m.name, pts } : m);
   }
   saveState(); renderMissions(); renderScoring(); populateMissionSelects();
@@ -153,6 +163,7 @@ function validateMissionsJson(raw) {
 
 let _pendingMissionImport = null;
 let _pendingMissionImportExtras = null;
+let _pendingMissionImportSeason = null;
 function importMissionsJson(el) {
   const file = el.files && el.files[0];
   el.value = ''; // allow re-selecting the same file again later
@@ -166,6 +177,7 @@ function importMissionsJson(el) {
     if (result.error) { notify('⚠️ ' + result.error, 'error'); return; }
     _pendingMissionImport = result.missions;
     _pendingMissionImportExtras = result.extras;
+    _pendingMissionImportSeason = result.season;
     showMissionImportPreview(result.missions, result.extras, result.season);
   };
   reader.onerror = () => notify('⚠️ שגיאה בקריאת הקובץ', 'error');
@@ -190,10 +202,21 @@ function confirmMissionImport() {
   state.missionChecks = {};
   state.missionExtra = _pendingMissionImportExtras || {};
   state.missionStatuses = {};
+  if (_pendingMissionImportSeason) {
+    state.currentSeason = _pendingMissionImportSeason;
+    // Rename the active (non-archived) season entry in place instead of
+    // pushing a new one — there's always exactly one non-archived season
+    // (see createNewSeason() in archive.js), and adding another would
+    // duplicate it and desync it from state.currentSeason.
+    const active = (state.seasons || []).find(s => !s.archived);
+    if (active) active.name = _pendingMissionImportSeason;
+  }
   _pendingMissionImport = null;
   _pendingMissionImportExtras = null;
+  _pendingMissionImportSeason = null;
   saveState();
   renderMissions(); renderScoring(); populateMissionSelects();
+  try { renderSeasons(); } catch(e) {}
   closeModal('modal-mission-import');
   notify('✅ המשימות הוחלפו בהצלחה', 'success');
 }
@@ -201,6 +224,7 @@ function confirmMissionImport() {
 function cancelMissionImport() {
   _pendingMissionImport = null;
   _pendingMissionImportExtras = null;
+  _pendingMissionImportSeason = null;
   closeModal('modal-mission-import');
 }
 
