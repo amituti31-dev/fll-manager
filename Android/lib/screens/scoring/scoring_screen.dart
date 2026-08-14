@@ -15,6 +15,7 @@ import '../../services/firebase_service.dart';
 import '../../services/tour_keys.dart';
 import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/mission_extra_sheet.dart';
 
 class ScoringScreen extends StatefulWidget {
   const ScoringScreen({super.key});
@@ -300,6 +301,8 @@ class _ScoringScreenState extends State<ScoringScreen>
         SizedBox(height: 12),
         ...prov.missions.map((m) {
           final done = prov.missionChecks[m.id] == true;
+          final extra = prov.missionExtra[m.id];
+          final hasNotes = extra != null && (extra.bonus.isNotEmpty || extra.rules.isNotEmpty || extra.bonusDone);
           final statusEmoji = switch (m.status) {
             'in_progress' => '🔧',
             'ready' => '⭐',
@@ -327,6 +330,29 @@ class _ScoringScreenState extends State<ScoringScreen>
                   color: done ? AppColors.accent2 : AppColors.textPrimary,
                   decoration: done ? TextDecoration.lineThrough : null,
                 ))),
+                SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: AppColors.surface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                    builder: (_) => MissionExtraSheet(mission: m),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: hasNotes ? AppColors.gold.withAlpha(30) : AppColors.surface2,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: hasNotes ? AppColors.gold.withAlpha(90) : AppColors.border),
+                    ),
+                    child: Text(
+                      extra?.bonusDone == true ? '🎁+${extra!.bonusPts}' : '📝',
+                      style: TextStyle(fontSize: 11, color: hasNotes ? AppColors.gold : AppColors.textTertiary),
+                    ),
+                  ),
+                ),
                 SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

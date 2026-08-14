@@ -87,7 +87,7 @@ function saveMissionExtra() {
     rules: document.getElementById('mission-extra-rules').value.trim().slice(0, 1000),
     bonusDone: document.getElementById('mission-extra-done').checked,
   };
-  saveState(); renderMissions(); updateScoreFromMissions();
+  saveState(); renderMissions(); renderScoring();
   closeModal('modal-mission-extra');
 }
 
