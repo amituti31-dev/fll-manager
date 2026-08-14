@@ -518,7 +518,7 @@ class _TourOverlay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Text('✕ דלג על הסיור', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text('✕ אל תציג את זה שוב', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               ),
             ),
           ),

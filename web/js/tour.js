@@ -230,7 +230,7 @@ function startTour() {
 
   const skipBtn = document.createElement('button');
   skipBtn.className = 'tour-skip';
-  skipBtn.textContent = '✕ דלג על הסיור';
+  skipBtn.textContent = '✕ אל תציג את זה שוב';
   skipBtn.onclick = endTour;
   document.body.appendChild(skipBtn);
 
