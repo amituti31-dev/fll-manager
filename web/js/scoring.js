@@ -30,12 +30,14 @@ function renderScoring() {
   const extras = state.missionExtra || {};
   el.innerHTML = getMissions().map(m => {
     const extra = extras[m.id] || {};
-    const hasBonus = !!(extra.bonus || extra.rules);
     return `
     <div class="mission-row">
       <input type="checkbox" class="mission-checkbox" id="sc-${m.id}" ${state.missionChecks[m.id] ? 'checked' : ''} data-onchange="toggle-scoring-mission" data-id="${m.id}">
       <label class="mission-row-name" for="sc-${m.id}">${sanitize(m.name)}</label>
-      <button class="mission-row-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">✏️${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
+      ${extra.bonusPts > 0 ? `
+        <input type="checkbox" class="mission-checkbox" id="scb-${m.id}" ${extra.bonusDone ? 'checked' : ''} data-onchange="toggle-mission-bonus" data-id="${m.id}">
+        <label for="scb-${m.id}" style="font-size:12px;font-weight:700;white-space:nowrap;color:${extra.bonusDone ? 'var(--gold)' : 'var(--text3)'}">🎁+${extra.bonusPts}</label>
+      ` : ''}
       <span class="mission-row-pts">${m.pts}</span>
     </div>
   `;

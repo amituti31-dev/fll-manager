@@ -490,6 +490,17 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  // Quick one-tap bonus toggle for the competition-prep screen — same
+  // interaction as toggleMission(), but flips bonusDone instead of the
+  // mission's own missionChecks entry.
+  Future<void> toggleMissionBonusDone(int id) async {
+    final extra = missionExtra[id];
+    if (extra == null) return;
+    extra.bonusDone = !extra.bonusDone;
+    notifyListeners();
+    await _saveData();
+  }
+
   Future<void> updateMission(int id, String name, int pts) async {
     final m = missions.firstWhere((m) => m.id == id);
     m.name = name;

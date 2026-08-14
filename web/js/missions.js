@@ -102,6 +102,16 @@ function saveMissionExtra() {
   closeModal('modal-mission-extra');
 }
 
+// Quick one-tap bonus toggle for the competition-prep (scoring) screen —
+// same interaction as toggleMission(), but flips bonusDone instead of the
+// mission's own missionChecks entry. Doesn't touch bonus/rules/bonusPts.
+function toggleMissionBonus(id) {
+  const extra = (state.missionExtra || {})[id];
+  if (!extra) return;
+  extra.bonusDone = !extra.bonusDone;
+  saveState(); renderMissions(); renderScoring();
+}
+
 // ── JSON mission import (mentor-only, full replace) ──
 // Validates a { season, missions:[{id,name,pts,bonus?,bonusPts?,rules?},...] }
 // file. bonus/bonusPts/rules are optional, pre-filled into missionExtra on
