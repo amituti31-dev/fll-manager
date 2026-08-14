@@ -651,7 +651,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _Card(children: [
         _CardHeader('ℹ️', 'אודות'),
         SizedBox(height: 8),
-        Text('FLL Team Manager\nגרסה 1.0.25 – Unearthed 2026\nפותח עבור קבוצות FIRST LEGO League',
+        Text('FLL Team Manager\nגרסה 1.0.26 – Unearthed 2026\nפותח עבור קבוצות FIRST LEGO League',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.7)),
       ]),
       SizedBox(height: 12),
