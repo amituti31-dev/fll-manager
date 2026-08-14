@@ -67,7 +67,7 @@ class _RootRouter extends StatefulWidget {
 }
 
 class _RootRouterState extends State<_RootRouter> {
-  static const _currentVersion = '1.0.20';
+  static const _currentVersion = '1.0.21';
   bool _updateChecked = false;
   bool _tourChecked = false;
 
