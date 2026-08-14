@@ -158,7 +158,7 @@ class _ShellScreenState extends State<ShellScreen> {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(prov.teamName,
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.textPrimary)),
-                Text('Unearthed 2026',
+                Text(prov.currentSeason,
                     style: TextStyle(fontSize: 11, color: AppColors.accent3)),
               ])),
             ]),

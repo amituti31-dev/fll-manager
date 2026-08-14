@@ -189,7 +189,7 @@ class _RobotScreenState extends State<RobotScreen> {
         Text('⛏️', style: TextStyle(fontSize: 18)),
         SizedBox(width: 8),
         Expanded(
-          child: Text('$total משימות – Unearthed 2026',
+          child: Text('$total משימות – ${prov.currentSeason}',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
         ),
         if (prov.isAdmin)

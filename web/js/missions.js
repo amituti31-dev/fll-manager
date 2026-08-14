@@ -51,6 +51,13 @@ function renderMissions() {
   if (cardTitle) cardTitle.textContent = `${missions.length} משימות – ${seasonLabel}`;
   const customBadge = document.getElementById('missions-custom-badge');
   if (customBadge) customBadge.style.display = (state.customMissions && state.customMissions.length) ? '' : 'none';
+  // Every other place the season name is shown (kept in sync here so a
+  // mission-JSON import with a season, or a new-season action elsewhere,
+  // shows up everywhere at once rather than just on this screen).
+  const sidebarBadge = document.getElementById('sidebar-season-badge');
+  if (sidebarBadge) sidebarBadge.textContent = seasonLabel;
+  const scoringCardTitle = document.getElementById('scoring-missions-card-title');
+  if (scoringCardTitle) scoringCardTitle.textContent = `משימות ${seasonLabel}`;
 
   // Status stats
   const statuses = state.missionStatuses || {};
