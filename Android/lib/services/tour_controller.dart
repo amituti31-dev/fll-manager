@@ -129,6 +129,26 @@ class TourController {
     ),
     TourStep(
       screenIndex: 2,
+      targetKey: TourKeys.robotFirstMissionEditBtn,
+      title: '✏️ עריכה מלאה לכל משימה',
+      text: 'כפתור העריכה על כל משימה פותח שם, ניקוד (למנטור), ובונוסים/חוקים נוספים עם ניקוד בונוס וסימון "השגנו את הבונוס" — הכול במקום אחד.',
+    ),
+    TourStep(
+      screenIndex: 2,
+      targetKey: TourKeys.robotImportJsonBtn,
+      title: '📥 ייבוא משימות מ-JSON',
+      text: 'מנטור יכול להעלות קובץ עם רשימת משימות מלאה לעונה חדשה — כולל בונוסים וחוקים — במקום להקליד הכול ידנית. הפעולה מציגה תצוגה מקדימה ומחליפה את כל הרשימה רק לאחר אישור.',
+      adminOnly: true,
+    ),
+    TourStep(
+      screenIndex: 2,
+      targetKey: TourKeys.robotResetMissionsBtn,
+      title: '🔄 איפוס משימות',
+      text: 'אם ערכתם משימות ידנית, כפתור זה מחזיר את הרשימה לברירת המחדל של האפליקציה.',
+      adminOnly: true,
+    ),
+    TourStep(
+      screenIndex: 2,
       targetKey: TourKeys.robotGallerySection,
       title: '📸 גלריית שיפורים',
       text: 'כל התמונות שצילמתם מצטברות כאן — ואפשר אפילו ליצור מהן סרטון של ההתקדמות.',
@@ -147,7 +167,7 @@ class TourController {
       screenIndex: 3,
       targetKey: TourKeys.scoringMissions,
       title: '🎯 משימות',
-      text: 'סמנו אילו משימות ביצעתם בריצה הזו — הניקוד למעלה מתעדכן אוטומטית.',
+      text: 'סמנו אילו משימות ביצעתם בריצה הזו — הניקוד למעלה מתעדכן אוטומטית. אם למשימה מוגדר בונוס, תופיע לידה תיבת סימון נוספת עם מספר הנקודות — סמנו אותה באותה קלות כדי להוסיף אותן לניקוד.',
     ),
     TourStep(
       screenIndex: 3,
@@ -334,6 +354,13 @@ class TourController {
     ),
 
     // ── Settings ──
+    TourStep(
+      screenIndex: 14,
+      targetKey: TourKeys.settingsTeamCard,
+      title: '👥 פרטי קבוצה',
+      text: 'שינוי שם הקבוצה, שם העונה (למשל בתחילת עונה חדשה) והלוגו — למנטורים בלבד.',
+      adminOnly: true,
+    ),
     TourStep(
       screenIndex: 14,
       targetKey: TourKeys.settingsThemeSwitch,

@@ -630,6 +630,13 @@ class AppProvider extends ChangeNotifier {
     await _saveSettings();
   }
 
+  Future<void> updateSeasonName(String name) async {
+    if (name.isEmpty) return;
+    currentSeason = name;
+    notifyListeners();
+    await _saveSettings();
+  }
+
   Future<void> updateTeamLogo(String? base64) async {
     teamLogo = base64;
     notifyListeners();

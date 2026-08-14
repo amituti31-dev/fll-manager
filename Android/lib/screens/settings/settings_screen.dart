@@ -18,6 +18,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _teamNameCtrl;
+  late TextEditingController _seasonNameCtrl;
   late TextEditingController _myNameCtrl;
   final _currentPassCtrl = TextEditingController();
   final _newPassCtrl = TextEditingController();
@@ -31,12 +32,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     final prov = context.read<AppProvider>();
     _teamNameCtrl = TextEditingController(text: prov.teamName);
+    _seasonNameCtrl = TextEditingController(text: prov.currentSeason);
     _myNameCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
     _teamNameCtrl.dispose();
+    _seasonNameCtrl.dispose();
     _myNameCtrl.dispose();
     _currentPassCtrl.dispose();
     _newPassCtrl.dispose();
@@ -282,7 +285,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
 
       // ── Team info + logo ──────────────────────────────
-      _Card(children: [
+      _Card(key: TourKeys.settingsTeamCard, children: [
         _CardHeader('👥', 'פרטי קבוצה'),
         SizedBox(height: 12),
 
@@ -360,6 +363,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ElevatedButton(
               onPressed: () => prov.updateTeamName(_teamNameCtrl.text.trim()),
               child: Text('💾 שמור שם קבוצה'),
+            ),
+          ),
+        ],
+        SizedBox(height: 14),
+        TextField(
+          controller: _seasonNameCtrl,
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(labelText: 'שם העונה'),
+          enabled: prov.isAdmin,
+        ),
+        if (prov.isAdmin) ...[
+          SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => prov.updateSeasonName(_seasonNameCtrl.text.trim()),
+              child: Text('💾 שמור שם עונה'),
             ),
           ),
         ],
@@ -831,7 +851,7 @@ class _MemberNameRowState extends State<_MemberNameRow> {
 
 class _Card extends StatelessWidget {
   final List<Widget> children;
-  const _Card({required this.children});
+  const _Card({super.key, required this.children});
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),

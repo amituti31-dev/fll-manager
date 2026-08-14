@@ -194,6 +194,7 @@ class _RobotScreenState extends State<RobotScreen> {
         ),
         if (prov.isAdmin)
           GestureDetector(
+            key: TourKeys.robotImportJsonBtn,
             onTap: () => _pickAndImportMissionsJson(context, prov),
             child: Container(
               margin: const EdgeInsets.only(left: 8),
@@ -212,6 +213,7 @@ class _RobotScreenState extends State<RobotScreen> {
           ),
         if (prov.isAdmin)
           GestureDetector(
+            key: TourKeys.robotResetMissionsBtn,
             onTap: () => _resetMissions(context, prov),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -308,6 +310,7 @@ class _RobotScreenState extends State<RobotScreen> {
             Positioned(
               bottom: 4, left: 4,
               child: GestureDetector(
+                key: i == 0 ? TourKeys.robotFirstMissionEditBtn : null,
                 onTap: () => _showMissionExtraSheet(context, m),
                 child: Container(
                   padding: const EdgeInsets.all(4),

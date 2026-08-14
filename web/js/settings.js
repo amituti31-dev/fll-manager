@@ -50,6 +50,18 @@ function saveTeamSettings() {
   const newName = document.getElementById('settings-team-name').value.trim().slice(0, 100);
   state.teamName = newName || state.teamName;
   document.getElementById('sidebar-team-name').textContent = state.teamName;
+
+  const newSeason = document.getElementById('settings-season-name').value.trim().slice(0, 100);
+  if (newSeason && newSeason !== state.currentSeason) {
+    state.currentSeason = newSeason;
+    // Same rule as a JSON import's season field: rename the one active
+    // (non-archived) entry in place rather than adding a new one.
+    const active = (state.seasons || []).find(s => !s.archived);
+    if (active) active.name = newSeason;
+    try { renderMissions(); } catch(e) {}
+    try { renderSeasons(); } catch(e) {}
+  }
+
   saveState(); notify('✅ הגדרות נשמרו', 'success');
 }
 

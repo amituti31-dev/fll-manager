@@ -19,6 +19,7 @@ class TourKeys {
   // Settings
   static final settingsThemeSwitch = GlobalKey();
   static final settingsHelpButton = GlobalKey();
+  static final settingsTeamCard = GlobalKey();
 
   // Daily
   static final dailyFilterBar = GlobalKey();
@@ -28,6 +29,9 @@ class TourKeys {
   static final robotProgressHeader = GlobalKey();
   static final robotMissionsGrid = GlobalKey();
   static final robotGallerySection = GlobalKey();
+  static final robotImportJsonBtn = GlobalKey();
+  static final robotResetMissionsBtn = GlobalKey();
+  static final robotFirstMissionEditBtn = GlobalKey();
 
   // Scoring
   static final scoringTabBar = GlobalKey();

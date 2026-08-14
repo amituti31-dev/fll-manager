@@ -78,6 +78,7 @@ function navigate(screen) {
   if (screen === 'settings') {
     renderCompetitionCountdown();
     document.getElementById('settings-team-name').value = state.teamName;
+    document.getElementById('settings-season-name').value = state.currentSeason || '';
     // Show team ID
     const teamIdEl = document.getElementById('team-id-display');
     if (teamIdEl) teamIdEl.textContent = window.FB_PROJECT || 'לא מוגדר';
