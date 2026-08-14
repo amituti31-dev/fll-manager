@@ -456,7 +456,8 @@
         <div class="card">
           <div class="card-header">
             <span class="card-icon">📋</span><span class="card-title" id="missions-card-title">15 משימות – Unearthed 2026</span>
-            <label class="btn btn-ghost admin-only" style="font-size:11px;cursor:pointer;margin-right:auto;padding:6px 10px">
+            <button class="btn btn-ghost admin-only" style="font-size:11px;margin-right:auto;padding:6px 10px" data-action="open-edit-missions">✏️ ערוך משימות</button>
+            <label class="btn btn-ghost admin-only" style="font-size:11px;cursor:pointer;padding:6px 10px">
               📥 ייבא משימות מ-JSON
               <input type="file" accept=".json,application/json" style="display:none" data-onchange="import-missions-json">
             </label>
@@ -902,7 +903,7 @@
             <div class="card-header"><span class="card-icon">ℹ️</span><span class="card-title">אודות</span></div>
             <p style="color:var(--text2);font-size:13px;line-height:1.8">
               <strong>FLL Team Manager</strong><br>
-              גרסה 1.0.17 – Unearthed 2026<br>
+              גרסה 1.0.18 – Unearthed 2026<br>
               פותח עבור קבוצות FIRST LEGO League
             </p>
             <div style="margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px">
