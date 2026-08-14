@@ -711,6 +711,7 @@ class _MissionExtraSheet extends StatefulWidget {
 
 class _MissionExtraSheetState extends State<_MissionExtraSheet> {
   late final TextEditingController _bonusCtrl;
+  late final TextEditingController _bonusPtsCtrl;
   late final TextEditingController _rulesCtrl;
   late bool _bonusDone;
   bool _saving = false;
@@ -720,6 +721,7 @@ class _MissionExtraSheetState extends State<_MissionExtraSheet> {
     super.initState();
     final extra = context.read<AppProvider>().missionExtra[widget.mission.id];
     _bonusCtrl = TextEditingController(text: extra?.bonus ?? '');
+    _bonusPtsCtrl = TextEditingController(text: extra != null && extra.bonusPts > 0 ? '${extra.bonusPts}' : '');
     _rulesCtrl = TextEditingController(text: extra?.rules ?? '');
     _bonusDone = extra?.bonusDone ?? false;
   }
@@ -727,6 +729,7 @@ class _MissionExtraSheetState extends State<_MissionExtraSheet> {
   @override
   void dispose() {
     _bonusCtrl.dispose();
+    _bonusPtsCtrl.dispose();
     _rulesCtrl.dispose();
     super.dispose();
   }
@@ -736,6 +739,7 @@ class _MissionExtraSheetState extends State<_MissionExtraSheet> {
     await context.read<AppProvider>().saveMissionExtra(
       widget.mission.id,
       bonus: _bonusCtrl.text.trim(),
+      bonusPts: int.tryParse(_bonusPtsCtrl.text.trim()) ?? 0,
       rules: _rulesCtrl.text.trim(),
       bonusDone: _bonusDone,
     );
@@ -757,6 +761,12 @@ class _MissionExtraSheetState extends State<_MissionExtraSheet> {
         TextField(controller: _bonusCtrl, maxLines: 3,
             style: TextStyle(color: AppColors.textPrimary),
             decoration: InputDecoration(hintText: 'לדוגמה: בונוס נוסף אם...')),
+        SizedBox(height: 12),
+        Text('ניקוד הבונוס', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        SizedBox(height: 4),
+        TextField(controller: _bonusPtsCtrl, keyboardType: TextInputType.number,
+            style: TextStyle(color: AppColors.textPrimary),
+            decoration: InputDecoration(hintText: '0')),
         SizedBox(height: 12),
         Text('חוקים נוספים למשימה', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         SizedBox(height: 4),
@@ -835,9 +845,13 @@ _MissionValidationResult _validateMissionsJson(dynamic raw) {
     cleaned.add(Mission(id: id, name: name.length > 200 ? name.substring(0, 200) : name, pts: pts.round()));
     final bonus = (m['bonus'] is String) ? (m['bonus'] as String).trim() : '';
     final rules = (m['rules'] is String) ? (m['rules'] as String).trim() : '';
-    if (bonus.isNotEmpty || rules.isNotEmpty) {
+    final bonusPtsRaw = m['bonusPts'];
+    final bonusPtsNum = bonusPtsRaw is num ? bonusPtsRaw : num.tryParse('$bonusPtsRaw');
+    final bonusPts = (bonusPtsNum != null && bonusPtsNum > 0 && bonusPtsNum <= 200) ? bonusPtsNum.round() : 0;
+    if (bonus.isNotEmpty || rules.isNotEmpty || bonusPts > 0) {
       extras[id] = MissionExtra(
         bonus: bonus.length > 1000 ? bonus.substring(0, 1000) : bonus,
+        bonusPts: bonusPts,
         rules: rules.length > 1000 ? rules.substring(0, 1000) : rules,
       );
     }

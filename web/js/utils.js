@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 //  FLL MANAGER — JavaScript Index
 //  ───────────────────────────────────────────────────────────────
-//  §01  UTILITIES .............. sanitize, sanitizeUrl, getMissions, notify
+//  §01  UTILITIES .............. sanitize, sanitizeUrl, getMissions, getMissionsScoreTotal, notify
 //  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, OFFICIAL_RUBRICS
 //  §02  CONSTANTS & STATE ....... state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
@@ -64,6 +64,16 @@ function sanitizeUrl(url) {
 // so offline/first-load teams always have a working mission set).
 function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : MISSIONS_2026;
+}
+
+// getMissionsScoreTotal() - base mission points (for checked missions) plus
+// any achieved bonus points (state.missionExtra[id].bonusDone), used by both
+// the live scoring display and saved run history so they stay consistent.
+function getMissionsScoreTotal() {
+  const base = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const extras = state.missionExtra || {};
+  const bonus = Object.values(extras).reduce((a, e) => a + (e.bonusDone ? (e.bonusPts || 0) : 0), 0);
+  return base + bonus;
 }
 
 // ═══════════════════════════════════════════════════════

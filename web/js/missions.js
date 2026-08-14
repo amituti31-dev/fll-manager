@@ -36,7 +36,7 @@ function renderMissions() {
         <div class="mission-status-row">
           ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" data-action="set-mission-status" data-id="${m.id}" data-status="${s}">${statusLabels[s]}</button>`).join('')}
         </div>
-        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">📝 בונוס/חוקים${extra.bonusDone ? ' 🎁' : ''}</button>
+        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">📝 בונוס/חוקים${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
       </div>
     `;
   }).join('') || `<div style="color:var(--text3);padding:20px;text-align:center;grid-column:1/-1">אין משימות בקטגוריה זו</div>`;
@@ -72,6 +72,7 @@ function openMissionExtraModal(id) {
   const extra = (state.missionExtra || {})[id] || {};
   document.getElementById('mission-extra-title').textContent = `📝 ${m.name}`;
   document.getElementById('mission-extra-bonus').value = extra.bonus || '';
+  document.getElementById('mission-extra-bonus-pts').value = extra.bonusPts || '';
   document.getElementById('mission-extra-rules').value = extra.rules || '';
   document.getElementById('mission-extra-done').checked = !!extra.bonusDone;
   openModal('modal-mission-extra');
@@ -79,18 +80,20 @@ function openMissionExtraModal(id) {
 function saveMissionExtra() {
   if (_missionExtraId === null) return;
   if (!state.missionExtra) state.missionExtra = {};
+  const bonusPts = Number(document.getElementById('mission-extra-bonus-pts').value);
   state.missionExtra[_missionExtraId] = {
     bonus: document.getElementById('mission-extra-bonus').value.trim().slice(0, 1000),
+    bonusPts: Number.isFinite(bonusPts) && bonusPts > 0 ? Math.round(bonusPts) : 0,
     rules: document.getElementById('mission-extra-rules').value.trim().slice(0, 1000),
     bonusDone: document.getElementById('mission-extra-done').checked,
   };
-  saveState(); renderMissions();
+  saveState(); renderMissions(); updateScoreFromMissions();
   closeModal('modal-mission-extra');
 }
 
 // ── JSON mission import (mentor-only, full replace) ──
-// Validates a { season, missions:[{id,name,pts,bonus?,rules?},...] } file.
-// bonus/rules are optional free text, pre-filled into missionExtra on
+// Validates a { season, missions:[{id,name,pts,bonus?,bonusPts?,rules?},...] }
+// file. bonus/bonusPts/rules are optional, pre-filled into missionExtra on
 // confirm (the same fields the "📝 בונוס/חוקים" modal edits by hand).
 // On confirm, this fully replaces the mission list and resets everything
 // keyed by mission id (missionChecks/missionExtra/missionStatuses), since
@@ -120,7 +123,9 @@ function validateMissionsJson(raw) {
     cleaned.push({ id, name: name.slice(0, 200), pts: Math.round(pts) });
     const bonus = typeof m.bonus === 'string' ? m.bonus.trim().slice(0, 1000) : '';
     const rules = typeof m.rules === 'string' ? m.rules.trim().slice(0, 1000) : '';
-    if (bonus || rules) extras[id] = { bonus, rules, bonusDone: false };
+    const bonusPtsRaw = Number(m.bonusPts);
+    const bonusPts = Number.isFinite(bonusPtsRaw) && bonusPtsRaw > 0 && bonusPtsRaw <= 200 ? Math.round(bonusPtsRaw) : 0;
+    if (bonus || rules || bonusPts) extras[id] = { bonus, bonusPts, rules, bonusDone: false };
   }
   return { missions: cleaned, extras, season: typeof raw.season === 'string' ? raw.season.trim().slice(0, 100) : null };
 }

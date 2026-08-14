@@ -474,12 +474,18 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
-  int get totalScore => missions
-      .where((m) => missionChecks[m.id] == true)
-      .fold(0, (sum, m) => sum + m.pts);
+  int get totalScore {
+    final base = missions
+        .where((m) => missionChecks[m.id] == true)
+        .fold(0, (total, m) => total + m.pts);
+    final bonus = missionExtra.values
+        .where((e) => e.bonusDone)
+        .fold(0, (total, e) => total + e.bonusPts);
+    return base + bonus;
+  }
 
-  Future<void> saveMissionExtra(int id, {required String bonus, required String rules, required bool bonusDone}) async {
-    missionExtra[id] = MissionExtra(bonus: bonus, rules: rules, bonusDone: bonusDone);
+  Future<void> saveMissionExtra(int id, {required String bonus, required int bonusPts, required String rules, required bool bonusDone}) async {
+    missionExtra[id] = MissionExtra(bonus: bonus, bonusPts: bonusPts, rules: rules, bonusDone: bonusDone);
     notifyListeners();
     await _saveData();
   }

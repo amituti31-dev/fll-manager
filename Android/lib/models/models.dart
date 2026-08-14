@@ -160,18 +160,20 @@ class Mission {
 // so any team member can edit them (Mission lives in mentor-only admin-data).
 class MissionExtra {
   String bonus;
+  int bonusPts;
   String rules;
   bool bonusDone;
 
-  MissionExtra({this.bonus = '', this.rules = '', this.bonusDone = false});
+  MissionExtra({this.bonus = '', this.bonusPts = 0, this.rules = '', this.bonusDone = false});
 
   factory MissionExtra.fromMap(Map<String, dynamic> m) => MissionExtra(
     bonus: m['bonus'] as String? ?? '',
+    bonusPts: (m['bonusPts'] as num?)?.toInt() ?? 0,
     rules: m['rules'] as String? ?? '',
     bonusDone: m['bonusDone'] as bool? ?? false,
   );
 
-  Map<String, dynamic> toMap() => {'bonus': bonus, 'rules': rules, 'bonusDone': bonusDone};
+  Map<String, dynamic> toMap() => {'bonus': bonus, 'bonusPts': bonusPts, 'rules': rules, 'bonusDone': bonusDone};
 }
 
 final List<Mission> missions2026 = [

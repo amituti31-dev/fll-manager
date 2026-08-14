@@ -23,7 +23,7 @@ let state = {
   ],
   missionChecks: {},
   missionStatuses: {},      // id → 'not_tried'|'in_progress'|'ready'
-  missionExtra: {},         // id → { bonus, rules, bonusDone } — free-text bonus/rule notes per mission
+  missionExtra: {},         // id → { bonus, rules, bonusDone, bonusPts } — free-text bonus/rule notes + bonus score per mission
   customMissions: [],       // mentor-imported mission list (overrides MISSIONS_2026 when populated)
   pendingRubricCategory: null,
   teamGallery: [],          // [{id, image, caption, date, author}]

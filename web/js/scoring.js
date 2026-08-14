@@ -44,7 +44,7 @@ function toggleScoringMission(id) {
 }
 
 function updateScoreFromMissions() {
-  const total = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const total = getMissionsScoreTotal();
   document.getElementById('total-score').textContent = total;
   document.getElementById('stat-score').textContent = total;
   // sync checkboxes
@@ -55,7 +55,7 @@ function updateScoreFromMissions() {
 }
 
 function saveRunScore() {
-  const total = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const total = getMissionsScoreTotal();
   state.scores.push({ date: new Date().toISOString().split('T')[0], score: total, notes: 'ריצה ' + (state.scores.length + 1) });
   saveState(); renderScoreHistory(); updateCharts();
   notify(`✅ ריצה נשמרה – ${total} נקודות`, 'success');
