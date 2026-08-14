@@ -71,6 +71,9 @@ const ACTIONS = {
   'import-missions-json': (el) => importMissionsJson(el),
   'confirm-mission-import': () => confirmMissionImport(),
   'cancel-mission-import': () => cancelMissionImport(),
+  'open-edit-missions': () => openEditMissionsModal(),
+  'save-edited-missions': () => saveEditedMissions(),
+  'reset-missions-default': () => resetMissionsToDefault(),
   'open-video-select': () => openVideoSelect(),
 
   // Innovation
