@@ -69,6 +69,7 @@ async function createNewSeason() {
   // אפס נתונים לעונה החדשה
   state.logs = [];
   state.improvements = [];
+  await deleteAllImprovementPhotos();
   state.findings = [];
   state.scores = [];
   state.missionChecks = {};

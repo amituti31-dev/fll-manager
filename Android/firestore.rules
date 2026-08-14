@@ -104,5 +104,17 @@ service cloud.firestore {
       allow write: if isMentor(teamId) && isProtectedDoc(document);
       allow create: if isAuth() && !teamCreated(teamId);
     }
+
+    // Gallery/improvement photos: each photo is its own document, in a
+    // "photos" subcollection under the (otherwise-unwritten) 'gallery' /
+    // 'improvements' anchor docs above — keeps every document well under
+    // Firestore's 1MB cap regardless of how many photos a team accumulates.
+    // Same member-write tier as 'data'/'gallery' themselves (not mentor-only).
+    match /{teamId}/gallery/photos/{photoId} {
+      allow read, write: if isMember(teamId);
+    }
+    match /{teamId}/improvements/photos/{itemId} {
+      allow read, write: if isMember(teamId);
+    }
   }
 }

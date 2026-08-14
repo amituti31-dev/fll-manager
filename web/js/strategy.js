@@ -164,18 +164,16 @@ function sbUploadBackground(event) {
   if (!state.isAdmin) { notify('רק מנטור יכול להעלות תמונת רקע', 'error'); event.target.value = ''; return; }
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    state.strategyBoardImage = e.target.result;
+  compressImage(file).then(dataUrl => {
+    state.strategyBoardImage = dataUrl;
     saveState();
     _sbHistory = [];
     if (_sbCtx) _sbCtx.clearRect(0, 0, _sbCanvas.width, _sbCanvas.height);
     const placeholder = document.getElementById('sb-placeholder');
     if (placeholder) placeholder.style.display = 'none';
-    _sbLoadBg(e.target.result);
+    _sbLoadBg(dataUrl);
     notify('📸 תמונת רקע עודכנה', 'success');
-  };
-  reader.readAsDataURL(file);
+  }).catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
   event.target.value = '';
 }
 

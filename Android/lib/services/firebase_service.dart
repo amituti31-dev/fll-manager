@@ -195,6 +195,11 @@ class FirebaseService {
     required String? studentCode,
     required List<String> memberEmails,
   }) async {
+    // Subcollections aren't removed when their parent doc is deleted, so the
+    // per-photo docs need an explicit sweep.
+    final gallerySnap = await _galleryPhotosRef(teamId).get();
+    final improvementsSnap = await _improvementPhotosRef(teamId).get();
+
     final futures = <Future>[
       _db.collection(teamId).doc('settings').delete(),
       _db.collection(teamId).doc('data').delete(),
@@ -202,8 +207,11 @@ class FirebaseService {
       _db.collection(teamId).doc('chats').delete(),
       _db.collection(teamId).doc('archives').delete(),
       _db.collection(teamId).doc('gallery').delete(),
+      _db.collection(teamId).doc('improvements').delete(),
       _db.collection(teamId).doc('links').delete(),
       _db.collection(teamId).doc('strategy').delete(),
+      for (final doc in gallerySnap.docs) doc.reference.delete(),
+      for (final doc in improvementsSnap.docs) doc.reference.delete(),
 
       if (mentorCode != null)
         _db.collection(_registry).doc('mentor_$mentorCode').delete(),
@@ -262,17 +270,70 @@ class FirebaseService {
     await _db.collection(teamId).doc('archives').set({'list': archives});
   }
 
-  static Future<List<Map<String, dynamic>>> loadGallery(String teamId) async {
+  // ─── Gallery / improvement photos (per-photo subcollections) ───────
+  //
+  // Each photo is its own document, in a "photos" subcollection under a
+  // small 'gallery' / 'improvements' anchor doc — keeps every document well
+  // under Firestore's 1MB cap no matter how many photos a team accumulates.
+  // Legacy source: 'gallery' used to be a single doc holding {items: [...]}
+  // (still read here for a lazy one-time migration); 'improvements' used to
+  // be a field embedded in the "data" doc (migrated from AppProvider, since
+  // that's where "data" is already loaded).
+
+  static CollectionReference<Map<String, dynamic>> _galleryPhotosRef(String teamId) =>
+      _db.collection(teamId).doc('gallery').collection('photos');
+
+  static Future<List<Map<String, dynamic>>> loadGalleryPhotos(String teamId) async {
+    final snap = await _galleryPhotosRef(teamId).get();
+    return snap.docs.map((d) => d.data()).toList();
+  }
+
+  static Future<void> saveGalleryPhoto(String teamId, Map<String, dynamic> item) =>
+      _galleryPhotosRef(teamId).doc(item['id'].toString()).set(item);
+
+  static Future<void> deleteGalleryPhoto(String teamId, int id) =>
+      _galleryPhotosRef(teamId).doc(id.toString()).delete();
+
+  static Future<void> updateGalleryPhotoCaption(String teamId, int id, String caption) =>
+      _galleryPhotosRef(teamId).doc(id.toString()).update({'caption': caption});
+
+  static Future<List<Map<String, dynamic>>?> loadLegacyGalleryItems(String teamId) async {
     final snap = await _db.collection(teamId).doc('gallery').get();
-    if (!snap.exists) return [];
+    if (!snap.exists) return null;
     final raw = snap.data()?['items'] as List?;
-    if (raw == null) return [];
+    if (raw == null) return null;
     return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
-  static Future<void> saveGallery(String teamId, List<Map<String, dynamic>> items) async {
-    await _db.collection(teamId).doc('gallery').set({'items': items});
+  static Future<void> clearLegacyGalleryItems(String teamId) =>
+      _db.collection(teamId).doc('gallery').set({'items': FieldValue.delete()}, SetOptions(merge: true));
+
+  static Future<void> clearAllGalleryPhotos(String teamId) async {
+    final snap = await _galleryPhotosRef(teamId).get();
+    await Future.wait(snap.docs.map((d) => d.reference.delete()));
   }
+
+  static CollectionReference<Map<String, dynamic>> _improvementPhotosRef(String teamId) =>
+      _db.collection(teamId).doc('improvements').collection('photos');
+
+  static Future<List<Map<String, dynamic>>> loadImprovementPhotos(String teamId) async {
+    final snap = await _improvementPhotosRef(teamId).get();
+    return snap.docs.map((d) => d.data()).toList();
+  }
+
+  static Future<void> saveImprovementPhoto(String teamId, Map<String, dynamic> item) =>
+      _improvementPhotosRef(teamId).doc(item['id'].toString()).set(item);
+
+  static Future<void> deleteImprovementPhoto(String teamId, int id) =>
+      _improvementPhotosRef(teamId).doc(id.toString()).delete();
+
+  static Future<void> clearAllImprovementPhotos(String teamId) async {
+    final snap = await _improvementPhotosRef(teamId).get();
+    await Future.wait(snap.docs.map((d) => d.reference.delete()));
+  }
+
+  static Future<void> clearLegacyImprovementsField(String teamId) =>
+      _db.collection(teamId).doc('data').set({'improvements': FieldValue.delete()}, SetOptions(merge: true));
 
   static Future<List<Map<String, dynamic>>> loadLinks(String teamId) async {
     final snap = await _db.collection(teamId).doc('links').get();

@@ -76,6 +76,31 @@ function getMissionsScoreTotal() {
   return base + bonus;
 }
 
+// compressImage() - resizes and re-encodes an image file to a compressed JPEG
+// data URL (via canvas) so images stored inline in Firestore documents stay
+// well under the 1MB per-document limit. Returns a Promise<string>.
+function compressImage(file, { maxDim = 1024, quality = 0.7 } = {}) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('file read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('invalid image file'));
+      img.onload = () => {
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // ═══════════════════════════════════════════════════════
 // § 26 · MODALS & NOTIFICATIONS
 // ═══════════════════════════════════════════════════════

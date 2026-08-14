@@ -167,8 +167,14 @@ class AppProvider extends ChangeNotifier {
     final archiveRaw = await FirebaseService.loadArchives(teamId!);
     archives = archiveRaw.map(ArchivedSeason.fromMap).toList();
 
-    final galleryRaw = await FirebaseService.loadGallery(teamId!);
-    gallery = galleryRaw.map(GalleryItem.fromMap).toList();
+    final galleryPhotos = await FirebaseService.loadGalleryPhotos(teamId!);
+    final legacyGalleryItems = await FirebaseService.loadLegacyGalleryItems(teamId!);
+    final mergedGallery = await _mergeAndMigratePhotos(
+      galleryPhotos, legacyGalleryItems,
+      (item) => FirebaseService.saveGalleryPhoto(teamId!, item),
+      () => FirebaseService.clearLegacyGalleryItems(teamId!),
+    );
+    gallery = mergedGallery.map(GalleryItem.fromMap).toList();
 
     final linksRaw = await FirebaseService.loadLinks(teamId!);
     links = linksRaw.map(LinkItem.fromMap).toList();
@@ -176,11 +182,21 @@ class AppProvider extends ChangeNotifier {
     final strategyRaw = await FirebaseService.loadStrategyBoards(teamId!);
     strategyBoards = strategyRaw.map(StrategyBoard.fromMap).toList();
 
+    final improvementPhotos = await FirebaseService.loadImprovementPhotos(teamId!);
+    final legacyImprovements = (data != null && data['improvements'] != null)
+        ? (data['improvements'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
+        : null;
+    final mergedImprovements = await _mergeAndMigratePhotos(
+      improvementPhotos, legacyImprovements,
+      (item) => FirebaseService.saveImprovementPhoto(teamId!, item),
+      () => FirebaseService.clearLegacyImprovementsField(teamId!),
+    );
+    improvements = mergedImprovements.map(Improvement.fromMap).toList();
+
     if (data != null) {
       logs = _parseList(data['logs'], LogEntry.fromMap);
       innovationProblem = data['innovationProblem'] as String? ?? '';
       innovationSolution = data['innovationSolution'] as String? ?? '';
-      improvements = _parseList(data['improvements'], Improvement.fromMap);
       interviews = _parseList(data['interviews'], Interview.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
@@ -229,6 +245,47 @@ class AppProvider extends ChangeNotifier {
     return (raw as List).map((e) => fromMap(Map<String, dynamic>.from(e as Map))).toList();
   }
 
+  // Merges the new per-photo subcollection docs with any legacy embedded
+  // array (the pre-split "data doc field" or old single-doc gallery format)
+  // into one list. Legacy items are lazily migrated into their own documents
+  // (idempotent: doc id = item id, so a retry just overwrites the same doc)
+  // and the legacy field is cleared only once the migration write actually
+  // succeeds, so a failed/offline migration is retried on the next load
+  // instead of silently losing the images.
+  static Future<List<Map<String, dynamic>>> _mergeAndMigratePhotos(
+    List<Map<String, dynamic>> subcollectionItems,
+    List<Map<String, dynamic>>? legacyItems,
+    Future<void> Function(Map<String, dynamic> item) saveFn,
+    Future<void> Function() clearLegacyFn,
+  ) async {
+    final byId = <String, Map<String, dynamic>>{};
+    for (final item in subcollectionItems) {
+      final id = item['id']?.toString();
+      if (id != null) byId[id] = item;
+    }
+    if (legacyItems != null && legacyItems.isNotEmpty) {
+      final toMigrate = legacyItems.where((item) {
+        final id = item['id']?.toString();
+        return id != null && !byId.containsKey(id);
+      }).toList();
+      if (toMigrate.isNotEmpty) {
+        try {
+          await Future.wait(toMigrate.map(saveFn));
+          await clearLegacyFn();
+        } catch (e) {
+          debugPrint('Photo migration failed, will retry next load: $e');
+        }
+      }
+      for (final item in legacyItems) {
+        final id = item['id']?.toString();
+        if (id != null && !byId.containsKey(id)) byId[id] = item;
+      }
+    }
+    final list = byId.values.toList();
+    list.sort((a, b) => ((a['id'] as num?) ?? 0).compareTo((b['id'] as num?) ?? 0));
+    return list;
+  }
+
   Future<void> _saveSettings() async {
     if (teamId == null) return;
     await FirebaseService.saveSettings(teamId!, {
@@ -259,7 +316,10 @@ class AppProvider extends ChangeNotifier {
       'innovationProblem': innovationProblem,
       'innovationSolution': innovationSolution,
       'logs': logs.map((l) => l.toMap()).toList(),
-      'improvements': improvements.map((i) => i.toMap()).toList(),
+      // Improvements are NOT written here — each photo is its own document
+      // under a subcollection (see addImprovement/deleteImprovement), to
+      // keep this document well under 1MB. Clean up the old embedded copy.
+      'improvements': FieldValue.delete(),
       'interviews': interviews.map((i) => i.toMap()).toList(),
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
@@ -560,13 +620,13 @@ class AppProvider extends ChangeNotifier {
   Future<void> addImprovement(Improvement imp) async {
     improvements.add(imp);
     notifyListeners();
-    await _saveData();
+    if (teamId != null) await FirebaseService.saveImprovementPhoto(teamId!, imp.toMap());
   }
 
   Future<void> deleteImprovement(int id) async {
     improvements.removeWhere((i) => i.id == id);
     notifyListeners();
-    await _saveData();
+    if (teamId != null) await FirebaseService.deleteImprovementPhoto(teamId!, id);
   }
 
   // ─── Rubrics ──────────────────────────────────────
@@ -706,7 +766,8 @@ class AppProvider extends ChangeNotifier {
     if (teamId != null) {
       await Future.wait([
         FirebaseService.clearChat(teamId!),
-        FirebaseService.saveGallery(teamId!, []),
+        FirebaseService.clearAllGalleryPhotos(teamId!),
+        FirebaseService.clearAllImprovementPhotos(teamId!),
       ]);
     }
   }
@@ -894,28 +955,23 @@ class AppProvider extends ChangeNotifier {
 
   // ─── Gallery ───────────────────────────────────────
 
-  Future<void> _saveGallery() async {
-    if (teamId == null) return;
-    await FirebaseService.saveGallery(teamId!, gallery.map((g) => g.toMap()).toList());
-  }
-
   Future<void> addGalleryItem(GalleryItem item) async {
     gallery.add(item);
     _safeNotify();
-    await _saveGallery();
+    if (teamId != null) await FirebaseService.saveGalleryPhoto(teamId!, item.toMap());
   }
 
   Future<void> deleteGalleryItem(int id) async {
     gallery.removeWhere((g) => g.id == id);
     _safeNotify();
-    await _saveGallery();
+    if (teamId != null) await FirebaseService.deleteGalleryPhoto(teamId!, id);
   }
 
   Future<void> updateGalleryItemCaption(int id, String caption) async {
     final item = gallery.firstWhere((g) => g.id == id);
     item.caption = caption;
     notifyListeners();
-    await _saveGallery();
+    if (teamId != null) await FirebaseService.updateGalleryPhotoCaption(teamId!, id, caption);
   }
 
   // ─── Links ────────────────────────────────────────────

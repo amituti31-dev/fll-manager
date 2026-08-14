@@ -261,6 +261,10 @@ async function completeSetup() {
     email: fbUser.email, color: '#3d7fff',
   };
 
+  // Start from a clean slate: without this, any field left over from a
+  // previous team's session in this same page load (findings, interviews,
+  // logs, gallery, …) would get written into the brand-new team's docs.
+  state = defaultState();
   state.setup = true;
   state.teamName = teamName;
   state.teamId = teamId;
@@ -339,8 +343,11 @@ async function joinTeam() {
       return;
     }
 
-    // טען את נתוני הקבוצה
+    // טען את נתוני הקבוצה — מתחילים מסלייט נקי כדי שאף שדה מהקבוצה
+    // הקודמת (אם הייתה כזו באותו טעינת עמוד) לא יישאר אם לקבוצה החדשה
+    // אין עדיין ערך משלה לאותו שדה
     window.FB_PROJECT = teamId;
+    state = defaultState();
     await loadState();
 
     // בדוק שהמייל לא כבר קיים
@@ -385,9 +392,8 @@ async function joinTeam() {
 function handleLogoUpload(e, ctx) {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    state.teamLogo = ev.target.result;
+  compressImage(file, { maxDim: 300, quality: 0.75 }).then(dataUrl => {
+    state.teamLogo = dataUrl;
     if (ctx === 'setup') {
       const canvas = document.getElementById('setup-crop-canvas');
       document.getElementById('setup-crop-area').style.display = 'block';
@@ -395,12 +401,11 @@ function handleLogoUpload(e, ctx) {
         canvas.width = Math.min(img.width, 300); canvas.height = Math.min(img.height, 300);
         const ctx2 = canvas.getContext('2d');
         ctx2.drawImage(img, 0, 0, canvas.width, canvas.height);
-      }; img.src = ev.target.result;
+      }; img.src = dataUrl;
     }
     updateLogoDisplay();
     saveState();
-  };
-  reader.readAsDataURL(file);
+  }).catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
 }
 
 function updateLogoDisplay() {

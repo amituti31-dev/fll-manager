@@ -16,23 +16,22 @@ function saveImprovement() {
     image: null,
   };
   if (file) {
-    const reader = new FileReader();
-    reader.onload = e => { imp.image = e.target.result; state.improvements.push(imp); saveState(); renderGallery(); };
-    reader.readAsDataURL(file);
+    compressImage(file).then(dataUrl => {
+      imp.image = dataUrl; state.improvements.push(imp); saveState(); saveImprovementPhoto(imp); renderGallery();
+    }).catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
   } else {
-    state.improvements.push(imp); saveState(); renderGallery();
+    state.improvements.push(imp); saveState(); saveImprovementPhoto(imp); renderGallery();
   }
   closeModal('modal-improvement'); notify('✅ שיפור נשמר', 'success');
 }
 
 function handleRobotPhoto(e) {
   const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    state.improvements.push({ id: Date.now(), name: 'צילום מהנייד', image: ev.target.result, date: new Date().toISOString().split('T')[0], author: state.currentUser?.name || 'אנונימי', mission: '' });
-    saveState(); renderGallery(); notify('📸 תמונה נשמרה', 'success');
-  };
-  reader.readAsDataURL(file);
+  compressImage(file).then(dataUrl => {
+    const imp = { id: Date.now(), name: 'צילום מהנייד', image: dataUrl, date: new Date().toISOString().split('T')[0], author: state.currentUser?.name || 'אנונימי', mission: '' };
+    state.improvements.push(imp);
+    saveState(); saveImprovementPhoto(imp); renderGallery(); notify('📸 תמונה נשמרה', 'success');
+  }).catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
 }
 
 function renderGallery() {
@@ -56,7 +55,7 @@ function renderGallery() {
 function deleteImprovement(id) {
   if (!confirm('למחוק את התמונה/השיפור?')) return;
   state.improvements = state.improvements.filter(i => i.id !== id);
-  saveState(); renderGallery();
+  saveState(); deleteImprovementPhotoDoc(id); renderGallery();
   notify('🗑️ נמחק', 'success');
 }
 
@@ -94,28 +93,27 @@ function renderTeamGallery() {
 function addTeamPhoto(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  compressImage(file).then(dataUrl => {
     const caption = prompt('כיתוב לתמונה (אופציונלי):') || '';
     if (!state.teamGallery) state.teamGallery = [];
-    state.teamGallery.push({
+    const item = {
       id: Date.now(),
-      image: e.target.result,
+      image: dataUrl,
       caption: caption.trim().slice(0, 200),
       date: new Date().toISOString().split('T')[0],
       author: state.currentUser?.name || 'אנונימי',
-    });
-    saveState(); renderTeamGallery();
+    };
+    state.teamGallery.push(item);
+    saveState(); saveGalleryPhoto(item); renderTeamGallery();
     notify('📸 תמונה נוספה לגלריה', 'success');
-  };
-  reader.readAsDataURL(file);
+  }).catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
   event.target.value = '';
 }
 
 function deleteTeamPhoto(id) {
   if (!confirm('למחוק תמונה זו מהגלריה?')) return;
   state.teamGallery = (state.teamGallery || []).filter(i => i.id !== id);
-  saveState(); renderTeamGallery();
+  saveState(); deleteGalleryPhotoDoc(id); renderTeamGallery();
   notify('🗑️ תמונה נמחקה', 'success');
 }
 

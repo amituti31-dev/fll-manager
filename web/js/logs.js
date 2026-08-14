@@ -85,9 +85,8 @@ function saveLog() {
   };
 
   if (file) {
-    const reader = new FileReader();
-    reader.onload = e => { logEntry.image = e.target.result; finish(); };
-    reader.readAsDataURL(file);
+    compressImage(file).then(dataUrl => { logEntry.image = dataUrl; finish(); })
+      .catch(() => { notify('❌ שגיאה בעיבוד התמונה', 'error'); });
   } else { finish(); }
 }
 
