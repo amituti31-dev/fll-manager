@@ -456,7 +456,7 @@
         <div class="card">
           <div class="card-header">
             <span class="card-icon">📋</span><span class="card-title" id="missions-card-title">15 משימות – Unearthed 2026</span>
-            <button class="btn btn-ghost admin-only" style="font-size:11px;margin-right:auto;padding:6px 10px" data-action="open-edit-missions">✏️ ערוך משימות</button>
+            <button class="btn btn-ghost admin-only" style="font-size:11px;margin-right:auto;padding:6px 10px" data-action="reset-missions-default">🔄 איפוס משימות</button>
             <label class="btn btn-ghost admin-only" style="font-size:11px;cursor:pointer;padding:6px 10px">
               📥 ייבא משימות מ-JSON
               <input type="file" accept=".json,application/json" style="display:none" data-onchange="import-missions-json">
@@ -1109,10 +1109,18 @@
   </div>
 </div>
 
-<!-- Mission Bonus / Extra Rules Modal -->
+<!-- Mission Edit Modal (bonus/rules for everyone, name/pts for admin) -->
 <div class="modal-overlay" id="modal-mission-extra">
   <div class="modal">
-    <div class="modal-title" id="mission-extra-title">📝 משימה</div>
+    <div class="modal-title" id="mission-extra-title">✏️ משימה</div>
+    <div class="admin-only form-group">
+      <label class="form-label">שם המשימה</label>
+      <input type="text" class="form-input" id="mission-extra-name">
+    </div>
+    <div class="admin-only form-group">
+      <label class="form-label">ניקוד המשימה</label>
+      <input type="number" class="form-input" id="mission-extra-pts" min="0" max="200" step="1">
+    </div>
     <div class="form-group">
       <label class="form-label">בונוסים שמתקיימים במשימה</label>
       <textarea class="form-input" id="mission-extra-bonus" rows="3" placeholder="לדוגמה: בונוס נוסף אם..."></textarea>
@@ -1147,21 +1155,6 @@
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
       <button class="btn btn-ghost" data-action="cancel-mission-import">ביטול</button>
       <button class="btn btn-primary" data-action="confirm-mission-import">✅ אשר והחלף</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Missions Modal -->
-<div class="modal-overlay" id="modal-edit-missions">
-  <div class="modal">
-    <div class="modal-title" style="display:flex;align-items:center">
-      <span>✏️ עריכת משימות</span>
-      <button class="btn btn-ghost" style="font-size:11px;margin-right:auto;padding:4px 10px" data-action="reset-missions-default">🔄 ברירת מחדל</button>
-    </div>
-    <div id="edit-missions-list" style="max-height:340px;overflow-y:auto;margin-top:8px"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
-      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-edit-missions">ביטול</button>
-      <button class="btn btn-primary" data-action="save-edited-missions">💾 שמור</button>
     </div>
   </div>
 </div>

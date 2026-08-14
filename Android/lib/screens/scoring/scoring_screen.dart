@@ -160,15 +160,20 @@ class _ScoringScreenState extends State<ScoringScreen>
     return AppColors.textPrimary;
   }
 
-  void _showEditMissions(BuildContext context, AppProvider prov) {
-    showModalBottomSheet(
+  Future<void> _resetMissions(BuildContext context, AppProvider prov) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => EditMissionsSheet(prov: prov),
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('איפוס משימות', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text('לאפס לרשימת ברירת המחדל?', style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('ביטול')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('אפס')),
+        ],
+      ),
     );
+    if (confirm == true) await prov.resetMissions();
   }
 
   // ── Build ──────────────────────────────────────────
@@ -281,7 +286,7 @@ class _ScoringScreenState extends State<ScoringScreen>
               fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary))),
           if (prov.isAdmin)
             GestureDetector(
-              onTap: () => _showEditMissions(context, prov),
+              onTap: () => _resetMissions(context, prov),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -290,9 +295,9 @@ class _ScoringScreenState extends State<ScoringScreen>
                   border: Border.all(color: AppColors.accent.withAlpha(80)),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.edit, size: 12, color: AppColors.accent),
+                  Icon(Icons.refresh, size: 12, color: AppColors.accent),
                   SizedBox(width: 4),
-                  Text('ערוך', style: TextStyle(
+                  Text('איפוס', style: TextStyle(
                       fontSize: 12, color: AppColors.accent, fontWeight: FontWeight.w600)),
                 ]),
               ),
@@ -348,7 +353,7 @@ class _ScoringScreenState extends State<ScoringScreen>
                       border: Border.all(color: hasNotes ? AppColors.gold.withAlpha(90) : AppColors.border),
                     ),
                     child: Text(
-                      extra?.bonusDone == true ? '🎁+${extra!.bonusPts}' : '📝',
+                      extra?.bonusDone == true ? '🎁+${extra!.bonusPts}' : '✏️',
                       style: TextStyle(fontSize: 11, color: hasNotes ? AppColors.gold : AppColors.textTertiary),
                     ),
                   ),
@@ -824,158 +829,6 @@ class _RubricRow extends StatelessWidget {
         Text(_labels[item.score],
             style: TextStyle(fontSize: 11, color: _colors[item.score],
                 fontWeight: FontWeight.w600)),
-      ]),
-    );
-  }
-}
-
-// ─── Edit Missions Sheet ──────────────────────────────
-
-class EditMissionsSheet extends StatefulWidget {
-  final AppProvider prov;
-  const EditMissionsSheet({super.key, required this.prov});
-
-  @override
-  State<EditMissionsSheet> createState() => _EditMissionsSheetState();
-}
-
-class _EditMissionsSheetState extends State<EditMissionsSheet> {
-  late final List<TextEditingController> _nameCtrl;
-  late final List<TextEditingController> _ptsCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameCtrl = widget.prov.missions
-        .map((m) => TextEditingController(text: m.name)).toList();
-    _ptsCtrl  = widget.prov.missions
-        .map((m) => TextEditingController(text: '${m.pts}')).toList();
-  }
-
-  @override
-  void dispose() {
-    for (final c in [..._nameCtrl, ..._ptsCtrl]) { c.dispose(); }
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    for (int i = 0; i < widget.prov.missions.length; i++) {
-      final name = _nameCtrl[i].text.trim();
-      final pts  = int.tryParse(_ptsCtrl[i].text.trim()) ?? widget.prov.missions[i].pts;
-      if (name.isNotEmpty) {
-        await widget.prov.updateMission(widget.prov.missions[i].id, name, pts);
-      }
-    }
-    if (mounted) Navigator.pop(context);
-  }
-
-  Future<void> _reset() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('איפוס משימות', style: TextStyle(color: AppColors.textPrimary)),
-        content: Text('לאפס לרשימת ברירת המחדל?',
-            style: TextStyle(color: AppColors.textSecondary)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('ביטול')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('אפס')),
-        ],
-      ),
-    );
-    if (confirm == true && mounted) {
-      await widget.prov.resetMissions();
-      if (mounted) Navigator.pop(context);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.85,
-      maxChildSize: 0.95,
-      builder: (_, scroll) => Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
-          child: Row(children: [
-            Text('🎯', style: TextStyle(fontSize: 20)),
-            SizedBox(width: 8),
-            Expanded(child: Text('עריכת משימות',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary))),
-            TextButton.icon(
-              onPressed: _reset,
-              icon: Icon(Icons.refresh, size: 14),
-              label: Text('ברירת מחדל', style: TextStyle(fontSize: 12)),
-              style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
-            ),
-          ]),
-        ),
-        Divider(color: AppColors.border, height: 1),
-        Expanded(
-          child: ListView.builder(
-            controller: scroll,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: widget.prov.missions.length,
-            itemBuilder: (_, i) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(children: [
-                SizedBox(
-                  width: 32,
-                  child: Text('${i + 1}',
-                      style: TextStyle(fontSize: 12, color: AppColors.textTertiary,
-                          fontWeight: FontWeight.w600),
-                      textAlign: TextAlign.center),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: TextField(
-                    controller: _nameCtrl[i],
-                    style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      hintText: 'שם משימה',
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                SizedBox(
-                  width: 64,
-                  child: TextField(
-                    controller: _ptsCtrl[i],
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textPrimary, fontSize: 13,
-                        fontFamily: 'monospace', fontWeight: FontWeight.w700),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      hintText: 'נק\'',
-                      suffixText: 'נק\'',
-                      suffixStyle: TextStyle(fontSize: 10, color: AppColors.textTertiary),
-                    ),
-                  ),
-                ),
-              ]),
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16,
-              MediaQuery.of(context).viewInsets.bottom + 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _save,
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  padding: const EdgeInsets.symmetric(vertical: 14)),
-              child: Text('💾 שמור שינויים'),
-            ),
-          ),
-        ),
       ]),
     );
   }

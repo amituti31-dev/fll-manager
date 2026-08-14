@@ -36,7 +36,7 @@ function renderMissions() {
         <div class="mission-status-row">
           ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" data-action="set-mission-status" data-id="${m.id}" data-status="${s}">${statusLabels[s]}</button>`).join('')}
         </div>
-        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">📝 בונוס/חוקים${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
+        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">✏️ עריכה${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
       </div>
     `;
   }).join('') || `<div style="color:var(--text3);padding:20px;text-align:center;grid-column:1/-1">אין משימות בקטגוריה זו</div>`;
@@ -63,14 +63,19 @@ function renderMissions() {
   `;
 }
 
-// ── Mission bonus / extra rules ──
+// ── Mission edit (bonus/rules/achieved for everyone; name/pts for admin
+// only — admin fields are in an .admin-only block, hidden by updateAdminUI()
+// for non-mentors, since the mission list itself lives in mentor-only
+// admin-data while bonus/rules/bonusDone live in student-writable data) ──
 let _missionExtraId = null;
 function openMissionExtraModal(id) {
   const m = getMissions().find(m => m.id === id);
   if (!m) return;
   _missionExtraId = id;
   const extra = (state.missionExtra || {})[id] || {};
-  document.getElementById('mission-extra-title').textContent = `📝 ${m.name}`;
+  document.getElementById('mission-extra-title').textContent = `✏️ ${m.name}`;
+  document.getElementById('mission-extra-name').value = m.name;
+  document.getElementById('mission-extra-pts').value = m.pts;
   document.getElementById('mission-extra-bonus').value = extra.bonus || '';
   document.getElementById('mission-extra-bonus-pts').value = extra.bonusPts || '';
   document.getElementById('mission-extra-rules').value = extra.rules || '';
@@ -87,14 +92,20 @@ function saveMissionExtra() {
     rules: document.getElementById('mission-extra-rules').value.trim().slice(0, 1000),
     bonusDone: document.getElementById('mission-extra-done').checked,
   };
-  saveState(); renderMissions(); renderScoring();
+  if (state.isAdmin) {
+    const name = document.getElementById('mission-extra-name').value.trim().slice(0, 200);
+    const pts = Math.max(0, Math.min(200, Math.round(Number(document.getElementById('mission-extra-pts').value) || 0)));
+    const id = _missionExtraId;
+    state.customMissions = getMissions().map(m => m.id === id ? { id, name: name || m.name, pts } : m);
+  }
+  saveState(); renderMissions(); renderScoring(); populateMissionSelects();
   closeModal('modal-mission-extra');
 }
 
 // ── JSON mission import (mentor-only, full replace) ──
 // Validates a { season, missions:[{id,name,pts,bonus?,bonusPts?,rules?},...] }
 // file. bonus/bonusPts/rules are optional, pre-filled into missionExtra on
-// confirm (the same fields the "📝 בונוס/חוקים" modal edits by hand).
+// confirm (the same fields the "✏️ עריכה" modal edits by hand).
 // On confirm, this fully replaces the mission list and resets everything
 // keyed by mission id (missionChecks/missionExtra/missionStatuses), since
 // imported ids have no guaranteed relationship to the previous set.
@@ -183,44 +194,10 @@ function cancelMissionImport() {
   closeModal('modal-mission-import');
 }
 
-// ── Edit missions (rename / adjust points, keeps ids + all mission-linked
-// data intact — unlike JSON import, which is a full replace) ──
-function openEditMissionsModal() {
-  const list = getMissions();
-  document.getElementById('edit-missions-list').innerHTML = list.map((m, i) => `
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 0">
-      <span style="width:24px;text-align:center;color:var(--text3);font-size:12px">${i + 1}</span>
-      <input type="text" class="form-input" data-edit-mission-id="${m.id}" data-field="name" value="${sanitize(m.name)}" style="flex:1;font-size:13px;padding:8px 10px">
-      <input type="number" class="form-input" data-edit-mission-id="${m.id}" data-field="pts" value="${m.pts}" min="0" max="200" style="width:64px;font-size:13px;padding:8px 10px;text-align:center">
-    </div>
-  `).join('');
-  openModal('modal-edit-missions');
-}
-
-function saveEditedMissions() {
-  const rows = {};
-  document.querySelectorAll('#edit-missions-list [data-edit-mission-id]').forEach(input => {
-    const id = Number(input.dataset.editMissionId);
-    if (!rows[id]) rows[id] = {};
-    if (input.dataset.field === 'name') rows[id].name = input.value.trim().slice(0, 200);
-    if (input.dataset.field === 'pts') rows[id].pts = Math.max(0, Math.min(200, Math.round(Number(input.value) || 0)));
-  });
-  state.customMissions = getMissions().map(m => {
-    const edited = rows[m.id];
-    const name = edited && edited.name ? edited.name : m.name;
-    const pts = edited && Number.isFinite(edited.pts) ? edited.pts : m.pts;
-    return { id: m.id, name, pts };
-  });
-  saveState(); renderMissions(); renderScoring(); populateMissionSelects();
-  closeModal('modal-edit-missions');
-  notify('✅ המשימות עודכנו', 'success');
-}
-
 function resetMissionsToDefault() {
   if (!confirm('לאפס לרשימת ברירת המחדל? הפעולה תמחק שינויים שנעשו בשמות/ניקוד המשימות.')) return;
   state.customMissions = [];
   saveState(); renderMissions(); renderScoring(); populateMissionSelects();
-  closeModal('modal-edit-missions');
   notify('✅ המשימות אופסו לברירת המחדל', 'success');
 }
 

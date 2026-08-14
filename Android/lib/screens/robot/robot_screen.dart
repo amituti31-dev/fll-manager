@@ -9,7 +9,6 @@ import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 import '../../widgets/mission_extra_sheet.dart';
-import '../scoring/scoring_screen.dart' show EditMissionsSheet;
 
 class RobotScreen extends StatefulWidget {
   final void Function(int)? navigateTo;
@@ -33,15 +32,20 @@ class RobotScreen extends StatefulWidget {
 class _RobotScreenState extends State<RobotScreen> {
   String _filter = 'הכל';
 
-  void _showEditMissions(BuildContext context, AppProvider prov) {
-    showModalBottomSheet(
+  Future<void> _resetMissions(BuildContext context, AppProvider prov) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => EditMissionsSheet(prov: prov),
+      builder: (_) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text('איפוס משימות', style: TextStyle(color: AppColors.textPrimary)),
+        content: Text('לאפס לרשימת ברירת המחדל?', style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('ביטול')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('אפס')),
+        ],
+      ),
     );
+    if (confirm == true) await prov.resetMissions();
   }
 
   void _showMissionExtraSheet(BuildContext context, Mission m) {
@@ -208,7 +212,7 @@ class _RobotScreenState extends State<RobotScreen> {
           ),
         if (prov.isAdmin)
           GestureDetector(
-            onTap: () => _showEditMissions(context, prov),
+            onTap: () => _resetMissions(context, prov),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -217,9 +221,9 @@ class _RobotScreenState extends State<RobotScreen> {
                 border: Border.all(color: AppColors.accent.withAlpha(80)),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.edit, size: 12, color: AppColors.accent),
+                Icon(Icons.refresh, size: 12, color: AppColors.accent),
                 SizedBox(width: 4),
-                Text('ערוך', style: TextStyle(fontSize: 12, color: AppColors.accent, fontWeight: FontWeight.w600)),
+                Text('איפוס', style: TextStyle(fontSize: 12, color: AppColors.accent, fontWeight: FontWeight.w600)),
               ]),
             ),
           ),
@@ -312,7 +316,7 @@ class _RobotScreenState extends State<RobotScreen> {
                     borderRadius: BorderRadius.circular(20),
                     border: hasNotes ? Border.all(color: AppColors.gold, width: 1) : null,
                   ),
-                  child: Text(extra?.bonusDone == true ? '🎁' : '📝', style: TextStyle(fontSize: 11)),
+                  child: Text(extra?.bonusDone == true ? '🎁' : '✏️', style: TextStyle(fontSize: 11)),
                 ),
               ),
             ),
@@ -705,7 +709,7 @@ class _AddImprovementSheetState extends State<_AddImprovementSheet> {
 // Validates a { season, missions:[{id,name,pts,bonus?,rules?},...] } file
 // (produced externally — there is no in-app AI/Cloud Function). bonus/rules
 // are optional free text, pre-filled into missionExtra on confirm (the same
-// fields the "📝 בונוס/חוקים" sheet edits by hand). On confirm this fully
+// fields the "✏️ עריכה" sheet edits by hand). On confirm this fully
 // replaces the mission list; AppProvider.replaceMissions() resets
 // missionChecks/missionExtra too, since imported ids have no guaranteed
 // relationship to the previous set.

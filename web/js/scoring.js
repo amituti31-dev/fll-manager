@@ -35,7 +35,7 @@ function renderScoring() {
     <div class="mission-row">
       <input type="checkbox" class="mission-checkbox" id="sc-${m.id}" ${state.missionChecks[m.id] ? 'checked' : ''} data-onchange="toggle-scoring-mission" data-id="${m.id}">
       <label class="mission-row-name" for="sc-${m.id}">${sanitize(m.name)}</label>
-      <button class="mission-row-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">📝${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
+      <button class="mission-row-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">✏️${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
       <span class="mission-row-pts">${m.pts}</span>
     </div>
   `;
