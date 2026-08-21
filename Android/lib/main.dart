@@ -88,7 +88,7 @@ class _RootRouterState extends State<_RootRouter> {
     _updateChecked = true;
     try {
       final client = HttpClient();
-      final req = await client.getUrl(Uri.parse('https://fll-manger.web.app/version.json'));
+      final req = await client.getUrl(Uri.parse('https://fll-manager-site.web.app/version.json'));
       final res = await req.close();
       final body = await res.transform(utf8.decoder).join();
       final data = jsonDecode(body) as Map<String, dynamic>;

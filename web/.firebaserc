@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "fll-manger"
-  }
+  },
+  "targets": {
+    "fll-manger": {
+      "hosting": {
+        "main": [
+          "fll-manger"
+        ],
+        "new": [
+          "fll-manager-site"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

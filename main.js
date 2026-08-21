@@ -122,7 +122,7 @@ function downloadAndInstall(win, version) {
 
 function checkForUpdates(win) {
   const req = https.request(
-    { hostname: 'fll-manger.web.app', path: '/version.json', method: 'GET', timeout: 6000 },
+    { hostname: 'fll-manager-site.web.app', path: '/version.json', method: 'GET', timeout: 6000 },
     res => {
       let data = '';
       res.on('data', chunk => data += chunk);
