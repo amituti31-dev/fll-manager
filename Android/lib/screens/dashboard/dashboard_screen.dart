@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
-import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -23,42 +22,39 @@ class DashboardScreen extends StatelessWidget {
 
     return ListView(padding: const EdgeInsets.all(16), children: [
       // ── Stat cards ─────────────────────────────────────
-      KeyedSubtree(
-        key: TourKeys.dashboardStats,
-        child: GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.3,
-          children: [
-            _StatCard(
-              value: '${prov.members.length}',
-              label: 'חברי קבוצה',
-              color: AppColors.accent3,
-              sub: '$admins מנטורים, $students תלמידים',
-            ),
-            _StatCard(
-              value: '${prov.logs.length}',
-              label: 'ימנים שנכתבו',
-              color: AppColors.accent,
-              sub: '↑ $weekLogs השבוע',
-            ),
-            _StatCard(
-              value: '$lastScore',
-              label: 'ניקוד אחרון',
-              color: AppColors.accent2,
-              sub: prov.scores.isEmpty ? 'אין ריצות עדיין' : null,
-            ),
-            _StatCard(
-              value: '${prov.doneMissions}/$total',
-              label: 'משימות הושלמו',
-              color: AppColors.gold,
-              progress: total > 0 ? prov.doneMissions / total : 0,
-            ),
-          ],
-        ),
+      GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.3,
+        children: [
+          _StatCard(
+            value: '${prov.members.length}',
+            label: 'חברי קבוצה',
+            color: AppColors.accent3,
+            sub: '$admins מנטורים, $students תלמידים',
+          ),
+          _StatCard(
+            value: '${prov.logs.length}',
+            label: 'ימנים שנכתבו',
+            color: AppColors.accent,
+            sub: '↑ $weekLogs השבוע',
+          ),
+          _StatCard(
+            value: '$lastScore',
+            label: 'ניקוד אחרון',
+            color: AppColors.accent2,
+            sub: prov.scores.isEmpty ? 'אין ריצות עדיין' : null,
+          ),
+          _StatCard(
+            value: '${prov.doneMissions}/$total',
+            label: 'משימות הושלמו',
+            color: AppColors.gold,
+            progress: total > 0 ? prov.doneMissions / total : 0,
+          ),
+        ],
       ),
       SizedBox(height: 16),
 
@@ -82,28 +78,22 @@ class DashboardScreen extends StatelessWidget {
       ],
 
       // ── Category progress ──────────────────────────────
-      KeyedSubtree(
-        key: TourKeys.dashboardCategoryProgress,
-        child: _SectionCard(
-          icon: '📊',
-          title: 'התקדמות לפי קטגוריה',
-          child: _CategoryProgress(prov: prov),
-        ),
+      _SectionCard(
+        icon: '📊',
+        title: 'התקדמות לפי קטגוריה',
+        child: _CategoryProgress(prov: prov),
       ),
       SizedBox(height: 12),
 
       // ── Recent updates ─────────────────────────────────
-      KeyedSubtree(
-        key: TourKeys.dashboardRecentUpdates,
-        child: _SectionCard(
-          icon: '📋',
-          title: 'עדכונים אחרונים',
-          child: prov.logs.isEmpty
-              ? const _Empty('אין עדכונים עדיין')
-              : Column(
-                  children: prov.logs.reversed.take(3).map((l) => _LogTile(l)).toList(),
-                ),
-        ),
+      _SectionCard(
+        icon: '📋',
+        title: 'עדכונים אחרונים',
+        child: prov.logs.isEmpty
+            ? const _Empty('אין עדכונים עדיין')
+            : Column(
+                children: prov.logs.reversed.take(3).map((l) => _LogTile(l)).toList(),
+              ),
       ),
       SizedBox(height: 12),
 
@@ -118,21 +108,18 @@ class DashboardScreen extends StatelessWidget {
         ),
         SizedBox(height: 12),
       ],
-      KeyedSubtree(
-        key: TourKeys.dashboardQuickActions,
-        child: _SectionCard(
-          icon: '⚡',
-          title: 'פעולות מהירות',
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _QuickBtn('📋 תיעוד חדש',          AppColors.accent,  () => navigateTo(1)),
-              _QuickBtn('📸 הוסף שיפור רובוט',   AppColors.accent3, () => navigateTo(2)),
-              _QuickBtn('🎯 מחשבון ניקוד',       AppColors.accent2, () => navigateTo(3)),
-              _QuickBtn('⏱️ טיימר ריצה',         AppColors.gold,    () => navigateTo(3)),
-            ],
-          ),
+      _SectionCard(
+        icon: '⚡',
+        title: 'פעולות מהירות',
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _QuickBtn('📋 תיעוד חדש',          AppColors.accent,  () => navigateTo(1)),
+            _QuickBtn('📸 הוסף שיפור רובוט',   AppColors.accent3, () => navigateTo(2)),
+            _QuickBtn('🎯 מחשבון ניקוד',       AppColors.accent2, () => navigateTo(3)),
+            _QuickBtn('⏱️ טיימר ריצה',         AppColors.gold,    () => navigateTo(3)),
+          ],
         ),
       ),
     ]);

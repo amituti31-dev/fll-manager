@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
-import '../../services/tour_keys.dart';
-import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
 
 class ValuesScreen extends StatefulWidget {
@@ -20,12 +18,10 @@ class _ValuesScreenState extends State<ValuesScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
-    TourNav.registerTabs('values', (i) => setState(() => _tabCtrl.index = i));
   }
 
   @override
   void dispose() {
-    TourNav.unregisterTabs('values');
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -35,7 +31,6 @@ class _ValuesScreenState extends State<ValuesScreen> with SingleTickerProviderSt
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
-        key: TourKeys.valuesTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,
@@ -52,8 +47,8 @@ class _ValuesScreenState extends State<ValuesScreen> with SingleTickerProviderSt
         child: TabBarView(
           controller: _tabCtrl,
           children: [
-            _StickiesTab(key: TourKeys.valuesStickiesTab, prov: prov),
-            _BoardTab(key: TourKeys.valuesBoardTab, prov: prov),
+            _StickiesTab(prov: prov),
+            _BoardTab(prov: prov),
           ],
         ),
       ),
@@ -65,7 +60,7 @@ class _ValuesScreenState extends State<ValuesScreen> with SingleTickerProviderSt
 
 class _StickiesTab extends StatelessWidget {
   final AppProvider prov;
-  const _StickiesTab({super.key, required this.prov});
+  const _StickiesTab({required this.prov});
 
   static const _values = [
     ('🔍', 'גילוי',      'discovery',  Color(0xFF3D7FFF)),
@@ -266,7 +261,7 @@ class _AddStickySheetState extends State<_AddStickySheet> {
 
 class _BoardTab extends StatelessWidget {
   final AppProvider prov;
-  const _BoardTab({super.key, required this.prov});
+  const _BoardTab({required this.prov});
 
   static const _values = [
     ('🔍', 'גילוי',       'discovery',  Color(0xFF3D7FFF)),

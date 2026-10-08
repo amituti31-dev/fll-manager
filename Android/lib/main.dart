@@ -11,7 +11,6 @@ import 'providers/app_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/shell_screen.dart';
 import 'services/notification_service.dart';
-import 'services/tour_controller.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -41,7 +40,6 @@ class _FllManagerAppState extends State<FllManagerApp> {
   Widget build(BuildContext context) {
     final isDarkMode = context.select<AppProvider, bool>((p) => p.isDarkMode);
     return MaterialApp(
-      navigatorKey: TourController.navigatorKey,
       title: 'FLL Manager',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
@@ -69,7 +67,6 @@ class _RootRouter extends StatefulWidget {
 class _RootRouterState extends State<_RootRouter> {
   static const _currentVersion = '1.0.27';
   bool _updateChecked = false;
-  bool _tourChecked = false;
 
   bool _isNewer(String remote) {
     final r = remote.split('.').map((e) => int.tryParse(e) ?? 0).toList();
@@ -134,10 +131,6 @@ class _RootRouterState extends State<_RootRouter> {
 
     if (status == AppStatus.ready) {
       Future.delayed(const Duration(seconds: 5), _checkForUpdates);
-      if (!_tourChecked) {
-        _tourChecked = true;
-        TourController.maybeAutoStart(context);
-      }
     }
 
     return switch (status) {

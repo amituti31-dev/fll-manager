@@ -8,8 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
-import '../../services/tour_keys.dart';
-import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 
@@ -28,12 +26,10 @@ class _InnovationScreenState extends State<InnovationScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 4, vsync: this);
-    TourNav.registerTabs('innovation', (i) => setState(() => _tabCtrl.index = i));
   }
 
   @override
   void dispose() {
-    TourNav.unregisterTabs('innovation');
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -43,7 +39,6 @@ class _InnovationScreenState extends State<InnovationScreen>
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
-        key: TourKeys.innovationTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,
@@ -64,10 +59,10 @@ class _InnovationScreenState extends State<InnovationScreen>
         child: TabBarView(
           controller: _tabCtrl,
           children: [
-            _ProjectTab(key: TourKeys.innovationProjectTab, prov: prov),
-            _ResearchTab(key: TourKeys.innovationResearchTab, prov: prov),
-            _InterviewsTab(key: TourKeys.innovationInterviewsTab, prov: prov),
-            _IdeasTab(key: TourKeys.innovationIdeasTab, prov: prov),
+            _ProjectTab(prov: prov),
+            _ResearchTab(prov: prov),
+            _InterviewsTab(prov: prov),
+            _IdeasTab(prov: prov),
           ],
         ),
       ),
@@ -79,7 +74,7 @@ class _InnovationScreenState extends State<InnovationScreen>
 
 class _ProjectTab extends StatelessWidget {
   final AppProvider prov;
-  const _ProjectTab({super.key, required this.prov});
+  const _ProjectTab({required this.prov});
 
   @override
   Widget build(BuildContext context) {
@@ -455,7 +450,7 @@ class _AddSharingSheetState extends State<_AddSharingSheet> {
 
 class _ResearchTab extends StatelessWidget {
   final AppProvider prov;
-  const _ResearchTab({super.key, required this.prov});
+  const _ResearchTab({required this.prov});
 
   @override
   Widget build(BuildContext context) {
@@ -825,7 +820,7 @@ class _AddFindingSheetState extends State<_AddFindingSheet> {
 
 class _InterviewsTab extends StatelessWidget {
   final AppProvider prov;
-  const _InterviewsTab({super.key, required this.prov});
+  const _InterviewsTab({required this.prov});
 
   @override
   Widget build(BuildContext context) {
@@ -1046,7 +1041,7 @@ class _AddInterviewSheetState extends State<_AddInterviewSheet> {
 
 class _IdeasTab extends StatelessWidget {
   final AppProvider prov;
-  const _IdeasTab({super.key, required this.prov});
+  const _IdeasTab({required this.prov});
 
   @override
   Widget build(BuildContext context) {

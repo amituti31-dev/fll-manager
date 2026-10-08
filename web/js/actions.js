@@ -129,7 +129,6 @@ const ACTIONS = {
   'handle-logo-upload': (el, e) => handleLogoUpload(e, el.dataset.arg),
   'save-team-settings': () => saveTeamSettings(),
   'change-my-name': () => changeMyName(),
-  'start-tour': () => startTour(),
   'change-pin': () => changePin(),
   'setup-biometric': () => setupBiometric(),
   'copy-settings-code': (el) => copySettingsCode(el.dataset.arg),
@@ -188,10 +187,6 @@ const ACTIONS = {
   'create-poll': () => createPoll(),
   'send-announcement': () => sendAnnouncement(),
   'save-link': () => saveLink(),
-
-  // Guided tour
-  'tour-back': () => _tourBack(),
-  'tour-advance': () => _tourAdvance(),
 };
 
 document.addEventListener('click', (e) => {

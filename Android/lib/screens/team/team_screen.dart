@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
-import '../../services/tour_keys.dart';
-import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
 import '../chat/direct_chat_screen.dart';
 
@@ -46,12 +44,10 @@ class _TeamScreenState extends State<TeamScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
-    TourNav.registerTabs('team', (i) => setState(() => _tabCtrl.index = i));
   }
 
   @override
   void dispose() {
-    TourNav.unregisterTabs('team');
     _tabCtrl.dispose();
     super.dispose();
   }
@@ -61,7 +57,6 @@ class _TeamScreenState extends State<TeamScreen> with SingleTickerProviderStateM
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
-        key: TourKeys.teamTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,
@@ -112,7 +107,6 @@ class _TeamTab extends StatelessWidget {
         if (prov.isAdmin)
           Expanded(
             child: Wrap(
-              key: TourKeys.teamAddButtons,
               spacing: 8,
               runSpacing: 8,
               children: [
@@ -134,10 +128,7 @@ class _TeamTab extends StatelessWidget {
       SizedBox(height: 16),
       const _SectionHeader('👥', 'חברי הקבוצה'),
       SizedBox(height: 10),
-      KeyedSubtree(
-        key: TourKeys.teamMembersList,
-        child: Column(children: prov.members.map((m) => _MemberCard(member: m, prov: prov)).toList()),
-      ),
+      Column(children: prov.members.map((m) => _MemberCard(member: m, prov: prov)).toList()),
       SizedBox(height: 20),
       if (prov.isAdmin) ...[
         Row(children: [
@@ -151,7 +142,6 @@ class _TeamTab extends StatelessWidget {
         ]),
         SizedBox(height: 8),
         Container(
-          key: TourKeys.teamChecklist,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface, borderRadius: BorderRadius.circular(16),

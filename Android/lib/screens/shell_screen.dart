@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
-import '../services/tour_keys.dart';
-import '../services/tour_nav.dart';
 import '../theme/app_theme.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'daily/daily_screen.dart';
@@ -31,16 +29,6 @@ class _ShellScreenState extends State<ShellScreen> {
   int _selectedIndex = 0;
   bool _overdueChecked = false;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  @override
-  void initState() {
-    super.initState();
-    TourNav.register(
-      jumpToIndex: (i) => setState(() => _selectedIndex = i),
-      openDrawer: () => _scaffoldKey.currentState?.openDrawer(),
-      closeDrawer: () => _scaffoldKey.currentState?.closeDrawer(),
-    );
-  }
 
   @override
   void didChangeDependencies() {
@@ -117,13 +105,11 @@ class _ShellScreenState extends State<ShellScreen> {
       appBar: AppBar(
         title: Text(_navItems[_selectedIndex].label),
         leading: IconButton(
-          key: TourKeys.menuButton,
           icon: const Icon(Icons.menu),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         actions: [
           IconButton(
-            key: TourKeys.addButton,
             icon: Text('➕', style: TextStyle(fontSize: 20)),
             onPressed: () => _onAddTap(context),
           ),
@@ -171,7 +157,6 @@ class _ShellScreenState extends State<ShellScreen> {
               itemBuilder: (_, i) {
                 final selected = _selectedIndex == i;
                 return ListTile(
-                  key: TourKeys.drawerNavItems[i],
                   leading: Text(_navItems[i].icon, style: TextStyle(fontSize: 20)),
                   title: Text(_navItems[i].label,
                       style: TextStyle(

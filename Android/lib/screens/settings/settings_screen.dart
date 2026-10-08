@@ -5,8 +5,6 @@ import '../../widgets/image_source_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../services/firebase_service.dart';
-import '../../services/tour_controller.dart';
-import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -285,7 +283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
 
       // ── Team info + logo ──────────────────────────────
-      _Card(key: TourKeys.settingsTeamCard, children: [
+      _Card(children: [
         _CardHeader('👥', 'פרטי קבוצה'),
         SizedBox(height: 12),
 
@@ -621,29 +619,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
           Spacer(),
           Switch(
-            key: TourKeys.settingsThemeSwitch,
             value: prov.isDarkMode,
             onChanged: (_) => prov.toggleTheme(),
             activeThumbColor: AppColors.accent,
           ),
         ]),
-      ]),
-      SizedBox(height: 12),
-
-      // ── Help / guided tour ────────────────────────────────
-      _Card(children: [
-        _CardHeader('🎓', 'עזרה'),
-        SizedBox(height: 8),
-        Text('סיור מודרך שמסביר איך להשתמש באפליקציה, כפתור-כפתור.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-        SizedBox(height: 10),
-        OutlinedButton.icon(
-          key: TourKeys.settingsHelpButton,
-          onPressed: () => TourController.start(context),
-          icon: Text('🎓'),
-          label: Text('התחל הסבר'),
-          style: OutlinedButton.styleFrom(foregroundColor: AppColors.accent),
-        ),
       ]),
       SizedBox(height: 12),
 
@@ -851,7 +831,7 @@ class _MemberNameRowState extends State<_MemberNameRow> {
 
 class _Card extends StatelessWidget {
   final List<Widget> children;
-  const _Card({super.key, required this.children});
+  const _Card({required this.children});
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),

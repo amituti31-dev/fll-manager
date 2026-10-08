@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
-import '../../services/tour_keys.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 import '../../widgets/mission_extra_sheet.dart';
@@ -135,7 +134,6 @@ class _RobotScreenState extends State<RobotScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
       // Progress header
       Container(
-        key: TourKeys.robotProgressHeader,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [Color(0x1A3D7FFF), Color(0x0A00D4A0)]),
@@ -194,7 +192,6 @@ class _RobotScreenState extends State<RobotScreen> {
         ),
         if (prov.isAdmin)
           GestureDetector(
-            key: TourKeys.robotImportJsonBtn,
             onTap: () => _pickAndImportMissionsJson(context, prov),
             child: Container(
               margin: const EdgeInsets.only(left: 8),
@@ -213,7 +210,6 @@ class _RobotScreenState extends State<RobotScreen> {
           ),
         if (prov.isAdmin)
           GestureDetector(
-            key: TourKeys.robotResetMissionsBtn,
             onTap: () => _resetMissions(context, prov),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -259,7 +255,6 @@ class _RobotScreenState extends State<RobotScreen> {
 
       // Missions grid
       GridView.builder(
-        key: TourKeys.robotMissionsGrid,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -310,7 +305,6 @@ class _RobotScreenState extends State<RobotScreen> {
             Positioned(
               bottom: 4, left: 4,
               child: GestureDetector(
-                key: i == 0 ? TourKeys.robotFirstMissionEditBtn : null,
                 onTap: () => _showMissionExtraSheet(context, m),
                 child: Container(
                   padding: const EdgeInsets.all(4),
@@ -329,7 +323,7 @@ class _RobotScreenState extends State<RobotScreen> {
       SizedBox(height: 20),
 
       // Improvements gallery header
-      Row(key: TourKeys.robotGallerySection, children: [
+      Row(children: [
         const _SectionTitle('📸', 'תמונות שיפורים'),
         const Spacer(),
         if (imagesOnly.length >= 2)

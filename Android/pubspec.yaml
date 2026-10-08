@@ -37,9 +37,6 @@ dependencies:
   record: ^5.1.2
   audioplayers: ^6.1.0
 
-  # Storage
-  shared_preferences: ^2.2.2
-
   # Utils
   intl: ^0.20.0
   uuid: ^4.3.3

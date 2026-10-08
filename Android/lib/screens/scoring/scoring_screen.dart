@@ -12,8 +12,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../services/firebase_service.dart';
-import '../../services/tour_keys.dart';
-import '../../services/tour_nav.dart';
 import '../../theme/app_theme.dart';
 
 class ScoringScreen extends StatefulWidget {
@@ -52,12 +50,10 @@ class _ScoringScreenState extends State<ScoringScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
-    TourNav.registerTabs('scoring', (i) => setState(() => _tabCtrl.index = i));
   }
 
   @override
   void dispose() {
-    TourNav.unregisterTabs('scoring');
     _tabCtrl.dispose();
     _robotTimer?.cancel();
     _judgeTimer?.cancel();
@@ -181,7 +177,6 @@ class _ScoringScreenState extends State<ScoringScreen>
     final prov = context.watch<AppProvider>();
     return Column(children: [
       Container(
-        key: TourKeys.scoringTabBar,
         color: AppColors.surface,
         child: TabBar(
           controller: _tabCtrl,
@@ -240,7 +235,7 @@ class _ScoringScreenState extends State<ScoringScreen>
       SizedBox(height: 20),
 
       // Robot timer
-      KeyedSubtree(key: TourKeys.scoringRobotTimer, child: _card(Column(children: [
+      _card(Column(children: [
         Row(children: [
           Text('⏱️', style: TextStyle(fontSize: 18)),
           SizedBox(width: 8),
@@ -273,11 +268,11 @@ class _ScoringScreenState extends State<ScoringScreen>
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.textSecondary),
           ),
         ]),
-      ]))),
+      ])),
       SizedBox(height: 16),
 
       // Missions
-      KeyedSubtree(key: TourKeys.scoringMissions, child: _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _card(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Text('🎯', style: TextStyle(fontSize: 18)),
           SizedBox(width: 8),
@@ -365,7 +360,7 @@ class _ScoringScreenState extends State<ScoringScreen>
             ),
           );
         }),
-      ]))),
+      ])),
       SizedBox(height: 8),
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -417,7 +412,7 @@ class _ScoringScreenState extends State<ScoringScreen>
     return ListView(padding: const EdgeInsets.all(16), children: [
 
       // Judging session timer
-      KeyedSubtree(key: TourKeys.scoringJudgeTimer, child: _card(Column(children: [
+      _card(Column(children: [
         Row(children: [
           Text('🏛️', style: TextStyle(fontSize: 18)),
           SizedBox(width: 8),
@@ -481,7 +476,7 @@ class _ScoringScreenState extends State<ScoringScreen>
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.textSecondary),
           ),
         ]),
-      ]))),
+      ])),
       SizedBox(height: 16),
 
       // Rubrics link
@@ -501,12 +496,9 @@ class _ScoringScreenState extends State<ScoringScreen>
       SizedBox(height: 16),
 
       // Innovation rubric
-      KeyedSubtree(
-        key: TourKeys.scoringRubrics,
-        child: _RubricSection(
-          icon: '💡', title: 'מחוון חדשנות', category: 'innovation',
-          color: AppColors.accent2, prov: prov,
-        ),
+      _RubricSection(
+        icon: '💡', title: 'מחוון חדשנות', category: 'innovation',
+        color: AppColors.accent2, prov: prov,
       ),
       SizedBox(height: 12),
 
