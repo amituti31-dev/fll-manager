@@ -15,17 +15,58 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  bool firebaseReady = true;
   try {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  } catch (_) {}
-  await NotificationService.init();
+  } catch (e) {
+    debugPrint('Firebase init failed: $e');
+    firebaseReady = false;
+  }
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  if (!firebaseReady) {
+    runApp(const _FirebaseInitErrorApp());
+    return;
+  }
+
+  await NotificationService.init();
   runApp(
     ChangeNotifierProvider(
       create: (_) => AppProvider()..init(),
       child: const FllManagerApp(),
     ),
   );
+}
+
+class _FirebaseInitErrorApp extends StatelessWidget {
+  const _FirebaseInitErrorApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: const Locale('he', 'IL'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('he', 'IL')],
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'לא ניתן להתחבר לשרת. בדוק חיבור לאינטרנט ונסה שוב.',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class FllManagerApp extends StatefulWidget {

@@ -11,10 +11,9 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // מגיע מ-google-services.json — יש להחליף בערכים האמיתיים
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBok0hLHN9nRflFEjZoiSg0GL8a90kAESU',
-    appId: '1:493332319136:android:ee2268657dbf4b29b532c5',
+    apiKey: 'AIzaSyCgzCubW3e2D7Cqi1LDQI7_cMcdGC7O-AU',
+    appId: '1:493332319136:android:4aaf6e0e9fdf769eb532c5',
     messagingSenderId: '493332319136',
     projectId: 'fll-manger',
     storageBucket: 'fll-manger.firebasestorage.app',

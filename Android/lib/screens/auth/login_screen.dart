@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../services/firebase_service.dart';
@@ -45,6 +46,22 @@ class _LoginScreenState extends State<LoginScreen> {
   void _setError(String msg) => setState(() => _error = msg);
   void _setLoading(bool v) => setState(() => _loading = v);
 
+  // Google sign-in throws a GoogleSignInException(code: canceled) whenever the
+  // user backs out of the account picker - that's not a real error, so it's
+  // swallowed silently instead of showing raw exception text.
+  void _handleGoogleSignInError(Object e) {
+    if (e is GoogleSignInException && e.code == GoogleSignInExceptionCode.canceled) {
+      return;
+    }
+    debugPrint('Google sign-in failed: $e');
+    if (e is FirebaseAuthException && e.code == 'unknown' &&
+        (e.message ?? '').contains('blocked')) {
+      _setError('ההתחברות חסומה — בעיית תצורה, פנה למנהל.');
+      return;
+    }
+    _setError('ההתחברות נכשלה. נסה שוב.');
+  }
+
   Future<void> _signInGoogle() async {
     _setLoading(true); _setError('');
     try {
@@ -57,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _setError('סטטוס לא צפוי: ${prov.status}');
       }
     } catch (e) {
-      _setError(e.toString());
+      _handleGoogleSignInError(e);
     } finally {
       if (mounted) _setLoading(false);
     }
@@ -295,7 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (prov.status == AppStatus.needsTeam) {
             setState(() => _showSetup = true);
           }
-        } catch (e) { _setError(e.toString()); } finally { _setLoading(false); }
+        } catch (e) { _handleGoogleSignInError(e); } finally { _setLoading(false); }
       }),
       SizedBox(height: 12),
       Divider(color: AppColors.border),
