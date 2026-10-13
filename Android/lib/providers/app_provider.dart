@@ -418,6 +418,12 @@ class AppProvider extends ChangeNotifier {
     currentUser = founder;
     isAdmin = true;
 
+    // Register before writing any team document — the Firestore rules
+    // require the caller to already be recorded as this team's mentor to
+    // write protected docs (settings/admin-data), and the registry write
+    // itself only needs the caller's own auth, so it must go first.
+    await FirebaseService.registerUserToTeam(email, tid, 'admin');
+
     // Full overwrite (no merge) so no stale data from a previous collision remains
     await FirebaseService.initTeamData(tid, {
       'teamName': tName,
@@ -441,10 +447,6 @@ class AppProvider extends ChangeNotifier {
       'missions': missions.map((m) => m.toMap()).toList(),
       'rubrics': {'values': [], 'robot': [], 'innovation': []},
     });
-
-    // Register before writing join codes — the Firestore rules require the
-    // caller to already be recorded as this team's mentor to write them.
-    await FirebaseService.registerUserToTeam(email, tid, 'admin');
     await FirebaseService.saveJoinCodes(teamId: tid, teamName: tName, mentorCode: mc, studentCode: sc);
 
     status = AppStatus.ready;

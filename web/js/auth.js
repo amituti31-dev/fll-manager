@@ -273,12 +273,12 @@ async function completeSetup() {
   state.currentUser = firstMentor;
   state.isAdmin = true;
 
+  // רשום מנטור ב-registry לפני כל כתיבה למסמכי הקבוצה — חוקי ה-Firestore
+  // דורשים שהמשתמש כבר יהיה רשום כמנטור של הקבוצה כדי לכתוב settings/admin-data
+  await registerUserToTeam(fbUser.email, teamId, 'admin');
+
   // שמור נתונים
   await saveState();
-
-  // רשום מנטור ב-registry — לפני יצירת קודי ההצטרפות, כי חוקי ה-Firestore
-  // דורשים שהמשתמש כבר יהיה רשום כמנטור של הקבוצה כדי לכתוב אותם
-  await registerUserToTeam(fbUser.email, teamId, 'admin');
 
   // יצור קוד נפרד למנטורים ולתלמידים
   const mentorCode  = generateJoinCode();
