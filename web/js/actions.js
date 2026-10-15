@@ -31,6 +31,7 @@ const ACTIONS = {
   'toggle-sidebar': () => toggleSidebar(),
   'toggle-sidebar-collapse': () => toggleSidebarCollapse(),
   'navigate': (el) => navigate(el.dataset.arg),
+  'show-score-history-modal': () => showScoreHistoryModal(),
   'set-theme': (el) => setTheme(el.dataset.arg),
   'show-add-modal': () => showAddModal(),
   'sign-out': () => signOut(),

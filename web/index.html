@@ -328,7 +328,7 @@
             </div>
             <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
           </div>
-          <div class="card" data-action="navigate" data-arg="scoring" style="cursor:pointer">
+          <div class="card" data-action="show-score-history-modal" style="cursor:pointer">
             <div class="card-header">
               <span class="card-icon">📈</span>
               <span class="card-title">5 הריצות האחרונות</span>
@@ -1225,6 +1225,19 @@
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-finding">ביטול</button>
       <button class="btn btn-success" data-action="save-finding">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Score History Modal -->
+<div class="modal-overlay" id="modal-score-history">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">📈 היסטוריית ריצות מלאה</div>
+    <div style="position:relative;height:280px">
+      <canvas id="chart-score-history-full"></canvas>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-score-history">סגור</button>
     </div>
   </div>
 </div>

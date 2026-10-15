@@ -4,10 +4,36 @@ import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/score_history_chart.dart';
 
 class DashboardScreen extends StatelessWidget {
   final void Function(int) navigateTo;
   const DashboardScreen({super.key, required this.navigateTo});
+
+  void _openFullHistory(BuildContext context, List<ScoreRun> scores) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        child: SafeArea(
+          top: false,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+            ),
+            SizedBox(height: 20),
+            ScoreHistoryChart(scores: scores),
+          ]),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
         _SectionCard(
           icon: '📈',
           title: '5 הריצות האחרונות',
-          onTap: () => navigateTo(3),
+          onTap: () => _openFullHistory(context, prov.scores),
           child: SizedBox(
             height: 160,
             child: _ScoreLineChart(

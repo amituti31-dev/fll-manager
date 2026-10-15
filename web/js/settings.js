@@ -264,6 +264,45 @@ function initCharts() {
 
 function updateCharts() { initCharts(); updateStats(); }
 
+// ── Full score history popup (tap the dashboard mini chart) ──
+function showScoreHistoryModal() {
+  openModal('modal-score-history');
+  const canvas = document.getElementById('chart-score-history-full');
+  if (!canvas) return;
+  const isDark    = !document.body.classList.contains('light-mode');
+  const textColor = isDark ? '#8a9bb5' : '#4a5a80';
+  const gridColor = isDark ? 'rgba(100,150,255,0.08)' : 'rgba(61,127,255,0.1)';
+  const scores    = state.scores || [];
+  const maxScore  = scores.length ? Math.max(...scores.map(s => s.score)) : 0;
+  const maxIdx    = scores.map(s => s.score).lastIndexOf(maxScore);
+
+  if (charts.scoreHistoryFull) charts.scoreHistoryFull.destroy();
+  charts.scoreHistoryFull = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: scores.length ? scores.map((_, i) => 'ריצה ' + (i + 1)) : ['אין נתונים'],
+      datasets: [{
+        data: scores.length ? scores.map(s => s.score) : [0],
+        borderColor: '#3d7fff', backgroundColor: 'rgba(61,127,255,0.12)',
+        borderWidth: 2, tension: 0.3, fill: true,
+        pointBackgroundColor: scores.map((_, i) => i === maxIdx ? '#f5c842' : '#3d7fff'),
+        pointRadius: scores.map((_, i) => i === maxIdx ? 7 : 4),
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.raw} נק'${ctx.dataIndex === maxIdx ? ' 🏆' : ''}` } },
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } },
+        x: { ticks: { color: textColor, maxRotation: 0 }, grid: { display: false } },
+      }
+    }
+  });
+}
+
 // ─── Competition Date ─────────────────────────────────
 function saveCompetitionDate() {
   const val = document.getElementById('competition-date-input')?.value;
