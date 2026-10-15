@@ -210,7 +210,7 @@ function initCharts() {
     charts.progress = new Chart(ctx1, {
       type: 'bar',
       data: {
-        labels: ['ערכי יסוד', 'פרויקט חדשנות', 'תכנון רובוט'],
+        labels: ['ערכי ליבה', 'פרויקט חדשנות', 'תכנון רובוט'],
         datasets: [{
           label: '% השלמה',
           data: [valPct, innPct, robotPct],

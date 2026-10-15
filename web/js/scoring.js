@@ -302,8 +302,9 @@ function renderStickyBoard() {
       <div class="sticky-column">
         <div class="sticky-column-title" style="color:${cfg.bg}">${cfg.label}</div>
         ${notes.map(s => `
-          <div class="sticky-note" style="background:${cfg.bg};color:${cfg.text};margin-bottom:10px">
+          <div class="sticky-note" style="margin-bottom:10px">
             ${state.isAdmin ? `<button class="sticky-note-delete" data-action="delete-sticky" data-id="${s.id}">✕</button>` : ''}
+            <div class="sticky-note-value" style="color:${cfg.bg}">${cfg.label}</div>
             <div class="sticky-note-text">${sanitize(s.text)}</div>
             <div class="sticky-note-date">${formatDate(s.date)}</div>
           </div>

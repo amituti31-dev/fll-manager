@@ -60,7 +60,7 @@ function navigate(screen) {
   if (screen !== 'chat' && _chatUnsubscribe) { _chatUnsubscribe(); _chatUnsubscribe = null; }
   const titles = {
     dashboard: 'דשבורד ראשי', daily: 'תיעוד יומי',
-    values: 'ערכי יסוד', robot: 'תכנון רובוט',
+    values: 'ערכי ליבה', robot: 'תכנון רובוט',
     innovation: 'פרויקט חדשנות', scoring: 'הכנה לתחרות',
     team: 'ניהול קבוצה', chat: 'צ\'אט קבוצה', archive: 'עונות וארכיון',
     settings: 'הגדרות', mytasks: 'המשימות שלי',

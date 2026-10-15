@@ -212,21 +212,11 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 
+  // Always opens "add log" regardless of the active tab — screens with
+  // their own distinct add action (robot, team tasks, links, strategy
+  // boards) expose it via their own in-screen button instead.
   void _onAddTap(BuildContext context) {
-    switch (_selectedIndex) {
-      case 1:
-        DailyScreen.showAddDialog(context);
-      case 2:
-        RobotScreen.showAddDialog(context);
-      case 7:
-        TeamScreen.showAddTaskDialog(context);
-      case 12:
-        LinksScreen.showAddDialog(context);
-      case 13:
-        StrategyBoardScreen.showAddDialog(context);
-      default:
-        DailyScreen.showAddDialog(context);
-    }
+    DailyScreen.showAddDialog(context);
   }
 
 }

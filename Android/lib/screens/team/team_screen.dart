@@ -148,7 +148,10 @@ class _TeamTab extends StatelessWidget {
             border: Border.all(color: AppColors.border),
           ),
           child: Column(
-            children: prov.checklist.map((c) => _ChecklistTile(item: c)).toList(),
+            children: [
+              ...prov.checklist.where((c) => !c.done).map((c) => _ChecklistTile(item: c)),
+              ...prov.checklist.where((c) => c.done).map((c) => _ChecklistTile(item: c)),
+            ],
           ),
         ),
       ],

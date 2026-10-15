@@ -4,7 +4,9 @@
 function renderChecklist() {
   const el = document.getElementById('competition-checklist');
   if (!el) return;
-  el.innerHTML = state.checklist.map(c => `
+  // Active items first, completed ones sink to the bottom (stable within each group).
+  const sorted = [...state.checklist].sort((a, b) => Number(a.done) - Number(b.done));
+  el.innerHTML = sorted.map(c => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
       <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${c.done ? 'checked' : ''} data-onchange="toggle-checklist" data-id="${c.id}">
       <span style="font-size:14px;${c.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${sanitize(c.text)}</span>

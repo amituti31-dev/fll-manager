@@ -346,12 +346,9 @@ class _StickyCard extends StatelessWidget {
       width: 150,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withAlpha(28),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(80), width: 1.5),
-        boxShadow: [
-          BoxShadow(color: color.withAlpha(20), blurRadius: 6, offset: const Offset(2, 3)),
-        ],
+        border: Border(left: BorderSide(color: color, width: 3)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [

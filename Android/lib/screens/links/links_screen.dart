@@ -125,6 +125,26 @@ class _LinksScreenState extends State<LinksScreen>
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     return Column(children: [
+      // ── Add button ───────────────────────────────────
+      Container(
+        color: AppColors.surface,
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: GestureDetector(
+            onTap: () => LinksScreen.showAddDialog(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withAlpha(30),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text('➕ הוסף קישור',
+                  style: TextStyle(fontSize: 13, color: AppColors.accent, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ),
+      ),
       // ── Tab bar ────────────────────────────────────
       Container(
         color: AppColors.surface,
@@ -172,7 +192,7 @@ class _LinksScreenState extends State<LinksScreen>
                 Text('אין קישורים עדיין',
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
                 const SizedBox(height: 6),
-                Text('לחץ ➕ להוסיף קישור',
+                Text('לחץ "➕ הוסף קישור" למעלה',
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
               ]));
             }

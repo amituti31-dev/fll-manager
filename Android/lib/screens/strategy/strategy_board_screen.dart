@@ -63,38 +63,67 @@ class StrategyBoardScreen extends StatelessWidget {
     if (ok == true && context.mounted) await prov.deleteStrategyBoard(board.id);
   }
 
+  Widget _addButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: () => StrategyBoardScreen.showAddDialog(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withAlpha(30),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text('➕ לוח חדש',
+                style: TextStyle(fontSize: 13, color: AppColors.accent, fontWeight: FontWeight.w700)),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     final boards = prov.strategyBoards;
 
     if (boards.isEmpty) {
-      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('🗺️', style: TextStyle(fontSize: 48)),
-        const SizedBox(height: 12),
-        Text('אין לוחות אסטרטגיה',
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
-        const SizedBox(height: 6),
-        Text('לחץ ➕ ליצירת לוח חדש',
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-      ]));
+      return Column(children: [
+        _addButton(context),
+        Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('🗺️', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          Text('אין לוחות אסטרטגיה',
+              style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
+          const SizedBox(height: 6),
+          Text('לחץ "➕ לוח חדש" למעלה',
+              style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+        ]))),
+      ]);
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.85,
+    return Column(children: [
+      _addButton(context),
+      Expanded(
+        child: GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 0.85,
+          ),
+          itemCount: boards.length,
+          itemBuilder: (_, i) => _BoardCard(
+            board: boards[i],
+            onTap: () => _openEditor(context, boards[i]),
+            onLongPress: () => _confirmDelete(context, prov, boards[i]),
+          ),
+        ),
       ),
-      itemCount: boards.length,
-      itemBuilder: (_, i) => _BoardCard(
-        board: boards[i],
-        onTap: () => _openEditor(context, boards[i]),
-        onLongPress: () => _confirmDelete(context, prov, boards[i]),
-      ),
-    );
+    ]);
   }
 }
 
