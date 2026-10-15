@@ -233,11 +233,11 @@ function initCharts() {
     });
   }
 
-  // ── גרף ניקוד לאורך העונה — מהנתונים האמיתיים ──
+  // ── גרף 5 הריצות האחרונות — מהנתונים האמיתיים ──
   const ctx2 = document.getElementById('chart-scores');
   if (ctx2) {
     if (charts.scores) charts.scores.destroy();
-    const scores = state.scores || [];
+    const scores = (state.scores || []).slice(-5);
     charts.scores = new Chart(ctx2, {
       type: 'line',
       data: {

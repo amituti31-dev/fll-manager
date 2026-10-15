@@ -210,10 +210,18 @@ function exportArchivedSeason() {
 // § 23 · EXPORT & PDF
 // ═══════════════════════════════════════════════════════
 function exportData(type) {
+  // JSON is meant as a real backup — include everything, not just the
+  // handful of fields the PDF/Excel reports happen to print.
   const data = {
-    logs: state.logs, members: state.members,
-    improvements: state.improvements, findings: state.findings,
-    scores: state.scores, missionChecks: state.missionChecks,
+    teamName: state.teamName, currentSeason: state.currentSeason,
+    members: state.members, scores: state.scores,
+    checklist: state.checklist, seasons: state.seasons,
+    customMissions: state.customMissions, judgingDoc: state.judgingDoc,
+    logs: state.logs, findings: state.findings, stickies: state.stickies,
+    memberTasks: state.memberTasks, missionChecks: state.missionChecks,
+    links: state.links, interviews: state.interviews, missionExtra: state.missionExtra,
+    improvements: state.improvements, teamGallery: state.teamGallery,
+    innovationProblem: state.innovationProblem, innovationSolution: state.innovationSolution,
   };
   exportSeasonData(state.currentSeason || 'עונה נוכחית', data, type);
 }

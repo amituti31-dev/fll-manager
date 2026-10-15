@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/app_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/image_source_picker.dart';
 
 // ─── Main screen ──────────────────────────────────────
 class StrategyBoardScreen extends StatelessWidget {
@@ -150,7 +150,7 @@ class _BoardCard extends StatelessWidget {
           Expanded(
             child: board.backgroundBase64 != null
                 ? Stack(fit: StackFit.expand, children: [
-                    Image.memory(base64Decode(board.backgroundBase64!), fit: BoxFit.cover),
+                    Image.memory(decodeImageDataUrl(board.backgroundBase64!), fit: BoxFit.cover),
                     if (board.strokes.isNotEmpty)
                       CustomPaint(painter: _PreviewPainter(board.strokes)),
                   ])
@@ -228,7 +228,7 @@ class _NewBoardDialogState extends State<_NewBoardDialog> {
       final file = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 60);
       if (file != null) {
         final bytes = await file.readAsBytes();
-        setState(() => _bgBase64 = base64Encode(bytes));
+        setState(() => _bgBase64 = encodeImageDataUrl(bytes));
       }
     } finally {
       if (mounted) setState(() => _picking = false);
@@ -324,7 +324,7 @@ class _BoardEditorState extends State<_BoardEditor> {
       width: s.width,
     )).toList();
     if (widget.board.backgroundBase64 != null) {
-      _bgBytes = base64Decode(widget.board.backgroundBase64!);
+      _bgBytes = decodeImageDataUrl(widget.board.backgroundBase64!);
     }
   }
 
@@ -341,7 +341,7 @@ class _BoardEditorState extends State<_BoardEditor> {
     final updated = StrategyBoard(
       id: widget.board.id,
       title: widget.board.title,
-      backgroundBase64: _bgBytes != null ? base64Encode(_bgBytes!) : widget.board.backgroundBase64,
+      backgroundBase64: _bgBytes != null ? encodeImageDataUrl(_bgBytes!) : widget.board.backgroundBase64,
       strokes: _strokes.map((s) => DrawnStroke(
         points: s.points.map((o) => StrokePoint(o.dx, o.dy)).toList(),
         colorValue: s.color.toARGB32(),

@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../widgets/image_source_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
@@ -45,6 +48,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
+  Future<void> _exportBackup(BuildContext context, AppProvider prov) async {
+    try {
+      final json = const JsonEncoder.withIndent('  ').convert(prov.exportBackupData());
+      final dir = await getTemporaryDirectory();
+      final safeTeamName = prov.teamName.replaceAll(RegExp(r'[^\w֐-׿-]+'), '_');
+      final date = DateTime.now().toIso8601String().split('T')[0];
+      final file = File('${dir.path}/FLL_${safeTeamName}_$date.json');
+      await file.writeAsString(json);
+      await Share.shareXFiles([XFile(file.path)], text: 'גיבוי נתוני קבוצה');
+    } catch (e) {
+      if (mounted) _snackbar('שגיאה בייצוא: ${e.toString()}', AppColors.red);
+    }
+  }
+
   Future<void> _pickLogo(AppProvider prov) async {
     setState(() => _pickingLogo = true);
     try {
@@ -54,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       if (picked != null) {
         final bytes = await picked.readAsBytes();
-        await prov.updateTeamLogo(base64Encode(bytes));
+        await prov.updateTeamLogo(encodeImageDataUrl(bytes));
       }
     } finally {
       if (mounted) setState(() => _pickingLogo = false);
@@ -296,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(8),
                 child: Builder(builder: (_) {
                   try {
-                    return Image.memory(base64Decode(prov.teamLogo!),
+                    return Image.memory(decodeImageDataUrl(prov.teamLogo!),
                         width: 60, height: 60, fit: BoxFit.cover);
                   } catch (_) { return SizedBox.shrink(); }
                 }),
@@ -567,6 +584,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ]),
+        ]),
+        SizedBox(height: 12),
+
+        _Card(children: [
+          _CardHeader('💾', 'גיבוי נתונים'),
+          SizedBox(height: 8),
+          Text('ייצוא כל נתוני הקבוצה לקובץ JSON — חברים, יומן, ניקוד, פתקים, משימות ועוד.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5)),
+          SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _exportBackup(context, prov),
+              icon: Text('💾'),
+              label: Text('ייצוא גיבוי מלא'),
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.accent2),
+            ),
+          ),
         ]),
         SizedBox(height: 12),
 

@@ -489,22 +489,26 @@ async function signOut() {
 
 // ── Boot & auth state listener ──
 async function boot() {
-  // Load Firebase SDKs dynamically
+  // Load Firebase SDKs — fetched in parallel (faster on every refresh) but
+  // executed in dependency order (app → auth → firestore) via async=false,
+  // which makes dynamically-inserted scripts run in insertion order once
+  // each finishes downloading, without blocking on one another's network time.
   await new Promise((resolve) => {
     const sdks = [
       'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
       'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
       'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js',
     ];
-    function loadNext(i) {
-      if (i >= sdks.length) { resolve(); return; }
+    let remaining = sdks.length;
+    const done = () => { if (--remaining <= 0) resolve(); };
+    sdks.forEach(src => {
       const s = document.createElement('script');
-      s.src = sdks[i];
-      s.onload = () => loadNext(i + 1);
-      s.onerror = () => loadNext(i + 1);
+      s.src = src;
+      s.async = false;
+      s.onload = done;
+      s.onerror = done;
       document.head.appendChild(s);
-    }
-    loadNext(0);
+    });
   });
 
   try {
@@ -547,9 +551,12 @@ async function boot() {
     return;
   }
 
-  // Timeout — אם אחרי 8 שניות עדיין על מסך טעינה, הצג כניסה
+  // Timeout — אם אחרי 8 שניות עדיין על מסך טעינה, הצג כניסה. אבל אם
+  // Firebase כבר "יודע" שיש משתמש מחובר (מהקאש המקומי), אל תקפוץ למסך
+  // ההתחברות — עדיף לחכות עוד קצת ל-onAuthStateChanged ולא לנתק מיותר.
   setTimeout(() => {
     if (document.getElementById('loading').style.display !== 'none') {
+      if (window.auth && window.auth.currentUser) return;
       document.getElementById('loading').style.display = 'none';
       document.getElementById('pin-screen').style.display = 'flex';
       loginGoTo('choose');

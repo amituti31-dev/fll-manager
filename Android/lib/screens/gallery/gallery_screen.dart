@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
@@ -26,7 +25,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
       if (picked == null || !mounted) return;
 
       final bytes = await picked.readAsBytes();
-      final b64 = base64Encode(bytes);
+      final b64 = encodeImageDataUrl(bytes);
 
       final caption = await _getCaptionDialog();
       if (!mounted) return;
@@ -79,7 +78,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Builder(builder: (_) {
               try {
-                return Image.memory(base64Decode(item.imageBase64), fit: BoxFit.contain);
+                return Image.memory(decodeImageDataUrl(item.imageBase64), fit: BoxFit.contain);
               } catch (_) {
                 return SizedBox(
                   height: 200,
@@ -163,7 +162,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         Builder(builder: (_) {
                           try {
                             return Image.memory(
-                              base64Decode(item.imageBase64),
+                              decodeImageDataUrl(item.imageBase64),
                               fit: BoxFit.cover,
                               cacheWidth: 300,
                             );

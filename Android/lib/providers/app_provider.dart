@@ -354,6 +354,42 @@ class AppProvider extends ChangeNotifier {
     await Future.wait([_saveSettings(), _saveData()]);
   }
 
+  // Full manual backup — everything the team owns, as one JSON map. Used by
+  // the "גיבוי מלא" button in Settings; not the same shape as the Firestore
+  // tiers (gallery/improvements are per-photo subcollections there), but
+  // this snapshot is about capturing current state for backup, not mirroring
+  // how it's synced.
+  Map<String, dynamic> exportBackupData() => {
+    'teamName': teamName,
+    'currentSeason': currentSeason,
+    'mentorCode': mentorCode,
+    'studentCode': studentCode,
+    'competitionDate': competitionDate,
+    'innovationProblem': innovationProblem,
+    'innovationSolution': innovationSolution,
+    'members': members.map((m) => m.toMap()).toList(),
+    'logs': logs.map((l) => l.toMap()).toList(),
+    'archives': archives.map((a) => a.toMap()).toList(),
+    'missions': missions.map((m) => m.toMap()).toList(),
+    'improvements': improvements.map((i) => i.toMap()).toList(),
+    'interviews': interviews.map((i) => i.toMap()).toList(),
+    'scores': scores.map((s) => s.toMap()).toList(),
+    'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
+    'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
+    'rubrics': {
+      'values': rubrics['values']!.map((r) => r.toMap()).toList(),
+      'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
+      'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
+    },
+    'stickies': stickies.map((s) => s.toMap()).toList(),
+    'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
+    'checklist': checklist.map((c) => c.toMap()).toList(),
+    'gallery': gallery.map((g) => g.toMap()).toList(),
+    'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
+    'links': links.map((l) => l.toMap()).toList(),
+    'strategyBoards': strategyBoards.map((b) => b.toMap()).toList(),
+  };
+
   // ─── Auth actions ──────────────────────────────────
 
   Future<void> signInWithGoogle() async {

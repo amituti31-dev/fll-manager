@@ -328,10 +328,11 @@
             </div>
             <div class="chart-wrap"><canvas id="chart-progress"></canvas></div>
           </div>
-          <div class="card">
+          <div class="card" data-action="navigate" data-arg="scoring" style="cursor:pointer">
             <div class="card-header">
               <span class="card-icon">📈</span>
-              <span class="card-title">ניקוד לאורך העונה</span>
+              <span class="card-title">5 הריצות האחרונות</span>
+              <span style="margin-right:auto;color:var(--text3);font-size:16px">⛶</span>
             </div>
             <div class="chart-wrap"><canvas id="chart-scores"></canvas></div>
           </div>
@@ -775,7 +776,7 @@
             <div class="export-row">
               <button class="btn btn-ghost" data-action="export-data" data-arg="pdf">📄 ייצוא PDF</button>
               <button class="btn btn-ghost" data-action="export-data" data-arg="excel">📊 ייצוא Excel (CSV)</button>
-              <button class="btn btn-ghost" data-action="export-data" data-arg="json">📋 ייצוא JSON</button>
+              <button class="btn btn-ghost" data-action="export-data" data-arg="json">💾 גיבוי מלא (JSON)</button>
             </div>
           </div>
         </div>

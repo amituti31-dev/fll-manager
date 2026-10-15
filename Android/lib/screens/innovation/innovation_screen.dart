@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -616,8 +615,7 @@ class _FindingCardState extends State<_FindingCard> {
             borderRadius: BorderRadius.circular(8),
             child: Builder(builder: (_) {
               try {
-                final raw = f.imageBase64!.contains(',') ? f.imageBase64!.split(',').last : f.imageBase64!;
-                return Image.memory(base64Decode(raw), fit: BoxFit.cover, width: double.infinity, height: 160,
+                return Image.memory(decodeImageDataUrl(f.imageBase64!), fit: BoxFit.cover, width: double.infinity, height: 160,
                     errorBuilder: (_, __, ___) => SizedBox.shrink());
               } catch (_) { return SizedBox.shrink(); }
             }),
@@ -673,7 +671,7 @@ class _AddFindingSheetState extends State<_AddFindingSheet> {
       final picked = await pickImageWithSource(context, maxWidth: 800, maxHeight: 800, quality: 70);
       if (picked != null) {
         final bytes = await picked.readAsBytes();
-        setState(() => _imageBase64 = base64Encode(bytes));
+        setState(() => _imageBase64 = encodeImageDataUrl(bytes));
       }
     } finally {
       if (mounted) setState(() => _pickingImage = false);
@@ -740,7 +738,7 @@ class _AddFindingSheetState extends State<_AddFindingSheet> {
           Stack(children: [
             ClipRRect(borderRadius: BorderRadius.circular(8),
               child: Builder(builder: (_) {
-                try { return Image.memory(base64Decode(_imageBase64!), width: double.infinity, height: 120, fit: BoxFit.cover); }
+                try { return Image.memory(decodeImageDataUrl(_imageBase64!), width: double.infinity, height: 120, fit: BoxFit.cover); }
                 catch (_) { return SizedBox.shrink(); }
               }),
             ),

@@ -68,10 +68,15 @@ class DashboardScreen extends StatelessWidget {
       if (prov.scores.isNotEmpty) ...[
         _SectionCard(
           icon: '📈',
-          title: 'ניקוד לאורך העונה',
+          title: '5 הריצות האחרונות',
+          onTap: () => navigateTo(3),
           child: SizedBox(
             height: 160,
-            child: _ScoreLineChart(scores: prov.scores),
+            child: _ScoreLineChart(
+              scores: prov.scores.length > 5
+                  ? prov.scores.sublist(prov.scores.length - 5)
+                  : prov.scores,
+            ),
           ),
         ),
         SizedBox(height: 12),
@@ -358,26 +363,39 @@ class _SectionCard extends StatelessWidget {
   final String icon;
   final String title;
   final Widget child;
-  const _SectionCard({required this.icon, required this.title, required this.child});
+  final VoidCallback? onTap;
+  const _SectionCard({required this.icon, required this.title, required this.child, this.onTap});
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text(icon, style: TextStyle(fontSize: 20)),
-        SizedBox(width: 8),
-        Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+  Widget build(BuildContext context) {
+    final card = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Text(icon, style: TextStyle(fontSize: 20)),
+          SizedBox(width: 8),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+          if (onTap != null) ...[
+            const Spacer(),
+            Icon(Icons.open_in_full, size: 16, color: AppColors.textTertiary),
+          ],
+        ]),
+        SizedBox(height: 12),
+        child,
       ]),
-      SizedBox(height: 12),
-      child,
-    ]),
-  );
+    );
+    if (onTap == null) return card;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: card,
+    );
+  }
 }
 
 class _LogTile extends StatelessWidget {

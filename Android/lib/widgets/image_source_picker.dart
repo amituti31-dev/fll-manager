@@ -1,6 +1,22 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
+
+/// Encodes raw image bytes as a `data:image/jpeg;base64,...` URL — the shape
+/// the web client requires to render an embedded image at all (`<img src>`
+/// needs a real data URL, not bare base64), and what every client should
+/// store for consistency.
+String encodeImageDataUrl(List<int> bytes) =>
+    'data:image/jpeg;base64,${base64Encode(bytes)}';
+
+/// Decodes a value that may or may not carry the `data:image/...;base64,`
+/// prefix — some fields were historically stored as plain base64 without it.
+Uint8List decodeImageDataUrl(String value) {
+  final raw = value.contains(',') ? value.split(',').last : value;
+  return base64Decode(raw);
+}
 
 /// Shows a bottom sheet asking Camera vs Gallery, then returns the picked file.
 Future<XFile?> pickImageWithSource(
