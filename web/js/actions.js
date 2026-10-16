@@ -101,6 +101,8 @@ const ACTIONS = {
   'remove-checklist-item': (el) => removeChecklistItem(Number(el.dataset.id)),
 
   // Calendar (meetings / milestones)
+  'shift-cal-month': (el) => shiftCalMonth(el.dataset.arg),
+  'show-cal-day': (el) => showCalDay(el.dataset.arg),
   'show-add-meeting-modal': () => showAddMeetingModal(),
   'save-meeting': () => saveMeeting(),
   'delete-meeting': (el) => deleteMeeting(Number(el.dataset.id)),

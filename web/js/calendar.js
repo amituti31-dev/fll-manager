@@ -2,8 +2,77 @@
 // § 31 · CALENDAR (meetings & milestones)
 // ═══════════════════════════════════════════════════════
 let _editingMeetingId = null;
+const _calHebrewMonths = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const _calHebrewWeekdays = ['א','ב','ג','ד','ה','ו','ש']; // Sunday-first
+let _calMonth = new Date(); _calMonth.setDate(1);
+
+function shiftCalMonth(delta) {
+  _calMonth.setMonth(_calMonth.getMonth() + Number(delta));
+  renderMonthGrid();
+}
+
+function _isoLocal(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+function renderMonthGrid() {
+  const label = document.getElementById('cal-month-label');
+  const weekdayRow = document.getElementById('cal-weekday-row');
+  const grid = document.getElementById('cal-grid');
+  if (!label || !grid) return;
+
+  const y = _calMonth.getFullYear(), m = _calMonth.getMonth();
+  label.textContent = `${_calHebrewMonths[m]} ${y}`;
+  weekdayRow.innerHTML = _calHebrewWeekdays.map(w =>
+    `<div style="text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${w}</div>`).join('');
+
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const leading = new Date(y, m, 1).getDay(); // 0=Sunday already
+  const today = new Date();
+  const todayIso = _isoLocal(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const meetings = state.meetings || [];
+  const milestones = state.milestones || [];
+
+  let html = '';
+  for (let i = 0; i < leading; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = _isoLocal(y, m, d);
+    const isToday = iso === todayIso;
+    const planned = meetings.filter(mt => mt.plannedDate === iso);
+    const actual = meetings.filter(mt => mt.actualDate === iso);
+    const dayMilestones = milestones.filter(ms => ms.targetDate === iso);
+    const hasItems = planned.length || actual.length || dayMilestones.length;
+    const dots = [
+      planned.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#3d7fff;display:inline-block"></span>' : '',
+      actual.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#00d4a0;display:inline-block"></span>' : '',
+      dayMilestones.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#f5c842;display:inline-block"></span>' : '',
+    ].join('');
+    html += `
+      <div ${hasItems ? `data-action="show-cal-day" data-arg="${iso}" style="cursor:pointer"` : ''}
+           style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;
+             ${isToday ? 'background:rgba(61,127,255,0.15);border:1.2px solid var(--accent)' : ''}">
+        <span style="font-size:12px;font-weight:${isToday ? '800' : '500'};color:${isToday ? 'var(--accent)' : 'var(--text)'}">${d}</span>
+        ${hasItems ? `<div style="display:flex;gap:2px;margin-top:2px">${dots}</div>` : ''}
+      </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function showCalDay(iso) {
+  const meetings = (state.meetings || []).filter(m => m.plannedDate === iso || m.actualDate === iso);
+  const milestones = (state.milestones || []).filter(m => m.targetDate === iso);
+  if (!meetings.length && !milestones.length) return;
+  document.getElementById('cal-day-title').textContent = `📅 ${formatDate(iso)}`;
+  document.getElementById('cal-day-items').innerHTML = [
+    ...meetings.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🗓️ ${sanitize(m.title)}</div>`),
+    ...milestones.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🚩 ${sanitize(m.title)}</div>`),
+  ].join('');
+  openModal('modal-cal-day');
+}
 
 function renderCalendar() {
+  renderMonthGrid();
   const meetingsEl = document.getElementById('meetings-list');
   const milestonesEl = document.getElementById('milestones-list');
   if (!meetingsEl || !milestonesEl) return;

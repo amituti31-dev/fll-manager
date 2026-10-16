@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/app_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/month_calendar.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -55,6 +56,32 @@ class CalendarScreen extends StatelessWidget {
     return '${d.day}.${d.month}.${d.year}';
   }
 
+  void _showDaySheet(BuildContext context, DateTime day, List<Meeting> meetings, List<Milestone> milestones) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${day.day}.${day.month}.${day.year}',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textPrimary)),
+            SizedBox(height: 12),
+            ...meetings.map((m) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text('🗓️ ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                )),
+            ...milestones.map((m) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text('🚩 ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                )),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
@@ -62,6 +89,22 @@ class CalendarScreen extends StatelessWidget {
     final milestones = [...prov.milestones]..sort((a, b) => a.targetDate.compareTo(b.targetDate));
 
     return ListView(padding: const EdgeInsets.all(16), children: [
+      // ── Month grid ───────────────────────────────────
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: MonthCalendar(
+          meetings: prov.meetings,
+          milestones: prov.milestones,
+          onDayTap: (day, dayMeetings, dayMilestones) => _showDaySheet(context, day, dayMeetings, dayMilestones),
+        ),
+      ),
+      SizedBox(height: 20),
+
       // ── Meetings ─────────────────────────────────────
       Row(children: [
         const _SectionTitle('🗓️', 'מפגשים'),
