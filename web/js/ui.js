@@ -46,6 +46,7 @@ function populateAll() {
   try { renderJudging(); } catch(e) { console.warn('renderJudging:', e); }
   try { renderLinks(); } catch(e) { console.warn('renderLinks:', e); }
   try { renderCompetitionCountdown(); } catch(e) { console.warn('renderCompetitionCountdown:', e); }
+  try { renderCalendar(); } catch(e) { console.warn('renderCalendar:', e); }
 }
 
 // ── Navigation ──
@@ -65,6 +66,7 @@ function navigate(screen) {
     team: 'ניהול קבוצה', chat: 'צ\'אט קבוצה', archive: 'עונות וארכיון',
     settings: 'הגדרות', mytasks: 'המשימות שלי',
     gallery: 'גלריית עונה', judging: 'שאלות שיפוט', links: 'ספריית קישורים', strategy: 'לוח אסטרטגיה',
+    calendar: 'לוח שנה',
   };
   if (screen === 'mytasks') renderMyTasks();
   if (screen === 'gallery') renderTeamGallery();
@@ -73,6 +75,7 @@ function navigate(screen) {
   if (screen === 'scoring') { try { renderScoring(); } catch(e) {} try { renderScoringJudgingDoc(); } catch(e) {} }
   if (screen === 'team')    { try { renderMembers(); } catch(e) {} }
   if (screen === 'strategy') { updateAdminUI(); setTimeout(initStrategyBoard, 50); }
+  if (screen === 'calendar') renderCalendar();
   document.getElementById('page-title').textContent = titles[screen] || screen;
   if (screen === 'settings') {
     renderCompetitionCountdown();

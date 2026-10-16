@@ -254,6 +254,9 @@
       <div class="nav-item" id="nav-strategy" data-action="navigate" data-arg="strategy" title="לוח אסטרטגיה">
         <span class="nav-icon">🗺️</span><span class="nav-label">לוח אסטרטגיה</span>
       </div>
+      <div class="nav-item" id="nav-calendar" data-action="navigate" data-arg="calendar" title="לוח שנה">
+        <span class="nav-icon">📅</span><span class="nav-label">לוח שנה</span>
+      </div>
       <div class="nav-item" id="nav-settings" data-action="navigate" data-arg="settings" title="הגדרות">
         <span class="nav-icon">⚙️</span><span class="nav-label">הגדרות</span>
       </div>
@@ -965,6 +968,24 @@
         </div>
       </div>
 
+      <!-- ═══ CALENDAR ═══ -->
+      <div class="screen" id="screen-calendar">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">🗓️</span><span class="card-title">מפגשים</span>
+            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-add-meeting-modal">➕ מפגש חדש</button>
+          </div>
+          <div id="meetings-list"><!-- populated --></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">🚩</span><span class="card-title">אבני דרך</span>
+            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-add-milestone-modal">➕ אבן דרך</button>
+          </div>
+          <div id="milestones-list"><!-- populated --></div>
+        </div>
+      </div>
+
       <!-- ═══ GALLERY ═══ -->
       <div class="screen" id="screen-gallery">
         <div class="card" id="gallery-header-card" style="margin-bottom:16px">
@@ -1229,6 +1250,63 @@
   </div>
 </div>
 
+<!-- Add Meeting Modal -->
+<div class="modal-overlay" id="modal-meeting">
+  <div class="modal">
+    <div class="modal-title">🗓️ מפגש חדש</div>
+    <div class="form-group">
+      <label class="form-label">נושא המפגש *</label>
+      <input type="text" class="form-input" id="meeting-title" placeholder="למשל: בניית רובוט">
+    </div>
+    <div class="form-group">
+      <label class="form-label">תאריך מתוכנן *</label>
+      <input type="date" class="form-input" id="meeting-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">הערות</label>
+      <textarea class="form-input" id="meeting-notes" rows="2" placeholder="אופציונלי"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-meeting">ביטול</button>
+      <button class="btn btn-primary" data-action="save-meeting">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Milestone Modal -->
+<div class="modal-overlay" id="modal-milestone">
+  <div class="modal">
+    <div class="modal-title">🚩 אבן דרך חדשה</div>
+    <div class="form-group">
+      <label class="form-label">כותרת *</label>
+      <input type="text" class="form-input" id="milestone-title" placeholder="למשל: סיום בניית הרובוט">
+    </div>
+    <div class="form-group">
+      <label class="form-label">תאריך יעד *</label>
+      <input type="date" class="form-input" id="milestone-date">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-milestone">ביטול</button>
+      <button class="btn btn-primary" data-action="save-milestone">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Set Actual Date Modal -->
+<div class="modal-overlay" id="modal-meeting-actual">
+  <div class="modal">
+    <div class="modal-title">📅 תאריך בפועל</div>
+    <div class="form-group">
+      <label class="form-label">מתי זה קרה בפועל?</label>
+      <input type="date" class="form-input" id="meeting-actual-date">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-meeting-actual">ביטול</button>
+      <button class="btn btn-primary" data-action="save-meeting-actual">💾 שמור</button>
+    </div>
+  </div>
+</div>
+
 <!-- Score History Modal -->
 <div class="modal-overlay" id="modal-score-history">
   <div class="modal" style="max-width:560px">
@@ -1436,6 +1514,7 @@
   <script src="js/judging.js"></script>
   <script src="js/links.js"></script>
   <script src="js/strategy.js"></script>
+  <script src="js/calendar.js"></script>
   <script src="js/actions.js"></script>
   <script src="js/pwa.js"></script>
   <script src="js/auth.js"></script>

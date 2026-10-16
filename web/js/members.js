@@ -154,7 +154,7 @@ async function leaveTeam() {
 // איפוס נתוני קבוצה — Admin only, חברים נשמרים
 async function resetTeamData() {
   if (!state.isAdmin) return;
-  if (!confirm('לאפס את כל נתוני הקבוצה?\n\nיומנים, שיפורים, ממצאים, ראיונות, ניקוד, מחוונים ופתקים יימחקו לצמיתות.\nחברי הקבוצה ישמרו.')) return;
+  if (!confirm('לאפס את כל נתוני הקבוצה?\n\nיומנים, שיפורים, ממצאים, ראיונות, ניקוד, מחוונים, פתקים, מפגשים ואבני דרך יימחקו לצמיתות.\nחברי הקבוצה ישמרו.')) return;
   state.logs = [];
   state.improvements = [];
   await deleteAllImprovementPhotos();
@@ -166,6 +166,8 @@ async function resetTeamData() {
   state.stickies = [];
   state.memberTasks = [];
   state.checklist = state.checklist.map(c => ({ ...c, done: false }));
+  state.meetings = [];
+  state.milestones = [];
   await saveState();
   populateAll();
   notify('✅ הנתונים אופסו בהצלחה', 'success');

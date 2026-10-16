@@ -17,6 +17,7 @@ import 'judging/judging_screen.dart';
 import 'tasks/my_tasks_screen.dart';
 import 'links/links_screen.dart';
 import 'strategy/strategy_board_screen.dart';
+import 'calendar/calendar_screen.dart';
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});
@@ -73,6 +74,7 @@ class _ShellScreenState extends State<ShellScreen> {
     _NavItem('🎓', 'שאלות שיפוט'),
     _NavItem('🔗', 'ספריית קישורים'),
     _NavItem('🗺️', 'לוח אסטרטגיה'),
+    _NavItem('📅', 'לוח שנה'),
     _NavItem('⚙️', 'הגדרות'),
   ];
 
@@ -92,7 +94,8 @@ class _ShellScreenState extends State<ShellScreen> {
       11 => const JudgingScreen(),
       12 => const LinksScreen(),
       13 => const StrategyBoardScreen(),
-      14 => const SettingsScreen(),
+      14 => const CalendarScreen(),
+      15 => const SettingsScreen(),
       _ => DashboardScreen(navigateTo: (i) => setState(() => _selectedIndex = i)),
     };
   }

@@ -205,7 +205,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.surface,
         title: Text('איפוס כל נתוני העונה', style: TextStyle(color: AppColors.red)),
         content: Text(
-          'ימחקו לצמיתות:\n• יומן יומי\n• שיפורי רובוט\n• מחוונים\n• פתקי ערכים\n• משימות חברים\n• צ\'אט קבוצתי\n• ניקוד וריצות\n\nחברי הקבוצה לא יימחקו.',
+          'ימחקו לצמיתות:\n• יומן יומי\n• שיפורי רובוט\n• מחוונים\n• פתקי ערכים\n• משימות חברים\n• צ\'אט קבוצתי\n• ניקוד וריצות\n• מפגשים ואבני דרך\n\nחברי הקבוצה לא יימחקו.',
           style: TextStyle(color: AppColors.textSecondary, height: 1.6),
         ),
         actions: [
