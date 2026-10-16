@@ -23,6 +23,7 @@ function _chipsForDay(iso) {
   });
   (state.milestones || []).forEach(m => {
     if (m.targetDate === iso) chips.push({ icon: '🚩', text: m.title, color: '#f5c842' });
+    if (m.actualDate === iso) chips.push({ icon: '✅', text: m.title, color: '#00d4a0' });
   });
   return chips;
 }
@@ -84,7 +85,7 @@ function renderMonthGrid() {
 
 function showCalDay(iso) {
   const meetings = (state.meetings || []).filter(m => m.plannedDate === iso || m.actualDate === iso);
-  const milestones = (state.milestones || []).filter(m => m.targetDate === iso);
+  const milestones = (state.milestones || []).filter(m => m.targetDate === iso || m.actualDate === iso);
   document.getElementById('cal-day-title').textContent = `📅 ${formatDate(iso)}`;
   const itemsHtml = [
     ...meetings.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🗓️ ${sanitize(m.title)}</div>`),
@@ -122,13 +123,21 @@ function renderCalendar() {
       </div>`;
   }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין מפגשים מתוכננים עדיין</div>`;
 
-  milestonesEl.innerHTML = milestones.length ? milestones.map(m => `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-        <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${m.done ? 'checked' : ''} data-onchange="toggle-milestone" data-id="${m.id}">
-        <span style="flex:1;font-size:14px;${m.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${sanitize(m.title)}</span>
-        <span style="font-size:12px;color:var(--text3)">${formatDate(m.targetDate)}</span>
-        <button data-action="delete-milestone" data-id="${m.id}" style="background:none;border:none;color:var(--text3);cursor:pointer">✕</button>
-      </div>`).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין אבני דרך עדיין</div>`;
+  milestonesEl.innerHTML = milestones.length ? milestones.map(m => {
+    const changed = m.actualDate && m.actualDate !== m.targetDate;
+    return `
+      <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${m.done ? 'checked' : ''} data-onchange="toggle-milestone" data-id="${m.id}">
+          <span style="flex:1;font-size:14px;${m.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${sanitize(m.title)}</span>
+          <button data-action="delete-milestone" data-id="${m.id}" style="background:none;border:none;color:var(--text3);cursor:pointer">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;margin-right:28px">
+          <span style="background:rgba(245,200,66,0.15);color:#f5c842;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600">🚩 יעד: ${formatDate(m.targetDate)}</span>
+          <span style="cursor:pointer;background:${changed ? 'rgba(0,212,160,0.15)' : 'rgba(255,255,255,0.06)'};color:${changed ? 'var(--accent2)' : 'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600" data-action="show-milestone-actual-modal" data-id="${m.id}">${changed ? `✅ בוצע: ${formatDate(m.actualDate)}` : '➕ סמן תאריך בפועל'}</span>
+        </div>
+      </div>`;
+  }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין אבני דרך עדיין</div>`;
 }
 
 // ── Meetings ──
@@ -197,7 +206,7 @@ function saveMilestone() {
   if (!title) { notify('נדרשת כותרת', 'error'); return; }
   if (!date) { notify('נדרש תאריך יעד', 'error'); return; }
   if (!state.milestones) state.milestones = [];
-  state.milestones.push({ id: Date.now(), title, targetDate: date, done: false });
+  state.milestones.push({ id: Date.now(), title, targetDate: date, done: false, actualDate: null });
   saveState(); closeModal('modal-milestone'); renderCalendar();
   notify('🚩 אבן דרך נוספה!', 'success');
 }
@@ -210,4 +219,22 @@ function toggleMilestone(id) {
 function deleteMilestone(id) {
   state.milestones = (state.milestones || []).filter(m => m.id !== id);
   saveState(); renderCalendar();
+}
+
+let _editingMilestoneId = null;
+
+function showMilestoneActualModal(id) {
+  const m = (state.milestones || []).find(x => x.id === id);
+  if (!m) return;
+  _editingMilestoneId = id;
+  document.getElementById('milestone-actual-date').value = m.actualDate || m.targetDate;
+  openModal('modal-milestone-actual');
+}
+
+function saveMilestoneActual() {
+  const m = (state.milestones || []).find(x => x.id === _editingMilestoneId);
+  if (!m) return;
+  const actual = document.getElementById('milestone-actual-date').value;
+  m.actualDate = (actual && actual !== m.targetDate) ? actual : null;
+  saveState(); closeModal('modal-milestone-actual'); renderCalendar();
 }

@@ -756,6 +756,14 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  Future<void> updateMilestone(Milestone milestone) async {
+    final i = milestones.indexWhere((m) => m.id == milestone.id);
+    if (i == -1) return;
+    milestones[i] = milestone;
+    notifyListeners();
+    await _saveData();
+  }
+
   Future<void> deleteMilestone(int id) async {
     milestones.removeWhere((m) => m.id == id);
     notifyListeners();

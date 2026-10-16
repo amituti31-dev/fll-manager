@@ -34,6 +34,24 @@ class CalendarScreen extends StatelessWidget {
     await prov.updateMeeting(meeting);
   }
 
+  Future<void> _editMilestoneActualDate(BuildContext context, AppProvider prov, Milestone milestone) async {
+    final target = DateTime.tryParse(milestone.targetDate) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: target,
+      firstDate: target.subtract(const Duration(days: 90)),
+      lastDate: target.add(const Duration(days: 90)),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(colorScheme: ColorScheme.dark(primary: AppColors.accent)),
+        child: child!,
+      ),
+    );
+    if (picked == null || !context.mounted) return;
+    final actual = picked.toIso8601String().split('T')[0];
+    milestone.actualDate = actual == milestone.targetDate ? null : actual;
+    await prov.updateMilestone(milestone);
+  }
+
   Future<void> _confirmDeleteMeeting(BuildContext context, AppProvider prov, Meeting meeting) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -172,6 +190,7 @@ class CalendarScreen extends StatelessWidget {
               milestone: m,
               onToggle: () => prov.toggleMilestone(m.id),
               onDelete: () => prov.deleteMilestone(m.id),
+              onTapActual: () => _editMilestoneActualDate(context, prov, m),
               formatDate: _formatDate,
             )),
     ]);
@@ -276,44 +295,62 @@ class _MilestoneTile extends StatelessWidget {
   final Milestone milestone;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
+  final VoidCallback onTapActual;
   final String Function(String) formatDate;
   const _MilestoneTile({
-    required this.milestone, required this.onToggle,
-    required this.onDelete, required this.formatDate,
+    required this.milestone, required this.onToggle, required this.onDelete,
+    required this.onTapActual, required this.formatDate,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: Row(children: [
-      GestureDetector(
-        onTap: onToggle,
-        child: Icon(
-          milestone.done ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: milestone.done ? AppColors.accent2 : AppColors.textTertiary,
-          size: 22,
+  Widget build(BuildContext context) {
+    final changed = milestone.actualDate != null && milestone.actualDate != milestone.targetDate;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          GestureDetector(
+            onTap: onToggle,
+            child: Icon(
+              milestone.done ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: milestone.done ? AppColors.accent2 : AppColors.textTertiary,
+              size: 22,
+            ),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(milestone.title,
+                style: TextStyle(
+                  fontSize: 14, color: AppColors.textPrimary,
+                  decoration: milestone.done ? TextDecoration.lineThrough : null,
+                )),
+          ),
+          GestureDetector(onTap: onDelete, child: Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
+        ]),
+        SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(right: 32),
+          child: Wrap(spacing: 8, runSpacing: 6, children: [
+            _DateChip(icon: '🚩', label: 'יעד: ${formatDate(milestone.targetDate)}', color: AppColors.gold),
+            GestureDetector(
+              onTap: onTapActual,
+              child: _DateChip(
+                icon: changed ? '✅' : '➕',
+                label: changed ? 'בוצע בפועל: ${formatDate(milestone.actualDate!)}' : 'סמן תאריך בפועל',
+                color: changed ? AppColors.accent2 : AppColors.textTertiary,
+              ),
+            ),
+          ]),
         ),
-      ),
-      SizedBox(width: 10),
-      Expanded(
-        child: Text(milestone.title,
-            style: TextStyle(
-              fontSize: 14, color: AppColors.textPrimary,
-              decoration: milestone.done ? TextDecoration.lineThrough : null,
-            )),
-      ),
-      Text(formatDate(milestone.targetDate),
-          style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
-      SizedBox(width: 8),
-      GestureDetector(onTap: onDelete, child: Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
-    ]),
-  );
+      ]),
+    );
+  }
 }
 
 // ─── Add Meeting Dialog ───────────────────────────────

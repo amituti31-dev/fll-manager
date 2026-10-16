@@ -56,6 +56,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
     }
     for (final m in widget.milestones) {
       if (m.targetDate == iso) chips.add(_DayChip('🚩', m.title, AppColors.gold));
+      if (m.actualDate == iso) chips.add(_DayChip('✅', m.title, AppColors.accent2));
     }
     return chips;
   }
@@ -126,7 +127,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                 ? () => widget.onDayTap!(
                     date,
                     widget.meetings.where((m) => m.plannedDate == iso || m.actualDate == iso).toList(),
-                    widget.milestones.where((m) => m.targetDate == iso).toList(),
+                    widget.milestones.where((m) => m.targetDate == iso || m.actualDate == iso).toList(),
                   )
                 : null,
             child: Container(

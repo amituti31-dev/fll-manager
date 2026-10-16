@@ -644,12 +644,14 @@ class Milestone {
   String title;
   String targetDate;
   bool done;
+  String? actualDate; // only set when it differs from targetDate
 
   Milestone({
     required this.id,
     required this.title,
     required this.targetDate,
     this.done = false,
+    this.actualDate,
   });
 
   factory Milestone.fromMap(Map<String, dynamic> m) => Milestone(
@@ -657,9 +659,11 @@ class Milestone {
     title: m['title'] as String? ?? '',
     targetDate: m['targetDate'] as String? ?? '',
     done: m['done'] as bool? ?? false,
+    actualDate: m['actualDate'] as String?,
   );
 
   Map<String, dynamic> toMap() => {
     'id': id, 'title': title, 'targetDate': targetDate, 'done': done,
+    'actualDate': actualDate,
   };
 }

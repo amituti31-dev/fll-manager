@@ -114,6 +114,8 @@ const ACTIONS = {
   'save-milestone': () => saveMilestone(),
   'toggle-milestone': (el) => toggleMilestone(Number(el.dataset.id)),
   'delete-milestone': (el) => deleteMilestone(Number(el.dataset.id)),
+  'show-milestone-actual-modal': (el) => showMilestoneActualModal(Number(el.dataset.id)),
+  'save-milestone-actual': () => saveMilestoneActual(),
 
   // My tasks / Team
   'switch-mytasks-tab': (el) => switchMyTasksTab(el.dataset.arg),
