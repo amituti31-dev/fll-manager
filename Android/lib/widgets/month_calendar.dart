@@ -8,8 +8,18 @@ const _hebrewMonths = [
 ];
 const _hebrewWeekdays = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']; // Sunday-first
 
-/// A month-grid calendar: meetings (planned/actual) and milestones show as
-/// small colored dots on their day. Tapping a day with items calls [onDayTap].
+class _DayChip {
+  final String icon;
+  final String text;
+  final Color color;
+  const _DayChip(this.icon, this.text, this.color);
+}
+
+/// A Google-Calendar-style month grid: a full rectangle of day cells
+/// (greyed-out leading/trailing days from adjacent months fill it out),
+/// each showing small colored event chips (not just dots) for meetings
+/// (planned/actual) and milestones due that day, with a "+N" overflow and
+/// a circular highlight on today. Tapping a day with items calls [onDayTap].
 class MonthCalendar extends StatefulWidget {
   final List<Meeting> meetings;
   final List<Milestone> milestones;
@@ -35,17 +45,30 @@ class _MonthCalendarState extends State<MonthCalendar> {
     setState(() => _month = DateTime(_month.year, _month.month + delta, 1));
   }
 
-  String _iso(DateTime d) => d.toIso8601String().split('T')[0];
+  String _iso(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  List<_DayChip> _chipsFor(String iso) {
+    final chips = <_DayChip>[];
+    for (final m in widget.meetings) {
+      if (m.plannedDate == iso) chips.add(_DayChip('🗓️', m.title, AppColors.accent));
+      if (m.actualDate == iso) chips.add(_DayChip('✅', m.title, AppColors.accent2));
+    }
+    for (final m in widget.milestones) {
+      if (m.targetDate == iso) chips.add(_DayChip('🚩', m.title, AppColors.gold));
+    }
+    return chips;
+  }
 
   @override
   Widget build(BuildContext context) {
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
     final leading = DateTime(_month.year, _month.month, 1).weekday % 7; // 0=Sun
+    final daysInPrevMonth = DateTime(_month.year, _month.month, 0).day;
     final totalCells = leading + daysInMonth;
     final trailing = (7 - totalCells % 7) % 7;
     final cellCount = leading + daysInMonth + trailing;
     final today = DateTime.now();
-    final isCurrentMonth = today.year == _month.year && today.month == _month.month;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Header: prev / month-year / next
@@ -73,48 +96,75 @@ class _MonthCalendarState extends State<MonthCalendar> {
               ))
           .toList()),
       SizedBox(height: 4),
-      // Day grid
+      // Day grid — a full rectangle, prev/next month days greyed out
       GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: cellCount,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, childAspectRatio: 0.72),
         itemBuilder: (_, i) {
-          final dayNum = i - leading + 1;
-          if (dayNum < 1 || dayNum > daysInMonth) return const SizedBox.shrink();
-          final date = DateTime(_month.year, _month.month, dayNum);
+          late DateTime date;
+          late bool inMonth;
+          if (i < leading) {
+            date = DateTime(_month.year, _month.month - 1, daysInPrevMonth - (leading - i - 1));
+            inMonth = false;
+          } else if (i < leading + daysInMonth) {
+            date = DateTime(_month.year, _month.month, i - leading + 1);
+            inMonth = true;
+          } else {
+            date = DateTime(_month.year, _month.month + 1, i - leading - daysInMonth + 1);
+            inMonth = false;
+          }
           final iso = _iso(date);
-          final isToday = isCurrentMonth && today.day == dayNum;
-
-          final plannedHere = widget.meetings.where((m) => m.plannedDate == iso).toList();
-          final actualHere = widget.meetings.where((m) => m.actualDate == iso).toList();
-          final milestonesHere = widget.milestones.where((m) => m.targetDate == iso).toList();
-          final hasItems = plannedHere.isNotEmpty || actualHere.isNotEmpty || milestonesHere.isNotEmpty;
+          final isToday = date.year == today.year && date.month == today.month && date.day == today.day;
+          final chips = inMonth ? _chipsFor(iso) : const <_DayChip>[];
+          final visible = chips.take(2).toList();
+          final overflow = chips.length - visible.length;
 
           return GestureDetector(
-            onTap: hasItems && widget.onDayTap != null
-                ? () => widget.onDayTap!(date, [...plannedHere, ...actualHere], milestonesHere)
+            onTap: chips.isNotEmpty && widget.onDayTap != null
+                ? () => widget.onDayTap!(
+                    date,
+                    widget.meetings.where((m) => m.plannedDate == iso || m.actualDate == iso).toList(),
+                    widget.milestones.where((m) => m.targetDate == iso).toList(),
+                  )
                 : null,
             child: Container(
-              margin: const EdgeInsets.all(2),
+              margin: const EdgeInsets.all(1.5),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: isToday ? AppColors.accent.withAlpha(30) : null,
-                borderRadius: BorderRadius.circular(8),
-                border: isToday ? Border.all(color: AppColors.accent, width: 1.2) : null,
+                color: AppColors.surface2,
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('$dayNum', style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
-                    color: isToday ? AppColors.accent : AppColors.textPrimary)),
-                if (hasItems) ...[
-                  SizedBox(height: 2),
-                  Wrap(spacing: 2, alignment: WrapAlignment.center, children: [
-                    if (plannedHere.isNotEmpty) _Dot(AppColors.accent),
-                    if (actualHere.isNotEmpty) _Dot(AppColors.accent2),
-                    if (milestonesHere.isNotEmpty) _Dot(AppColors.gold),
-                  ]),
-                ],
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    width: 20, height: 20,
+                    alignment: Alignment.center,
+                    decoration: isToday
+                        ? BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)
+                        : null,
+                    child: Text('${date.day}', style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
+                        color: isToday
+                            ? Colors.white
+                            : (inMonth ? AppColors.textPrimary : AppColors.textTertiary.withAlpha(120)))),
+                  ),
+                ),
+                SizedBox(height: 2),
+                ...visible.map((c) => Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 1.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                      decoration: BoxDecoration(color: c.color.withAlpha(50), borderRadius: BorderRadius.circular(3)),
+                      child: Text('${c.icon} ${c.text}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 8.5, color: c.color, fontWeight: FontWeight.w700)),
+                    )),
+                if (overflow > 0)
+                  Text('+$overflow עוד', style: TextStyle(fontSize: 8, color: AppColors.textTertiary)),
               ]),
             ),
           );
@@ -128,15 +178,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
       ]),
     ]);
   }
-}
-
-class _Dot extends StatelessWidget {
-  final Color color;
-  const _Dot(this.color);
-
-  @override
-  Widget build(BuildContext context) =>
-      Container(width: 5, height: 5, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
 class _Legend extends StatelessWidget {

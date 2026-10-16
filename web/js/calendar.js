@@ -15,6 +15,21 @@ function _isoLocal(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
+function _chipsForDay(iso) {
+  const chips = [];
+  (state.meetings || []).forEach(m => {
+    if (m.plannedDate === iso) chips.push({ icon: '🗓️', text: m.title, color: '#3d7fff' });
+    if (m.actualDate === iso) chips.push({ icon: '✅', text: m.title, color: '#00d4a0' });
+  });
+  (state.milestones || []).forEach(m => {
+    if (m.targetDate === iso) chips.push({ icon: '🚩', text: m.title, color: '#f5c842' });
+  });
+  return chips;
+}
+
+// Google-Calendar-style grid: a full rectangle (greyed leading/trailing days
+// from adjacent months fill it out), each cell showing small colored event
+// chips (not just dots), a "+N" overflow, and a circular today marker.
 function renderMonthGrid() {
   const label = document.getElementById('cal-month-label');
   const weekdayRow = document.getElementById('cal-weekday-row');
@@ -27,33 +42,41 @@ function renderMonthGrid() {
     `<div style="text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${w}</div>`).join('');
 
   const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const daysInPrevMonth = new Date(y, m, 0).getDate();
   const leading = new Date(y, m, 1).getDay(); // 0=Sunday already
+  const totalCells = leading + daysInMonth;
+  const trailing = (7 - totalCells % 7) % 7;
+  const cellCount = leading + daysInMonth + trailing;
   const today = new Date();
   const todayIso = _isoLocal(today.getFullYear(), today.getMonth(), today.getDate());
 
-  const meetings = state.meetings || [];
-  const milestones = state.milestones || [];
-
   let html = '';
-  for (let i = 0; i < leading; i++) html += '<div></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const iso = _isoLocal(y, m, d);
+  for (let i = 0; i < cellCount; i++) {
+    let dayNum, cellY = y, cellM = m, inMonth;
+    if (i < leading) { dayNum = daysInPrevMonth - (leading - i - 1); cellM = m - 1; inMonth = false; }
+    else if (i < leading + daysInMonth) { dayNum = i - leading + 1; inMonth = true; }
+    else { dayNum = i - leading - daysInMonth + 1; cellM = m + 1; inMonth = false; }
+    if (cellM < 0) { cellM = 11; cellY = y - 1; }
+    if (cellM > 11) { cellM = 0; cellY = y + 1; }
+    const iso = _isoLocal(cellY, cellM, dayNum);
     const isToday = iso === todayIso;
-    const planned = meetings.filter(mt => mt.plannedDate === iso);
-    const actual = meetings.filter(mt => mt.actualDate === iso);
-    const dayMilestones = milestones.filter(ms => ms.targetDate === iso);
-    const hasItems = planned.length || actual.length || dayMilestones.length;
-    const dots = [
-      planned.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#3d7fff;display:inline-block"></span>' : '',
-      actual.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#00d4a0;display:inline-block"></span>' : '',
-      dayMilestones.length ? '<span style="width:5px;height:5px;border-radius:50%;background:#f5c842;display:inline-block"></span>' : '',
-    ].join('');
+    const chips = inMonth ? _chipsForDay(iso) : [];
+    const visible = chips.slice(0, 2);
+    const overflow = chips.length - visible.length;
+
+    const chipsHtml = visible.map(c => `
+      <div style="background:${c.color}33;color:${c.color};border-radius:3px;padding:1px 3px;font-size:9px;font-weight:700;
+           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px">${c.icon} ${sanitize(c.text)}</div>
+    `).join('');
+
     html += `
-      <div ${hasItems ? `data-action="show-cal-day" data-arg="${iso}" style="cursor:pointer"` : ''}
-           style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;
-             ${isToday ? 'background:rgba(61,127,255,0.15);border:1.2px solid var(--accent)' : ''}">
-        <span style="font-size:12px;font-weight:${isToday ? '800' : '500'};color:${isToday ? 'var(--accent)' : 'var(--text)'}">${d}</span>
-        ${hasItems ? `<div style="display:flex;gap:2px;margin-top:2px">${dots}</div>` : ''}
+      <div ${chips.length ? `data-action="show-cal-day" data-arg="${iso}" style="cursor:pointer"` : ''}
+           style="background:var(--surface2);border-radius:6px;padding:3px;min-height:64px;display:flex;flex-direction:column;align-items:flex-end">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;
+              font-weight:${isToday ? '800' : '500'};color:${isToday ? '#fff' : (inMonth ? 'var(--text)' : 'var(--text3)')};
+              background:${isToday ? 'var(--accent)' : 'transparent'};opacity:${inMonth ? '1' : '0.5'}">${dayNum}</span>
+        <div style="width:100%;margin-top:2px">${chipsHtml}</div>
+        ${overflow > 0 ? `<div style="font-size:8px;color:var(--text3)">+${overflow} עוד</div>` : ''}
       </div>`;
   }
   grid.innerHTML = html;
