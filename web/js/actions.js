@@ -103,6 +103,8 @@ const ACTIONS = {
   // Calendar (meetings / milestones)
   'shift-cal-month': (el) => shiftCalMonth(el.dataset.arg),
   'show-cal-day': (el) => showCalDay(el.dataset.arg),
+  'quick-add-meeting': (el) => showAddMeetingModal(el.dataset.arg),
+  'quick-add-milestone': (el) => showAddMilestoneModal(el.dataset.arg),
   'show-add-meeting-modal': () => showAddMeetingModal(),
   'save-meeting': () => saveMeeting(),
   'delete-meeting': (el) => deleteMeeting(Number(el.dataset.id)),

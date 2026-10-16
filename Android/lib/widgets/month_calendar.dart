@@ -122,7 +122,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
           final overflow = chips.length - visible.length;
 
           return GestureDetector(
-            onTap: chips.isNotEmpty && widget.onDayTap != null
+            onTap: widget.onDayTap != null
                 ? () => widget.onDayTap!(
                     date,
                     widget.meetings.where((m) => m.plannedDate == iso || m.actualDate == iso).toList(),

@@ -8,12 +8,12 @@ import '../../widgets/month_calendar.dart';
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
-  static void showAddMeetingDialog(BuildContext context) {
-    showDialog(context: context, builder: (_) => const _AddMeetingDialog());
+  static void showAddMeetingDialog(BuildContext context, {DateTime? initialDate}) {
+    showDialog(context: context, builder: (_) => _AddMeetingDialog(initialDate: initialDate));
   }
 
-  static void showAddMilestoneDialog(BuildContext context) {
-    showDialog(context: context, builder: (_) => const _AddMilestoneDialog());
+  static void showAddMilestoneDialog(BuildContext context, {DateTime? initialDate}) {
+    showDialog(context: context, builder: (_) => _AddMilestoneDialog(initialDate: initialDate));
   }
 
   Future<void> _editActualDate(BuildContext context, AppProvider prov, Meeting meeting) async {
@@ -61,21 +61,47 @@ class CalendarScreen extends StatelessWidget {
       context: context,
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('${day.day}.${day.month}.${day.year}',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textPrimary)),
-            SizedBox(height: 12),
-            ...meetings.map((m) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text('🗓️ ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-                )),
-            ...milestones.map((m) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text('🚩 ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
-                )),
+            if (meetings.isNotEmpty || milestones.isNotEmpty) ...[
+              SizedBox(height: 12),
+              ...meetings.map((m) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('🗓️ ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                  )),
+              ...milestones.map((m) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('🚩 ${m.title}', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                  )),
+            ],
+            SizedBox(height: 16),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    showAddMeetingDialog(context, initialDate: day);
+                  },
+                  icon: Text('🗓️'),
+                  label: Text('הוסף מפגש'),
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    showAddMilestoneDialog(context, initialDate: day);
+                  },
+                  icon: Text('🚩'),
+                  label: Text('אבן דרך'),
+                ),
+              ),
+            ]),
           ]),
         ),
       ),
@@ -292,7 +318,8 @@ class _MilestoneTile extends StatelessWidget {
 
 // ─── Add Meeting Dialog ───────────────────────────────
 class _AddMeetingDialog extends StatefulWidget {
-  const _AddMeetingDialog();
+  final DateTime? initialDate;
+  const _AddMeetingDialog({this.initialDate});
 
   @override
   State<_AddMeetingDialog> createState() => _AddMeetingDialogState();
@@ -301,7 +328,7 @@ class _AddMeetingDialog extends StatefulWidget {
 class _AddMeetingDialogState extends State<_AddMeetingDialog> {
   final _titleCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  DateTime _date = DateTime.now();
+  late DateTime _date = widget.initialDate ?? DateTime.now();
   String? _error;
 
   @override
@@ -392,7 +419,8 @@ class _AddMeetingDialogState extends State<_AddMeetingDialog> {
 
 // ─── Add Milestone Dialog ─────────────────────────────
 class _AddMilestoneDialog extends StatefulWidget {
-  const _AddMilestoneDialog();
+  final DateTime? initialDate;
+  const _AddMilestoneDialog({this.initialDate});
 
   @override
   State<_AddMilestoneDialog> createState() => _AddMilestoneDialogState();
@@ -400,7 +428,7 @@ class _AddMilestoneDialog extends StatefulWidget {
 
 class _AddMilestoneDialogState extends State<_AddMilestoneDialog> {
   final _titleCtrl = TextEditingController();
-  DateTime _date = DateTime.now().add(const Duration(days: 7));
+  late DateTime _date = widget.initialDate ?? DateTime.now().add(const Duration(days: 7));
   String? _error;
 
   @override

@@ -70,8 +70,8 @@ function renderMonthGrid() {
     `).join('');
 
     html += `
-      <div ${chips.length ? `data-action="show-cal-day" data-arg="${iso}" style="cursor:pointer"` : ''}
-           style="background:var(--surface2);border-radius:6px;padding:3px;min-height:64px;display:flex;flex-direction:column;align-items:flex-end">
+      <div data-action="show-cal-day" data-arg="${iso}"
+           style="cursor:pointer;background:var(--surface2);border-radius:6px;padding:3px;min-height:64px;display:flex;flex-direction:column;align-items:flex-end">
         <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;
               font-weight:${isToday ? '800' : '500'};color:${isToday ? '#fff' : (inMonth ? 'var(--text)' : 'var(--text3)')};
               background:${isToday ? 'var(--accent)' : 'transparent'};opacity:${inMonth ? '1' : '0.5'}">${dayNum}</span>
@@ -85,12 +85,15 @@ function renderMonthGrid() {
 function showCalDay(iso) {
   const meetings = (state.meetings || []).filter(m => m.plannedDate === iso || m.actualDate === iso);
   const milestones = (state.milestones || []).filter(m => m.targetDate === iso);
-  if (!meetings.length && !milestones.length) return;
   document.getElementById('cal-day-title').textContent = `📅 ${formatDate(iso)}`;
-  document.getElementById('cal-day-items').innerHTML = [
+  const itemsHtml = [
     ...meetings.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🗓️ ${sanitize(m.title)}</div>`),
     ...milestones.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🚩 ${sanitize(m.title)}</div>`),
   ].join('');
+  document.getElementById('cal-day-items').innerHTML = itemsHtml ||
+    `<div style="color:var(--text3);font-size:13px;padding:6px 0">אין פריטים ביום הזה</div>`;
+  document.getElementById('cal-day-add-meeting').dataset.arg = iso;
+  document.getElementById('cal-day-add-milestone').dataset.arg = iso;
   openModal('modal-cal-day');
 }
 
@@ -129,10 +132,11 @@ function renderCalendar() {
 }
 
 // ── Meetings ──
-function showAddMeetingModal() {
+function showAddMeetingModal(presetDate) {
   document.getElementById('meeting-title').value = '';
-  document.getElementById('meeting-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('meeting-date').value = presetDate || new Date().toISOString().split('T')[0];
   document.getElementById('meeting-notes').value = '';
+  closeModal('modal-cal-day');
   openModal('modal-meeting');
 }
 
@@ -175,10 +179,15 @@ function saveMeetingActual() {
 }
 
 // ── Milestones ──
-function showAddMilestoneModal() {
+function showAddMilestoneModal(presetDate) {
   document.getElementById('milestone-title').value = '';
-  const inWeek = new Date(); inWeek.setDate(inWeek.getDate() + 7);
-  document.getElementById('milestone-date').value = inWeek.toISOString().split('T')[0];
+  if (presetDate) {
+    document.getElementById('milestone-date').value = presetDate;
+  } else {
+    const inWeek = new Date(); inWeek.setDate(inWeek.getDate() + 7);
+    document.getElementById('milestone-date').value = inWeek.toISOString().split('T')[0];
+  }
+  closeModal('modal-cal-day');
   openModal('modal-milestone');
 }
 
