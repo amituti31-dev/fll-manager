@@ -28,14 +28,8 @@ class NotificationService {
   static Future<void> scheduleTaskReminder(MemberTask task) async {
     if (task.due == null) return;
 
-    final parts = task.due!.split('/');
-    if (parts.length != 3) return;
-    final d = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    final y = int.tryParse(parts[2]);
-    if (d == null || m == null || y == null) return;
-
-    final dueDate = DateTime(y, m, d);
+    final dueDate = parseTaskDue(task.due);
+    if (dueDate == null) return;
     final reminderDay = dueDate.subtract(const Duration(days: 1));
     final reminderAt = DateTime(
         reminderDay.year, reminderDay.month, reminderDay.day, 9, 0);

@@ -128,7 +128,8 @@ function requestNotifPermission(callback) {
 function scheduleTaskReminder(task) {
   if (!task.due) return;
   requestNotifPermission(() => {
-    const due          = new Date(task.due + 'T09:00:00');
+    const due          = new Date(taskDueIso(task.due) + 'T09:00:00');
+    if (isNaN(due)) return;
     const reminderTime = new Date(due.getTime() - 24 * 60 * 60 * 1000);
     const reminders    = _getStoredReminders();
     reminders.push({ taskId: task.id, desc: task.desc, memberName: task.memberName || '', due: task.due, reminderTime: reminderTime.toISOString(), shown: false });

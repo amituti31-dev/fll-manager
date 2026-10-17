@@ -26,13 +26,17 @@ class Member {
   bool get isAdmin => role == 'admin';
 
   factory Member.fromMap(Map<String, dynamic> m) {
-    final colorIndex = (m['colorIndex'] as int?) ?? 0;
+    final colorIndexRaw = m['colorIndex'] as int?;
+    // Web stores a hex `color`, Android a `colorIndex` (same palette) — read either.
+    final hex = (m['color'] as String?)?.toLowerCase();
+    final hexIndex = hex == null ? -1 : AppColors.avatarColors.indexWhere((c) =>
+        '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}' == hex);
     return Member(
       id: m['id'] as String,
       name: m['name'] as String? ?? '',
       email: m['email'] as String? ?? '',
       role: m['role'] as String? ?? 'student',
-      color: AppColors.avatarColors[colorIndex % AppColors.avatarColors.length],
+      color: AppColors.avatarColors[(colorIndexRaw ?? (hexIndex >= 0 ? hexIndex : 0)) % AppColors.avatarColors.length],
       pin: m['pin'] as String? ?? '',
       nameChanges: m['nameChanges'] as int? ?? 0,
       juniorMentor: m['juniorMentor'] as bool? ?? false,
@@ -45,6 +49,7 @@ class Member {
     'email': email,
     'role': role,
     'colorIndex': AppColors.avatarColors.indexOf(color).clamp(0, 5),
+    'color': '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}',
     'pin': pin,
     'nameChanges': nameChanges,
     'juniorMentor': juniorMentor,
@@ -500,6 +505,24 @@ bool taskAppliesTo(MemberTask t, Member? m) {
     'all-students' => !m.isAdmin,
     _ => t.memberId == m.id,
   };
+}
+
+/// Task due dates: canonical 'YYYY-MM-DD' (shared with web); older Android
+/// saves used 'd/m/yyyy'. Parse either.
+DateTime? parseTaskDue(String? due) {
+  if (due == null || due.trim().isEmpty) return null;
+  final iso = DateTime.tryParse(due.trim());
+  if (iso != null) return DateTime(iso.year, iso.month, iso.day);
+  final p = due.trim().split('/');
+  if (p.length != 3) return null;
+  final d = int.tryParse(p[0]), m = int.tryParse(p[1]), y = int.tryParse(p[2]);
+  return (d == null || m == null || y == null) ? null : DateTime(y, m, d);
+}
+
+/// Display form of a due date: d/m/yyyy.
+String formatTaskDue(String? due) {
+  final d = parseTaskDue(due);
+  return d == null ? (due ?? '') : '${d.day}/${d.month}/${d.year}';
 }
 
 class MemberTask {

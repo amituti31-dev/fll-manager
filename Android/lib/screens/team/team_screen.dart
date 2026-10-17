@@ -282,7 +282,7 @@ class _MyTaskCard extends StatelessWidget {
             Text(taskGroupLabels[task.memberId]!, style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
           if (task.due != null)
             Text(
-              overdue && !task.done ? '⚠️ ${task.due!} - עבר הדדליין!' : '📅 ${task.due!}',
+              overdue && !task.done ? '⚠️ ${formatTaskDue(task.due)} - עבר הדדליין!' : '📅 ${formatTaskDue(task.due)}',
               style: TextStyle(
                 fontSize: 11,
                 color: overdue && !task.done ? AppColors.red : AppColors.textTertiary,
@@ -400,7 +400,7 @@ class _MemberCard extends StatelessWidget {
                 )),
                 if (t.due != null)
                   Text(
-                    overdue && !t.done ? '⚠️ ${t.due!}' : t.due!,
+                    overdue && !t.done ? '⚠️ ${formatTaskDue(t.due)}' : formatTaskDue(t.due),
                     style: TextStyle(fontSize: 11,
                       color: overdue && !t.done ? AppColors.red : AppColors.textTertiary,
                       fontWeight: overdue && !t.done ? FontWeight.w700 : FontWeight.normal),
@@ -739,7 +739,8 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
               const groupNames = {'all': 'כל הקבוצה', 'all-mentors': 'כל המנטורים', 'all-students': 'כל התלמידים'};
               final assignId   = _target == 'member' ? (_selected?.id ?? 'all') : _target;
               final assignName = _target == 'member' ? (_selected?.name ?? '') : groupNames[_target]!;
-              final dueStr = _due == null ? null : '${_due!.day}/${_due!.month}/${_due!.year}';
+              // 'YYYY-MM-DD' — same format as web's date input.
+              final dueStr = _due?.toIso8601String().split('T')[0];
               await prov.addMemberTask(MemberTask(
                 id: DateTime.now().millisecondsSinceEpoch,
                 memberId: assignId,

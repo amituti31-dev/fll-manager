@@ -89,6 +89,26 @@ function taskGroupBadge(t, size = 10) {
   return isGroupTask(t) ? `<span style="background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;font-size:${size}px">${TASK_GROUPS[t.memberId]}</span>` : '';
 }
 
+// Member avatar color: web stored a hex `color`, Android a `colorIndex` into the
+// same palette — both are now written, and either is read.
+const AVATAR_COLORS = ['#3d7fff', '#00d4a0', '#ff6b35', '#f5c842', '#ff4d6d', '#9c6fe4'];
+function memberColor(m) {
+  if (m && m.color) return m.color;
+  const i = Number(m && m.colorIndex);
+  return AVATAR_COLORS[Number.isInteger(i) && i >= 0 ? i % AVATAR_COLORS.length : 0];
+}
+
+// Task due dates: canonical 'YYYY-MM-DD' (the date input); older Android saves
+// used 'd/m/yyyy'. Returns 'YYYY-MM-DD' or '' if unparseable.
+function taskDueIso(due) {
+  if (!due) return '';
+  const s = String(due).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : '';
+}
+function taskDueLabel(due) { const iso = taskDueIso(due); return iso ? formatDate(iso) : String(due || ''); }
+
 function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }

@@ -172,7 +172,7 @@ class _TaskCard extends StatelessWidget {
                 _Tag(text: taskGroupLabels[task.memberId]!, color: AppColors.accent),
               if (task.due != null)
                 _Tag(
-                  text: '${overdue ? "⚠️ " : "📅 "}${task.due!}',
+                  text: '${overdue ? "⚠️ " : "📅 "}${formatTaskDue(task.due)}',
                   color: overdue ? AppColors.red : AppColors.textSecondary,
                 ),
               if (overdue && !task.done)

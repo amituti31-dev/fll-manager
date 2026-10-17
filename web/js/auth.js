@@ -143,6 +143,7 @@ async function joinWithCode() {
     const newMember = {
       id: fbUser.uid, name: fullName, role, email: fbUser.email,
       color: colors[state.members.length % colors.length],
+      colorIndex: state.members.length % colors.length,
     };
     state.currentUser = newMember;
     state.isAdmin = (role === 'admin');
@@ -378,6 +379,7 @@ async function joinTeam() {
       id: fbUser.uid, name, role: joinRole,
       email: fbUser.email,
       color: colors[state.members.length % colors.length],
+      colorIndex: state.members.length % colors.length,
     };
 
     state.currentUser = newMember;

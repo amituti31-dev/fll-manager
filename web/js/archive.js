@@ -151,7 +151,7 @@ function viewArchivedSeason(idx) {
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         ${members.map(m => `
           <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:20px;padding:4px 12px">
-            <div style="width:26px;height:26px;border-radius:50%;background:${sanitize(m.color || '#3d7fff')};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${sanitize(m.name?.[0] || '?')}</div>
+            <div style="width:26px;height:26px;border-radius:50%;background:${sanitize(memberColor(m))};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${sanitize(m.name?.[0] || '?')}</div>
             <span style="font-size:13px">${sanitize(m.name)}</span>
             <span style="font-size:11px;color:var(--text3)">${m.role === 'admin' ? '👑' : '🎓'}</span>
           </div>

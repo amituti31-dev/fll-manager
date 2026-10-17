@@ -63,7 +63,9 @@ async function saveState() {
     if (!window.db) return;
   try {
     const { setup, teamName, teamLogo, currentSeason } = state;
-    await window.db.collection(window.FB_PROJECT).doc("settings").set({ setup, teamName, teamLogo: teamLogo || null, currentSeason, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null }, { merge: true });
+    // competitionDate is shared with Android (settings doc), always 'YYYY-MM-DD'.
+    const competitionDate = state.competitionDate ? String(state.competitionDate).slice(0, 10) : null;
+    await window.db.collection(window.FB_PROJECT).doc("settings").set({ setup, teamName, teamLogo: teamLogo || null, currentSeason, competitionDate, teamId: window.FB_PROJECT, joinCode: state.joinCode || null, mentorCode: state.mentorCode || null, studentCode: state.studentCode || null }, { merge: true });
 
     // "data" — writable by any team member (students included). missionChecks
     // and links are here too: any member can toggle a mission or add a link.

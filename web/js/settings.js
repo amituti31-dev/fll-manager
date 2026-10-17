@@ -293,12 +293,12 @@ function renderCompetitionCountdown() {
   if (!card || !cw) return;
 
   const input = document.getElementById('competition-date-input');
-  if (input && state.competitionDate) input.value = state.competitionDate;
+  if (input && state.competitionDate) input.value = String(state.competitionDate).slice(0, 10);
 
   if (!state.competitionDate) { card.style.display = 'none'; return; }
 
   const today = new Date(); today.setHours(0,0,0,0);
-  const target = new Date(state.competitionDate + 'T00:00:00');
+  const target = new Date(String(state.competitionDate).slice(0, 10) + 'T00:00:00');
   const diff = Math.round((target - today) / 86400000);
 
   if (diff < 0) {

@@ -592,16 +592,7 @@ class _TeamTaskTile extends StatelessWidget {
   final MemberTask task;
   const _TeamTaskTile({required this.task});
 
-  static bool _overdue(MemberTask t) {
-    if (t.done || t.due == null) return false;
-    final parts = t.due!.split('/');
-    if (parts.length != 3) return false;
-    final d = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    final y = int.tryParse(parts[2]);
-    if (d == null || m == null || y == null) return false;
-    return DateTime(y, m, d).isBefore(DateTime.now());
-  }
+  static bool _overdue(MemberTask t) => AppProvider.isTaskOverdue(t);
 
   @override
   Widget build(BuildContext context) {
@@ -622,7 +613,7 @@ class _TeamTaskTile extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: late ? AppColors.red : AppColors.textPrimary)),
           if (task.due != null)
             Text(
-              late ? '⚠️ ${task.due!} - עבר הדדליין!' : '📅 ${task.due!}',
+              late ? '⚠️ ${formatTaskDue(task.due)} - עבר הדדליין!' : '📅 ${formatTaskDue(task.due)}',
               style: TextStyle(fontSize: 11, color: late ? AppColors.red : AppColors.textTertiary),
             ),
         ])),

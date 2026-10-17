@@ -24,7 +24,7 @@ function renderMyTasks() {
           <div style="${isDone ? 'text-decoration:line-through;color:var(--text3)' : 'font-weight:600'};font-size:14px">${sanitize(t.desc)}</div>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
             ${taskGroupBadge(t, 11)}
-            ${t.due  ? `<span style="color:var(--text3);font-size:12px">📅 ${sanitize(t.due)}</span>` : ''}
+            ${t.due  ? `<span style="color:var(--text3);font-size:12px">📅 ${sanitize(taskDueLabel(t.due))}</span>` : ''}
             ${t.date ? `<span style="color:var(--text3);font-size:12px">${sanitize(t.date)}</span>` : ''}
           </div>
         </div>

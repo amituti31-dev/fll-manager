@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/models.dart';
 import '../services/firebase_service.dart';
 import '../services/season_story_service.dart';
@@ -199,8 +201,7 @@ class AppProvider extends ChangeNotifier {
       currentSeason = settings['currentSeason'] as String? ?? officialSeasonName;
       mentorCode = settings['mentorCode'] as String?;
       studentCode = settings['studentCode'] as String?;
-      isDarkMode = settings['isDarkMode'] as bool? ?? true;
-      if (isDarkMode) { AppColors.applyDark(); } else { AppColors.applyLight(); }
+      await _loadThemePref();
       competitionDate = settings['competitionDate'] as String?;
       judgingPdfName = settings['judgingPdfName'] as String?;
     }
@@ -381,17 +382,31 @@ class AppProvider extends ChangeNotifier {
       'teamId': teamId,
       'mentorCode': mentorCode,
       'studentCode': studentCode,
-      'isDarkMode': isDarkMode,
       'competitionDate': competitionDate,
       'judgingPdfName':  judgingPdfName,
     });
+  }
+
+  // Dark/light is a personal, per-device preference. It used to be written to
+  // the team's settings doc — changing it for everyone, and failing for students.
+  Future<File> _themePrefFile() async =>
+      File('${(await getApplicationDocumentsDirectory()).path}/theme_pref.txt');
+
+  Future<void> _loadThemePref() async {
+    try {
+      final f = await _themePrefFile();
+      isDarkMode = !(await f.exists()) || (await f.readAsString()).trim() != 'light';
+    } catch (_) {
+      isDarkMode = true;
+    }
+    if (isDarkMode) { AppColors.applyDark(); } else { AppColors.applyLight(); }
   }
 
   Future<void> toggleTheme() async {
     isDarkMode = !isDarkMode;
     if (isDarkMode) { AppColors.applyDark(); } else { AppColors.applyLight(); }
     notifyListeners();
-    await _saveSettings();
+    try { await (await _themePrefFile()).writeAsString(isDarkMode ? 'dark' : 'light'); } catch (_) {}
   }
 
   // "data" — writable by any team member (students included). missionChecks
@@ -1198,14 +1213,9 @@ class AppProvider extends ChangeNotifier {
   }
 
   static bool isTaskOverdue(MemberTask t) {
-    if (t.done || t.due == null) return false;
-    final parts = t.due!.split('/');
-    if (parts.length != 3) return false;
-    final d = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    final y = int.tryParse(parts[2]);
-    if (d == null || m == null || y == null) return false;
-    return DateTime(y, m, d).isBefore(DateTime.now());
+    if (t.done) return false;
+    final due = parseTaskDue(t.due);
+    return due != null && due.isBefore(DateTime.now());
   }
 
   List<MemberTask> getOverdueTasksFor(String memberId) {
@@ -1269,7 +1279,8 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> setCompetitionDate(DateTime? date) async {
-    competitionDate = date?.toIso8601String();
+    // Shared with web (settings doc) as 'YYYY-MM-DD'.
+    competitionDate = date?.toIso8601String().split('T')[0];
     notifyListeners();
     await _saveSettings();
   }

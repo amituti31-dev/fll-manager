@@ -19,7 +19,7 @@ function renderMembers() {
     <div class="member-card" style="flex-direction:column;align-items:stretch${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? ';cursor:pointer' : ''}"
       ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}"` : ''}>
       <div style="display:flex;align-items:center;gap:12px">
-        <div class="member-avatar" style="background:${sanitize(m.color)}">${sanitize(m.name ? m.name[0] : '?')}</div>
+        <div class="member-avatar" style="background:${sanitize(memberColor(m))}">${sanitize(m.name ? m.name[0] : '?')}</div>
         <div class="member-info" style="flex:1">
           <div class="member-name">${sanitize(m.name)}</div>
           <div class="member-role"><span class="badge badge-${m.role === 'admin' ? 'admin' : 'student'}">${m.role === 'admin' ? '👑 מנטור' : m.juniorMentor ? '🌱 מנטור צעיר' : '🎓 תלמיד'}</span></div>
@@ -43,7 +43,7 @@ function renderMembers() {
             <input type="checkbox" ${t.done ? 'checked' : ''} data-onchange="toggle-member-task" data-id="${t.id}" style="accent-color:var(--accent2);width:16px;height:16px">
             <span style="${t.done ? 'text-decoration:line-through;color:var(--text3)' : ''};flex:1">${sanitize(t.desc)}</span>
             ${taskGroupBadge(t)}
-            ${t.due ? `<span style="color:var(--text3);font-size:11px">${sanitize(t.due)}</span>` : ''}
+            ${t.due ? `<span style="color:var(--text3);font-size:11px">${sanitize(taskDueLabel(t.due))}</span>` : ''}
             ${state.isAdmin ? `<button data-action="delete-member-task" data-id="${t.id}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;padding:0 4px">✕</button>` : ''}
           </div>
         `).join('')}
