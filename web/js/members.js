@@ -1,12 +1,18 @@
 // ═══════════════════════════════════════════════════════
 // § 09 · MEMBERS
 // ═══════════════════════════════════════════════════════
-// "מנטור צעיר" is just a label on a student (no extra permissions); mentors toggle it.
-function toggleJuniorMentor(id) {
-  if (!state.isAdmin) return;
+// Member types: 'admin' (מנטור), 'student' (תלמיד), 'junior' (מנטור צעיר — exactly
+// a student's permissions, different label; in the registry/rules it's 'student').
+const MEMBER_TYPE_LABELS = { admin: '👑 מנטור', student: '🎓 תלמיד', junior: '🌱 מנטור צעיר' };
+function memberTypeLabel(m) { return MEMBER_TYPE_LABELS[m.role] || MEMBER_TYPE_LABELS.student; }
+
+// Mentors switch a non-mentor between student and junior mentor.
+function setMemberType(id, type) {
+  if (!state.isAdmin || !['student', 'junior'].includes(type)) return;
   const m = (state.members || []).find(x => String(x.id) === String(id));
   if (!m || m.role === 'admin') return;
-  m.juniorMentor = !m.juniorMentor;
+  m.role = type;
+  delete m.juniorMentor;
   saveState(); renderMembers();
 }
 
@@ -22,7 +28,7 @@ function renderMembers() {
         <div class="member-avatar" style="background:${sanitize(memberColor(m))}">${sanitize(m.name ? m.name[0] : '?')}</div>
         <div class="member-info" style="flex:1">
           <div class="member-name">${sanitize(m.name)}</div>
-          <div class="member-role"><span class="badge badge-${m.role === 'admin' ? 'admin' : 'student'}">${m.role === 'admin' ? '👑 מנטור' : m.juniorMentor ? '🌱 מנטור צעיר' : '🎓 תלמיד'}</span></div>
+          <div class="member-role"><span class="badge badge-${m.role === 'admin' ? 'admin' : 'student'}">${memberTypeLabel(m)}</span></div>
           <div style="font-size:11px;color:var(--text3)">${sanitize(m.email || '')}</div>
         </div>
         ${pending > 0 ? `<span style="background:var(--accent3);color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">${pending} משימות</span>` : ''}
@@ -31,7 +37,10 @@ function renderMembers() {
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px" data-action="show-add-member-task-modal" data-id="${sanitize(String(m.id))}" title="הוסף משימה">📋</button>` : ''}
         ${state.isAdmin && m.role !== 'admin' ? `
-          <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px;opacity:${m.juniorMentor ? '1' : '0.45'}" data-action="toggle-junior-mentor" data-id="${sanitize(String(m.id))}" title="${m.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר'}">🌱</button>` : ''}
+          <select class="form-input" style="width:auto;padding:3px 6px;font-size:12px;min-height:0" data-onchange="set-member-type" data-id="${sanitize(String(m.id))}" title="סוג חבר">
+            <option value="student" ${m.role !== 'junior' ? 'selected' : ''}>🎓 תלמיד</option>
+            <option value="junior" ${m.role === 'junior' ? 'selected' : ''}>🌱 מנטור צעיר</option>
+          </select>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="color:var(--accent);font-size:12px;padding:4px" data-action="admin-change-name" data-id="${sanitize(String(m.id))}" title="שנה שם">✏️</button>
           <button class="btn btn-ghost btn-icon" style="color:var(--red)" data-action="remove-member" data-id="${sanitize(String(m.id))}" title="הסר">✕</button>` : ''}

@@ -627,7 +627,7 @@ async function boot() {
           // Self-heal: keep the registry's role in sync on every login, so
           // an entry recorded before this field existed (or changed since)
           // stays correct for the Firestore isMentor() check.
-          registerUserToTeam(fbUser.email, teamId, member.role);
+          registerUserToTeam(fbUser.email, teamId, member.role === 'admin' ? 'admin' : 'student');
           document.getElementById('pin-screen').style.display = 'none';
           document.getElementById('app').style.display = 'flex';
           initApp();

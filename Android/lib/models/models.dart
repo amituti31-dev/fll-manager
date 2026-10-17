@@ -6,11 +6,11 @@ class Member {
   final String id;
   String name;
   final String email;
-  String role; // 'admin' | 'student'
+  String role; // 'admin' | 'student' | 'junior' (מנטור צעיר — a student's permissions, own label)
   final Color color;
   String pin;
   int nameChanges;
-  bool juniorMentor; // "מנטור צעיר" — a label on a student, no extra permissions
+  bool juniorMentor; // legacy flag — migrated to role 'junior' on load
 
   Member({
     required this.id,
@@ -25,6 +25,13 @@ class Member {
 
   bool get isAdmin => role == 'admin';
 
+  /// Display label of the member type.
+  String get typeLabel => switch (role) {
+    'admin' => '👑 מנטור',
+    'junior' => '🌱 מנטור צעיר',
+    _ => '🎓 תלמיד',
+  };
+
   factory Member.fromMap(Map<String, dynamic> m) {
     final colorIndexRaw = m['colorIndex'] as int?;
     // Web stores a hex `color`, Android a `colorIndex` (same palette) — read either.
@@ -35,11 +42,12 @@ class Member {
       id: m['id'] as String,
       name: m['name'] as String? ?? '',
       email: m['email'] as String? ?? '',
-      role: m['role'] as String? ?? 'student',
+      // A student with the old juniorMentor flag is now the 'junior' type.
+      role: (m['juniorMentor'] == true && (m['role'] ?? 'student') == 'student') ? 'junior' : (m['role'] as String? ?? 'student'),
       color: AppColors.avatarColors[(colorIndexRaw ?? (hexIndex >= 0 ? hexIndex : 0)) % AppColors.avatarColors.length],
       pin: m['pin'] as String? ?? '',
       nameChanges: m['nameChanges'] as int? ?? 0,
-      juniorMentor: m['juniorMentor'] as bool? ?? false,
+      juniorMentor: false,
     );
   }
 
@@ -52,7 +60,6 @@ class Member {
     'color': '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}',
     'pin': pin,
     'nameChanges': nameChanges,
-    'juniorMentor': juniorMentor,
   };
 }
 

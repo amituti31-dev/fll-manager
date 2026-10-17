@@ -189,7 +189,8 @@ class AppProvider extends ChangeNotifier {
     // recorded before this field existed (or changed since) stays correct
     // for the Firestore isMentor() check without needing a manual rejoin.
     if (member.id.isNotEmpty) {
-      await FirebaseService.registerUserToTeam(email, tid, member.role);
+      // The registry/rules only know admin|student — a junior mentor is a student there.
+      await FirebaseService.registerUserToTeam(email, tid, member.isAdmin ? 'admin' : 'student');
     }
     status = AppStatus.ready;
     _startLiveSync();
@@ -1181,10 +1182,12 @@ class AppProvider extends ChangeNotifier {
   Future<void> changePassword(String currentPassword, String newPassword) =>
       FirebaseService.changePassword(currentPassword: currentPassword, newPassword: newPassword);
 
-  Future<void> toggleJuniorMentor(String memberId) async {
+  /// Mentors switch a non-mentor between 'student' and 'junior' (מנטור צעיר).
+  Future<void> setMemberType(String memberId, String type) async {
+    if (!isAdmin || !const {'student', 'junior'}.contains(type)) return;
     final i = members.indexWhere((m) => m.id == memberId);
     if (i == -1 || members[i].isAdmin) return;
-    members[i].juniorMentor = !members[i].juniorMentor;
+    members[i].role = type;
     notifyListeners();
     await _saveData();
   }

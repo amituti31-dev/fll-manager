@@ -210,6 +210,9 @@ async function loadState() {
     if (adminDataSnap.exists) Object.assign(state, adminDataSnap.data());
     applyOfficialBonuses();
 
+    // "מנטור צעיר" used to be a juniorMentor flag on a student; it's now its own type.
+    (state.members || []).forEach(m => { if (m.juniorMentor && m.role === 'student') { m.role = 'junior'; delete m.juniorMentor; } });
+
     // Judging Q&A comes from the cloud as a flat list (shared with Android).
     // data.judgingQuestions is current; admin-data's is an older Android copy
     // (Object.assign above applied admin-data last, so prefer data explicitly).

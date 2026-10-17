@@ -351,7 +351,7 @@ class _MemberCard extends StatelessWidget {
                 ),
               ],
             ]),
-            Text(member.isAdmin ? '👑 מנטור' : member.juniorMentor ? '🌱 מנטור צעיר' : '🎓 תלמיד',
+            Text(member.typeLabel,
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           ])),
           if (pending > 0)
@@ -361,10 +361,14 @@ class _MemberCard extends StatelessWidget {
             ),
           if (prov.isAdmin) ...[
             if (!member.isAdmin)
-              IconButton(
-                icon: Opacity(opacity: member.juniorMentor ? 1 : 0.45, child: Text('🌱', style: TextStyle(fontSize: 16))),
-                onPressed: () => context.read<AppProvider>().toggleJuniorMentor(member.id),
-                tooltip: member.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר',
+              PopupMenuButton<String>(
+                tooltip: 'סוג חבר',
+                icon: Icon(Icons.badge_outlined, size: 18, color: AppColors.textSecondary),
+                onSelected: (type) => context.read<AppProvider>().setMemberType(member.id, type),
+                itemBuilder: (_) => [
+                  CheckedPopupMenuItem(value: 'student', checked: member.role != 'junior', child: const Text('🎓 תלמיד')),
+                  CheckedPopupMenuItem(value: 'junior', checked: member.role == 'junior', child: const Text('🌱 מנטור צעיר')),
+                ],
               ),
             IconButton(
               icon: Icon(Icons.add_task, size: 18, color: AppColors.accent2),
@@ -514,6 +518,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
           style: TextStyle(color: AppColors.textPrimary),
           items: const [
             DropdownMenuItem(value: 'student', child: Text('🎓 תלמיד')),
+            DropdownMenuItem(value: 'junior',  child: Text('🌱 מנטור צעיר')),
             DropdownMenuItem(value: 'admin',   child: Text('👑 מנטור')),
           ],
           onChanged: (v) => setState(() => _role = v ?? 'student'),
