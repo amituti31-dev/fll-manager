@@ -46,6 +46,7 @@ function renderMonthGrid() {
 // Dashboard: always the current month (October shows October, December shows December…).
 function renderDashboardCalendar() {
   try { renderMeetingSummaryReminder(); } catch(e) {}
+  try { renderDashboardMilestones(); } catch(e) {}
   const now = new Date();
   _renderMonthInto('dash-cal', new Date(now.getFullYear(), now.getMonth(), 1));
 }
@@ -137,6 +138,63 @@ function showCalDay(iso) {
   openModal('modal-cal-day');
 }
 
+// ── Milestone progress (plan vs actual) ──
+function _daysBetween(fromIso, toIso) {
+  return Math.round((new Date(toIso + 'T00:00:00') - new Date(fromIso + 'T00:00:00')) / 86400000);
+}
+// {icon, text, color, kind} — kind: 'ontime' | 'late' | 'early' | 'overdue' | 'today' | 'upcoming'
+function milestoneStatus(m, today = _localIsoToday()) {
+  if (m.done) {
+    const actual = m.actualDate || m.targetDate; // actualDate is only stored when it differs
+    const diff = _daysBetween(m.targetDate, actual);
+    if (diff > 0) return { icon: '⏰', text: `באיחור של ${diff} ימים`, color: 'var(--accent3)', kind: 'late' };
+    if (diff < 0) return { icon: '⚡', text: `הוקדם ב-${-diff} ימים`, color: 'var(--accent2)', kind: 'early' };
+    return { icon: '✅', text: 'בזמן', color: 'var(--accent2)', kind: 'ontime' };
+  }
+  const left = _daysBetween(today, m.targetDate);
+  if (left < 0) return { icon: '🔴', text: `היעד עבר לפני ${-left} ימים`, color: 'var(--red)', kind: 'overdue' };
+  if (left === 0) return { icon: '📍', text: 'היעד היום', color: 'var(--gold)', kind: 'today' };
+  return { icon: '⏳', text: `בעוד ${left} ימים`, color: 'var(--text3)', kind: 'upcoming' };
+}
+function milestoneProgress() {
+  const all = state.milestones || [];
+  const today = _localIsoToday();
+  const done = all.filter(m => m.done);
+  const statuses = all.map(m => milestoneStatus(m, today).kind);
+  const next = all.filter(m => !m.done).sort((a, b) => a.targetDate.localeCompare(b.targetDate))[0] || null;
+  return {
+    total: all.length, done: done.length,
+    onTime: statuses.filter(k => k === 'ontime' || k === 'early').length,
+    late: statuses.filter(k => k === 'late').length,
+    overdue: statuses.filter(k => k === 'overdue').length,
+    next,
+  };
+}
+function _milestoneProgressHtml(p, compact) {
+  if (!p.total) return '';
+  const pct = Math.round(p.done / p.total * 100);
+  const bits = [
+    p.onTime ? `<span style="color:var(--accent2)">✅ ${p.onTime} בזמן</span>` : '',
+    p.late ? `<span style="color:var(--accent3)">⏰ ${p.late} באיחור</span>` : '',
+    p.overdue ? `<span style="color:var(--red)">🔴 ${p.overdue} עבר היעד</span>` : '',
+  ].filter(Boolean).join(' · ');
+  const next = p.next ? `הבאה: <b>${sanitize(p.next.title)}</b> · ${milestoneStatus(p.next).text}` : 'כל אבני הדרך הושגו 🎉';
+  return `
+    <div style="margin-bottom:${compact ? '10' : '12'}px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;gap:8px;flex-wrap:wrap">
+        <span>🚩 <b>${p.done} מתוך ${p.total}</b> אבני דרך הושגו</span>
+        <span style="font-size:12px">${bits}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px">${next}</div>
+    </div>`;
+}
+function renderDashboardMilestones() {
+  const el = document.getElementById('dashboard-milestones');
+  if (!el) return;
+  el.innerHTML = _milestoneProgressHtml(milestoneProgress(), true);
+}
+
 function renderCalendar() {
   renderMonthGrid();
   renderDashboardCalendar();
@@ -146,8 +204,10 @@ function renderCalendar() {
 
   const milestones = [...(state.milestones || [])].sort((a, b) => a.targetDate.localeCompare(b.targetDate));
 
-  milestonesEl.innerHTML = milestones.length ? milestones.map(m => {
+  const today = _localIsoToday();
+  milestonesEl.innerHTML = milestones.length ? _milestoneProgressHtml(milestoneProgress(), false) + milestones.map(m => {
     const changed = m.actualDate && m.actualDate !== m.targetDate;
+    const st = milestoneStatus(m, today);
     return `
       <div style="padding:8px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:10px">
@@ -158,6 +218,7 @@ function renderCalendar() {
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;margin-right:28px">
           <span style="background:rgba(245,200,66,0.15);color:#f5c842;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600">🚩 יעד: ${formatDate(m.targetDate)}</span>
           <span style="cursor:pointer;background:${changed ? 'rgba(0,212,160,0.15)' : 'rgba(255,255,255,0.06)'};color:${changed ? 'var(--accent2)' : 'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600" data-action="show-milestone-actual-modal" data-id="${m.id}">${changed ? `✅ בוצע: ${formatDate(m.actualDate)}` : '➕ סמן תאריך בפועל'}</span>
+          <span style="color:${st.color};font-size:11px;font-weight:700;padding:3px 4px">${st.icon} ${st.text}</span>
         </div>
       </div>`;
   }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין אבני דרך עדיין</div>`;

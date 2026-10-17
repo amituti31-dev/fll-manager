@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/score_history_chart.dart';
 import '../../widgets/month_calendar.dart';
+import '../../widgets/milestone_progress.dart';
 import '../calendar/calendar_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -134,14 +135,17 @@ class DashboardScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
         ),
-        child: MonthCalendar(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          MilestoneProgress(milestones: prov.milestones),
+          MonthCalendar(
           milestones: prov.milestones,
           stickies: prov.stickies,
           meetingPlans: prov.meetingPlans,
           showNavigation: false,
           onDayTap: (day, dayMilestones, dayStickies) =>
               CalendarScreen.showDaySheet(context, day, dayMilestones, dayStickies),
-        ),
+          ),
+        ]),
       ),
       SizedBox(height: 12),
 

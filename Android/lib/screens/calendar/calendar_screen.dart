@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../providers/app_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/month_calendar.dart';
+import '../../widgets/milestone_progress.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
@@ -174,7 +175,8 @@ class CalendarScreen extends StatelessWidget {
       SizedBox(height: 8),
       if (milestones.isEmpty)
         _Empty('אין אבני דרך עדיין')
-      else
+      else ...[
+        MilestoneProgress(milestones: milestones),
         ...milestones.map((m) => _MilestoneTile(
               milestone: m,
               onToggle: () => prov.toggleMilestone(m.id),
@@ -182,6 +184,7 @@ class CalendarScreen extends StatelessWidget {
               onTapActual: () => _editMilestoneActualDate(context, prov, m),
               formatDate: _formatDate,
             )),
+      ],
     ]);
   }
 }
@@ -238,6 +241,7 @@ class _MilestoneTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final changed = milestone.actualDate != null && milestone.actualDate != milestone.targetDate;
+    final status = milestoneStatus(milestone);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -278,6 +282,11 @@ class _MilestoneTile extends StatelessWidget {
                 label: changed ? 'בוצע בפועל: ${formatDate(milestone.actualDate!)}' : 'סמן תאריך בפועל',
                 color: changed ? AppColors.accent2 : AppColors.textTertiary,
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Text('${status.$1} ${status.$2}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: status.$3)),
             ),
           ]),
         ),
