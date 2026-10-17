@@ -138,30 +138,7 @@ function updateStats() {
       scoreChange.textContent = scores.length ? 'ריצה ראשונה!' : 'אין ריצות עדיין';
     }
   }
-
-  // יומנים
-  document.getElementById('stat-logs').textContent = state.logs.length;
-  const logsChange = document.getElementById('stat-logs-change');
-  if (logsChange) {
-    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-    const weekStr = weekAgo.toISOString().split('T')[0];
-    const thisWeek = (state.logs || []).filter(l => l.date >= weekStr).length;
-    logsChange.textContent = `↑ ${thisWeek} השבוע`;
-  }
-
-  // חברים
-  const members = state.members || [];
-  document.getElementById('stat-members').textContent = members.length;
-  const membersChange = document.getElementById('stat-members-change');
-  if (membersChange) {
-    const mentors  = members.filter(m => m.role === 'admin').length;
-    const students = members.filter(m => m.role === 'student').length;
-    if (members.length === 0) {
-      membersChange.textContent = 'אין חברים עדיין';
-    } else {
-      membersChange.textContent = `${mentors} מנטורים, ${students} תלמידים`;
-    }
-  }
+  try { renderDashboardCalendar(); } catch(e) { console.warn('renderDashboardCalendar:', e); }
 }
 
 // ─── CHARTS ───

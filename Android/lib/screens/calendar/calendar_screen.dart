@@ -36,7 +36,7 @@ class CalendarScreen extends StatelessWidget {
     return '${d.day}.${d.month}.${d.year}';
   }
 
-  void _showDaySheet(BuildContext context, DateTime day, List<Milestone> milestones, List<StickyNote> stickies) {
+  static void showDaySheet(BuildContext context, DateTime day, List<Milestone> milestones, List<StickyNote> stickies) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -109,7 +109,7 @@ class CalendarScreen extends StatelessWidget {
         child: MonthCalendar(
           milestones: prov.milestones,
           stickies: prov.stickies,
-          onDayTap: (day, dayMilestones, dayStickies) => _showDaySheet(context, day, dayMilestones, dayStickies),
+          onDayTap: (day, dayMilestones, dayStickies) => showDaySheet(context, day, dayMilestones, dayStickies),
         ),
       ),
       SizedBox(height: 20),

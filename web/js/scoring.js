@@ -266,7 +266,7 @@ function saveSticky() {
   });
   saveState(); closeModal('modal-sticky');
   document.getElementById('sticky-text').value = '';
-  renderStickyBoard();
+  renderStickyBoard(); renderDashboardCalendar();
   notify('📌 פתק נוסף!', 'success');
 }
 

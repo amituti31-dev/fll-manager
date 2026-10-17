@@ -37,7 +37,11 @@ class MonthCalendar extends StatefulWidget {
   final List<StickyNote> stickies;
   final void Function(DateTime day, List<Milestone> milestones, List<StickyNote> stickies)? onDayTap;
 
-  const MonthCalendar({super.key, required this.milestones, required this.stickies, this.onDayTap});
+  /// When false (the dashboard), the grid always shows the current month with no prev/next.
+  final bool showNavigation;
+
+  const MonthCalendar({super.key, required this.milestones, required this.stickies, this.onDayTap,
+      this.showNavigation = true});
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -79,6 +83,10 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.showNavigation) {
+      final now = DateTime.now();
+      _month = DateTime(now.year, now.month, 1);
+    }
     final daysInMonth = DateTime(_month.year, _month.month + 1, 0).day;
     final leading = DateTime(_month.year, _month.month, 1).weekday % 7; // 0=Sun
     final daysInPrevMonth = DateTime(_month.year, _month.month, 0).day;
@@ -90,19 +98,24 @@ class _MonthCalendarState extends State<MonthCalendar> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // Header: prev / month-year / next
       Row(children: [
-        IconButton(
-          onPressed: () => _shiftMonth(-1),
-          icon: Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        ),
+        if (widget.showNavigation)
+          IconButton(
+            onPressed: () => _shiftMonth(-1),
+            icon: Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ),
         Expanded(
-          child: Text('${_hebrewMonths[_month.month - 1]} ${_month.year}',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textPrimary)),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: widget.showNavigation ? 0 : 6),
+            child: Text('${_hebrewMonths[_month.month - 1]} ${_month.year}',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textPrimary)),
+          ),
         ),
-        IconButton(
-          onPressed: () => _shiftMonth(1),
-          icon: Icon(Icons.chevron_left, color: AppColors.textSecondary),
-        ),
+        if (widget.showNavigation)
+          IconButton(
+            onPressed: () => _shiftMonth(1),
+            icon: Icon(Icons.chevron_left, color: AppColors.textSecondary),
+          ),
       ]),
       // Weekday header
       Row(children: _hebrewWeekdays

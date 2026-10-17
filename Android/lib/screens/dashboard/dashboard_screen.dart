@@ -5,6 +5,8 @@ import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/score_history_chart.dart';
+import '../../widgets/month_calendar.dart';
+import '../calendar/calendar_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final void Function(int) navigateTo;
@@ -39,14 +41,27 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     final lastScore = prov.scores.isEmpty ? 0 : prov.scores.last.score;
-    final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-    final weekLogs = prov.logs.where((l) => DateTime.tryParse(l.date)?.isAfter(weekAgo) == true).length;
-    final admins   = prov.members.where((m) => m.isAdmin).length;
-    final students = prov.members.length - admins;
     final total     = prov.missions.length;
     final teamTasks = prov.memberTasks.where((t) => t.memberId == 'all' && !t.done).toList();
 
     return ListView(padding: const EdgeInsets.all(16), children: [
+      // ── Quick actions ──────────────────────────────────
+      _SectionCard(
+        icon: '⚡',
+        title: 'פעולות מהירות',
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _QuickBtn('📋 תיעוד חדש',          AppColors.accent,  () => navigateTo(1)),
+            _QuickBtn('📸 הוסף שיפור רובוט',   AppColors.accent3, () => navigateTo(2)),
+            _QuickBtn('🎯 מחשבון ניקוד',       AppColors.accent2, () => navigateTo(3)),
+            _QuickBtn('⏱️ טיימר ריצה',         AppColors.gold,    () => navigateTo(3)),
+          ],
+        ),
+      ),
+      SizedBox(height: 12),
+
       // ── Stat cards ─────────────────────────────────────
       GridView.count(
         crossAxisCount: 2,
@@ -56,18 +71,6 @@ class DashboardScreen extends StatelessWidget {
         mainAxisSpacing: 12,
         childAspectRatio: 1.3,
         children: [
-          _StatCard(
-            value: '${prov.members.length}',
-            label: 'חברי קבוצה',
-            color: AppColors.accent3,
-            sub: '$admins מנטורים, $students תלמידים',
-          ),
-          _StatCard(
-            value: '${prov.logs.length}',
-            label: 'ימנים שנכתבו',
-            color: AppColors.accent,
-            sub: '↑ $weekLogs השבוע',
-          ),
           _StatCard(
             value: '$lastScore',
             label: 'ניקוד אחרון',
@@ -83,6 +86,24 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       SizedBox(height: 16),
+
+      // ── This month's calendar (always the current month) ──
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: MonthCalendar(
+          milestones: prov.milestones,
+          stickies: prov.stickies,
+          showNavigation: false,
+          onDayTap: (day, dayMilestones, dayStickies) =>
+              CalendarScreen.showDaySheet(context, day, dayMilestones, dayStickies),
+        ),
+      ),
+      SizedBox(height: 12),
 
       // ── Competition countdown ──────────────────────────
       if (prov.competitionDate != null) ...[
@@ -128,7 +149,7 @@ class DashboardScreen extends StatelessWidget {
       ),
       SizedBox(height: 12),
 
-      // ── Quick actions ──────────────────────────────────
+      // ── Team tasks ─────────────────────────────────────
       if (teamTasks.isNotEmpty) ...[
         _SectionCard(
           icon: '📋',
@@ -139,20 +160,6 @@ class DashboardScreen extends StatelessWidget {
         ),
         SizedBox(height: 12),
       ],
-      _SectionCard(
-        icon: '⚡',
-        title: 'פעולות מהירות',
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _QuickBtn('📋 תיעוד חדש',          AppColors.accent,  () => navigateTo(1)),
-            _QuickBtn('📸 הוסף שיפור רובוט',   AppColors.accent3, () => navigateTo(2)),
-            _QuickBtn('🎯 מחשבון ניקוד',       AppColors.accent2, () => navigateTo(3)),
-            _QuickBtn('⏱️ טיימר ריצה',         AppColors.gold,    () => navigateTo(3)),
-          ],
-        ),
-      ),
     ]);
   }
 }

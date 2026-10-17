@@ -40,17 +40,6 @@ function renderMembers() {
     </div>`;
   }).join('');
   document.getElementById('team-count').textContent = (state.members || []).length;
-  document.getElementById('stat-members').textContent = (state.members || []).length;
-  // עדכן גם את הפירוט (מנטורים/תלמידים)
-  const membersChange = document.getElementById('stat-members-change');
-  if (membersChange) {
-    const members = state.members || [];
-    const mentors  = members.filter(m => m.role === 'admin').length;
-    const students = members.filter(m => m.role === 'student').length;
-    membersChange.textContent = members.length === 0
-      ? 'אין חברים עדיין'
-      : `${mentors} מנטורים, ${students} תלמידים`;
-  }
 }
 
 function showAddMemberModal() { openModal('modal-member'); }

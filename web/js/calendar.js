@@ -38,12 +38,23 @@ function _chipsForDay(iso) {
 // from adjacent months fill it out), each cell showing small colored event
 // chips (not just dots), a "+N" overflow, and a circular today marker.
 function renderMonthGrid() {
-  const label = document.getElementById('cal-month-label');
-  const weekdayRow = document.getElementById('cal-weekday-row');
-  const grid = document.getElementById('cal-grid');
+  _renderMonthInto('cal', _calMonth);
+}
+
+// Dashboard: always the current month (October shows October, December shows December…).
+function renderDashboardCalendar() {
+  const now = new Date();
+  _renderMonthInto('dash-cal', new Date(now.getFullYear(), now.getMonth(), 1));
+}
+
+// Renders a month into the elements `${prefix}-month-label`, `${prefix}-weekday-row`, `${prefix}-grid`.
+function _renderMonthInto(prefix, monthDate) {
+  const label = document.getElementById(prefix + '-month-label');
+  const weekdayRow = document.getElementById(prefix + '-weekday-row');
+  const grid = document.getElementById(prefix + '-grid');
   if (!label || !grid) return;
 
-  const y = _calMonth.getFullYear(), m = _calMonth.getMonth();
+  const y = monthDate.getFullYear(), m = monthDate.getMonth();
   label.textContent = `${_calHebrewMonths[m]} ${y}`;
   weekdayRow.innerHTML = _calHebrewWeekdays.map(w =>
     `<div style="text-align:center;font-size:11px;font-weight:700;color:var(--text3)">${w}</div>`).join('');
@@ -111,6 +122,7 @@ function showCalDay(iso) {
 
 function renderCalendar() {
   renderMonthGrid();
+  renderDashboardCalendar();
   const milestonesEl = document.getElementById('milestones-list');
   if (!milestonesEl) return;
 

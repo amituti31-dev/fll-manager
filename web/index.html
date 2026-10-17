@@ -291,7 +291,21 @@
 
       <!-- ═══ DASHBOARD ═══ -->
       <div class="screen active" id="screen-dashboard">
-        <div class="grid-4" style="margin-bottom:16px" id="dashboard-stats">
+        <div class="card" id="dashboard-quick-actions" style="margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">⚡</span>
+            <span class="card-title">פעולות מהירות</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" data-action="quick-log">📝 תיעוד חדש</button>
+            <button class="btn btn-success" data-action="quick-improvement">📸 הוסף שיפור רובוט</button>
+            <button class="btn btn-ghost" data-action="navigate" data-arg="scoring">🎯 מחשבון ניקוד</button>
+            <button class="btn btn-ghost" data-action="quick-timer">⏱️ טיימר ריצה</button>
+            <button class="btn btn-ghost" id="install-btn" data-action="install-pwa">📲 הוסף למסך הבית</button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:16px" id="dashboard-stats">
           <div class="stat-card blue">
             <div class="stat-value" id="stat-missions">0/15</div>
             <div class="stat-label">משימות הושלמו</div>
@@ -302,16 +316,17 @@
             <div class="stat-label">ניקוד אחרון</div>
             <div class="stat-change" id="stat-score-change">אין ריצות עדיין</div>
           </div>
-          <div class="stat-card orange">
-            <div class="stat-value" id="stat-logs">0</div>
-            <div class="stat-label">יומנים שנכתבו</div>
-            <div class="stat-change" id="stat-logs-change">↑ 0 השבוע</div>
+        </div>
+
+        <!-- This month's calendar (always the current month; full calendar in its own screen) -->
+        <div class="card" id="dashboard-calendar" style="margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">📅</span>
+            <span class="card-title" id="dash-cal-month-label">לוח שנה</span>
+            <button class="btn btn-ghost" style="margin-right:auto;font-size:12px" data-action="navigate" data-arg="calendar">ללוח השנה ←</button>
           </div>
-          <div class="stat-card gold">
-            <div class="stat-value" id="stat-members">0</div>
-            <div class="stat-label">חברי קבוצה</div>
-            <div class="stat-change" id="stat-members-change">אין חברים עדיין</div>
-          </div>
+          <div id="dash-cal-weekday-row" style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px"></div>
+          <div id="dash-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
         </div>
 
         <div class="card" id="competition-countdown-card" style="display:none;margin-bottom:16px">
@@ -352,19 +367,6 @@
           </div>
         </div>
 
-        <div class="card" id="dashboard-quick-actions">
-          <div class="card-header">
-            <span class="card-icon">⚡</span>
-            <span class="card-title">פעולות מהירות</span>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" data-action="quick-log">📝 תיעוד חדש</button>
-            <button class="btn btn-success" data-action="quick-improvement">📸 הוסף שיפור רובוט</button>
-            <button class="btn btn-ghost" data-action="navigate" data-arg="scoring">🎯 מחשבון ניקוד</button>
-            <button class="btn btn-ghost" data-action="quick-timer">⏱️ טיימר ריצה</button>
-            <button class="btn btn-ghost" id="install-btn" data-action="install-pwa">📲 הוסף למסך הבית</button>
-          </div>
-        </div>
       </div>
 
       <!-- ═══ DAILY LOG ═══ -->
