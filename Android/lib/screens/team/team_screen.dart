@@ -412,7 +412,8 @@ class _MemberCard extends StatelessWidget {
       ]),
     );
 
-    if (isMe) return card;
+    // Private chat is mentors only (the 'chats' doc is mentor-only in firestore.rules).
+    if (isMe || !prov.isAdmin) return card;
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
