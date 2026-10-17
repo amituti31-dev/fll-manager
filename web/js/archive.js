@@ -75,7 +75,7 @@ async function createNewSeason() {
   state.scores = [];
   state.missionChecks = {};
   state.rubrics = { values: [], robot: [], innovation: [] };
-  state.officialRubric = { marks: { innovation: {}, robot: {} }, feedback: {} };
+  state.officialRubric = { marks: { innovation: {}, robot: {} }, notes: { innovation: {}, robot: {} }, feedback: {} };
   state.stickies = [];
 
   state.seasons.push({ name, year: new Date().getFullYear(), archived: false, topScore: 0 });

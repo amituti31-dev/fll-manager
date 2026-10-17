@@ -38,7 +38,7 @@ function defaultState() {
     strategyBoardImage: null, // base64 background image (localStorage only, not Firestore)
     competitionDate: null,    // 'YYYY-MM-DD'
     judgingQs: null,          // null = use defaults (populated on first load)
-    officialRubric: { marks: { innovation: {}, robot: {} }, feedback: {} }, // judging-room rubric marks (see rubrics.js)
+    officialRubric: { marks: { innovation: {}, robot: {} }, notes: { innovation: {}, robot: {} }, feedback: {} }, // judging-room rubric marks (see rubrics.js)
     judgingDoc: null,         // { name, url, uploadedBy, date } — stored in Firebase Storage + Firestore
   };
 }

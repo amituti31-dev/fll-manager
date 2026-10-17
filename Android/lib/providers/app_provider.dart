@@ -35,8 +35,10 @@ class AppProvider extends ChangeNotifier {
   Map<int, bool> missionChecks = {};
   Map<int, MissionExtra> missionExtra = {};
   Map<String, List<RubricItem>> rubrics = {'values': [], 'robot': [], 'innovation': []};
-  // Official judging grid (judging room): marks[cat][fieldId] = 1-4, feedback[tab][greatJob|thinkAbout].
+  // Official judging grid (judging room): marks[cat][fieldId] = 1-4, notes[cat][fieldId] =
+  // "כיצד הקבוצה הצטיינה?" (when marked מצטיינת), feedback[tab][greatJob|thinkAbout].
   Map<String, Map<String, int>> rubricMarks = {'innovation': {}, 'robot': {}};
+  Map<String, Map<String, String>> rubricNotes = {'innovation': {}, 'robot': {}};
   Map<String, Map<String, String>> rubricFeedback = {};
   List<StickyNote> stickies = [];
   List<MemberTask> memberTasks = [];
@@ -99,6 +101,7 @@ class AppProvider extends ChangeNotifier {
     missionExtra = {};
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricNotes = {'innovation': {}, 'robot': {}};
     rubricFeedback = {};
     stickies = [];
     memberTasks = [];
@@ -246,6 +249,14 @@ class AppProvider extends ChangeNotifier {
       if (official is Map) {
         final marks = official['marks'];
         final feedback = official['feedback'];
+        final notes = official['notes'];
+        rubricNotes = {
+          for (final cat in ['innovation', 'robot'])
+            cat: {
+              if (notes is Map && notes[cat] is Map)
+                for (final e in (notes[cat] as Map).entries) e.key.toString(): e.value?.toString() ?? '',
+            },
+        };
         rubricMarks = {
           for (final cat in ['innovation', 'robot'])
             cat: {
@@ -377,7 +388,7 @@ class AppProvider extends ChangeNotifier {
           'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
           'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
         },
-        'officialRubric': {'marks': rubricMarks, 'feedback': rubricFeedback},
+        'officialRubric': {'marks': rubricMarks, 'notes': rubricNotes, 'feedback': rubricFeedback},
         'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
       });
     } catch (_) {}
@@ -716,6 +727,24 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  Future<void> setRubricNote(String cat, String fieldId, String value) async {
+    final notes = rubricNotes.putIfAbsent(cat, () => {});
+    if ((notes[fieldId] ?? '') == value) return;
+    notes[fieldId] = value;
+    await _saveData();
+  }
+
+  /// "איפוס המחוון" — clears the marks, notes and feedback shown on [tab].
+  Future<void> resetRubricTab(String tab) async {
+    for (final r in rubricRows(tab)) {
+      rubricMarks[r.cat]?.remove(r.field.id);
+      rubricNotes[r.cat]?.remove(r.field.id);
+    }
+    rubricFeedback.remove(tab);
+    notifyListeners();
+    await _saveData();
+  }
+
   Future<void> setRubricFeedback(String tab, String field, String value) async {
     final fb = rubricFeedback.putIfAbsent(tab, () => {});
     if ((fb[field] ?? '') == value) return;
@@ -850,6 +879,7 @@ class AppProvider extends ChangeNotifier {
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricNotes = {'innovation': {}, 'robot': {}};
     rubricFeedback = {};
     notifyListeners();
     await _saveData();
@@ -865,6 +895,7 @@ class AppProvider extends ChangeNotifier {
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricNotes = {'innovation': {}, 'robot': {}};
     rubricFeedback = {};
     stickies = [];
     memberTasks = [];

@@ -2,18 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/app_provider.dart';
-import '../theme/app_theme.dart';
 
+// Laid out like FIRST Israel's rubric tool (fll-events.firstisrael.org.il/tools/rubrics),
+// including its light look. On a phone the site itself switches from the 4-column
+// table to one card per criterion — that's what this mirrors.
 const _tabs = [
-  ('innovation', '💡 פרויקט החדשנות'),
-  ('robot', '🤖 תכנון הרובוט'),
-  ('values', '⭐ ערכי הליבה'),
+  ('innovation', 'פרויקט החדשנות', Color(0xFF5E82BF)),
+  ('robot', 'תכנון הרובוט', Color(0xFF64AF75)),
+  ('values', 'ערכי הליבה', Color(0xFFE4928B)),
 ];
+const _sectionBg = {
+  'innovation': Color(0xFFD3DAED),
+  'robot': Color(0xFFDAE8D8),
+  'values': Color(0xFFF5DAD4),
+};
+const _ink = Color(0xFF1A1F36);
+const _blue = Color(0xFF1E6FD9);
+const _line = Color(0xFFE3E3E3);
 
-/// The official judging rubric as on FIRST Israel's site: pick a tab, and for
-/// every criterion just mark one of the four levels. The core-values tab is
-/// the flagged criteria of the other two (same marks). Mentors mark; everyone
-/// else sees it read-only.
+/// The official judging rubric: pick a judging area, and for every criterion
+/// just mark one of the four levels. The core-values tab is the flagged
+/// criteria of the other two (same marks). Mentors mark; others read only.
 class RubricGrid extends StatefulWidget {
   const RubricGrid({super.key});
 
@@ -24,12 +33,25 @@ class RubricGrid extends StatefulWidget {
 class _RubricGridState extends State<RubricGrid> {
   String _tab = 'innovation';
 
+  Future<void> _confirmReset(AppProvider prov) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('איפוס המחוון'),
+        content: const Text('לאפס את כל הסימונים בתחום השיפוט הזה?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ביטול')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('אפס')),
+        ],
+      ),
+    );
+    if (ok == true) await prov.resetRubricTab(_tab);
+  }
+
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
-    final colors = rubricColors[_tab]!;
     final rows = rubricRows(_tab);
-    final marked = rows.where((r) => (prov.rubricMarks[r.cat]?[r.field.id] ?? 0) > 0).length;
 
     final children = <Widget>[];
     String? lastSection;
@@ -40,76 +62,138 @@ class _RubricGridState extends State<RubricGrid> {
         final prefix = _tab == 'values' ? '${rubricTitles[r.cat]} · ' : '';
         children.add(Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(top: 12, bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: colors[0], borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          color: _sectionBg[_tab],
           child: Text.rich(TextSpan(children: [
             TextSpan(text: '$prefix${r.section.title}', style: const TextStyle(fontWeight: FontWeight.w800)),
-            TextSpan(text: ' - ${r.section.description}'),
-          ]), style: const TextStyle(fontSize: 12, color: Color(0xFF1A1F36), height: 1.4)),
+            TextSpan(text: '  -  ${r.section.description}'),
+          ]), style: const TextStyle(fontSize: 12, color: _ink, height: 1.4)),
         ));
       }
+      final current = prov.rubricMarks[r.cat]?[r.field.id] ?? 0;
       children.add(_FieldCard(
-        cat: r.cat, field: r.field, colors: colors,
-        current: prov.rubricMarks[r.cat]?[r.field.id] ?? 0,
-        canEdit: prov.isAdmin,
+        cat: r.cat, field: r.field, tab: _tab, current: current, canEdit: prov.isAdmin,
       ));
+      if (current == 4) {
+        children.add(_NoteField(
+          key: ValueKey('note-${r.cat}-${r.field.id}'),
+          initial: prov.rubricNotes[r.cat]?[r.field.id] ?? '',
+          readOnly: !prov.isAdmin,
+          onSave: (v) => prov.setRubricNote(r.cat, r.field.id, v),
+        ));
+      }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('📋 מחווני שיפוט',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.textPrimary)),
-        SizedBox(height: 10),
-        Wrap(spacing: 6, runSpacing: 6, children: [
-          for (final (key, label) in _tabs)
-            ChoiceChip(
-              label: Text(label, style: TextStyle(fontSize: 12)),
-              selected: _tab == key,
-              onSelected: (_) => setState(() => _tab = key),
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Expanded(
+          child: Text('מחווני שיפוט',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800,
+                  color: Theme.of(context).textTheme.bodyLarge?.color)),
+        ),
+        if (prov.isAdmin)
+          OutlinedButton(
+            onPressed: () => _confirmReset(prov),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF00396B),
+              side: const BorderSide(color: Color(0xFF00396B)),
             ),
-        ]),
-        SizedBox(height: 8),
-        Text('סומנו $marked מתוך ${rows.length} קריטריונים${prov.isAdmin ? '' : ' · רק מנטור יכול לסמן'}',
-            style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-        if (_tab == 'values') ...[
-          SizedBox(height: 6),
-          Text('ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו בשני המחוונים האחרים (25% מהניקוד). סימון כאן הוא אותו סימון כמו שם.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4)),
-        ],
-        ...children,
-        SizedBox(height: 12),
-        _FeedbackField(key: ValueKey('$_tab-greatJob'), tab: _tab, field: 'greatJob', label: 'עבודה מצוינת...'),
-        SizedBox(height: 8),
-        _FeedbackField(key: ValueKey('$_tab-thinkAbout'), tab: _tab, field: 'thinkAbout', label: 'חשבו על...'),
+            child: const Text('איפוס המחוון'),
+          ),
       ]),
-    );
+      const SizedBox(height: 10),
+      Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 10, offset: Offset(0, 2))],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              const Text('תחומי שיפוט', style: TextStyle(fontSize: 12, color: Color(0xFF555555))),
+              for (final (key, label, dot) in _tabs)
+                GestureDetector(
+                  onTap: () => setState(() => _tab = key),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: _tab == key ? const Color(0xFFF3F8FF) : Colors.white,
+                      border: Border.all(color: _tab == key ? _blue : const Color(0xFFCCCCCC), width: _tab == key ? 2 : 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Container(width: 7, height: 7, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                      const SizedBox(width: 7),
+                      Text(label, style: TextStyle(
+                        fontSize: 13,
+                        color: _tab == key ? _blue : const Color(0xFF333333),
+                        fontWeight: _tab == key ? FontWeight.w700 : FontWeight.w400,
+                      )),
+                    ]),
+                  ),
+                ),
+            ]),
+          ),
+          if (_tab == 'values')
+            const Padding(
+              padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Text(
+                'ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו במחווני פרויקט החדשנות ותכנון הרובוט, ומהווים 25% מהניקוד. סימון כאן הוא אותו סימון כמו שם.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.4),
+              ),
+            ),
+          ...children,
+          // Feedback
+          Container(
+            color: _sectionBg[_tab],
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: const Text('עבודה מצוינת......', textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: _ink)),
+          ),
+          _NoteField(
+            key: ValueKey('fb-$_tab-greatJob'),
+            initial: prov.rubricFeedback[_tab]?['greatJob'] ?? '',
+            hint: 'עבודה מצוינת...',
+            readOnly: !prov.isAdmin,
+            onSave: (v) => prov.setRubricFeedback(_tab, 'greatJob', v),
+          ),
+          Container(
+            color: _sectionBg[_tab],
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: const Text('חשבו על......', textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: _ink)),
+          ),
+          _NoteField(
+            key: ValueKey('fb-$_tab-thinkAbout'),
+            initial: prov.rubricFeedback[_tab]?['thinkAbout'] ?? '',
+            hint: 'חשבו על...',
+            readOnly: !prov.isAdmin,
+            onSave: (v) => prov.setRubricFeedback(_tab, 'thinkAbout', v),
+          ),
+        ]),
+      ),
+    ]);
   }
 }
 
 class _FieldCard extends StatelessWidget {
   final String cat;
   final RubricFieldDef field;
-  final List<Color> colors;
+  final String tab;
   final int current;
   final bool canEdit;
-  const _FieldCard({required this.cat, required this.field, required this.colors,
+  const _FieldCard({required this.cat, required this.field, required this.tab,
       required this.current, required this.canEdit});
 
   @override
   Widget build(BuildContext context) {
+    final colors = rubricColors[tab]!;
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(10),
-      ),
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: _line))),
       child: Column(children: [
         for (int level = 1; level <= 4; level++)
           InkWell(
@@ -118,31 +202,24 @@ class _FieldCard extends StatelessWidget {
                 : () => ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('רק מנטור יכול לסמן במחוון'))),
             child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: BoxDecoration(
-                color: current == level ? colors[level - 1] : null,
-                border: level < 4 ? Border(bottom: BorderSide(color: AppColors.border.withAlpha(80))) : null,
+                color: current == level ? const Color(0xFFF3F8FF) : null,
+                border: level > 1 ? const Border(top: BorderSide(color: Color(0xFFF0F0F0))) : null,
               ),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(
-                  current == level ? Icons.radio_button_checked
-                      : (field.coreValues ? Icons.motion_photos_on_outlined : Icons.radio_button_unchecked),
-                  size: 18,
-                  color: current == level ? const Color(0xFF1A1F36) : AppColors.textTertiary,
+              child: Row(children: [
+                _Radio(selected: current == level, dashed: field.coreValues),
+                const SizedBox(width: 10),
+                Container(
+                  width: 62,
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  decoration: BoxDecoration(color: colors[level - 1], borderRadius: BorderRadius.circular(4)),
+                  child: Text(rubricLevels[level - 1], textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: _ink)),
                 ),
-                SizedBox(width: 8),
-                SizedBox(
-                  width: 58,
-                  child: Text(rubricLevels[level - 1], style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w800,
-                    color: current == level ? const Color(0xFF1A1F36) : AppColors.textSecondary,
-                  )),
-                ),
-                Expanded(child: Text(level <= 3 ? field.levels[level - 1] : '', style: TextStyle(
-                  fontSize: 12, height: 1.35,
-                  color: current == level ? const Color(0xFF1A1F36) : AppColors.textPrimary,
-                ))),
+                const SizedBox(width: 10),
+                Expanded(child: Text(level <= 3 ? field.levels[level - 1] : '',
+                    style: const TextStyle(fontSize: 13, height: 1.4, color: _ink))),
               ]),
             ),
           ),
@@ -151,28 +228,72 @@ class _FieldCard extends StatelessWidget {
   }
 }
 
-class _FeedbackField extends StatefulWidget {
-  final String tab;
-  final String field;
-  final String label;
-  const _FeedbackField({super.key, required this.tab, required this.field, required this.label});
+/// Radio like the site's: dotted outline for criteria that also count toward core values.
+class _Radio extends StatelessWidget {
+  final bool selected;
+  final bool dashed;
+  const _Radio({required this.selected, required this.dashed});
 
   @override
-  State<_FeedbackField> createState() => _FeedbackFieldState();
+  Widget build(BuildContext context) => SizedBox(
+    width: 22, height: 22,
+    child: CustomPaint(
+      painter: _RadioPainter(selected: selected, dashed: dashed),
+    ),
+  );
 }
 
-class _FeedbackFieldState extends State<_FeedbackField> {
-  late final TextEditingController _ctrl;
+class _RadioPainter extends CustomPainter {
+  final bool selected;
+  final bool dashed;
+  _RadioPainter({required this.selected, required this.dashed});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.width / 2 - 1.5;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = dashed ? 2.6 : 2
+      ..color = selected ? _blue : const Color(0xFF666666);
+    if (dashed) {
+      const n = 12;
+      for (var i = 0; i < n; i++) {
+        final start = i * 2 * 3.14159265 / n;
+        canvas.drawArc(Rect.fromCircle(center: c, radius: r), start, 3.14159265 / n, false, paint);
+      }
+    } else {
+      canvas.drawCircle(c, r, paint);
+    }
+    if (selected) canvas.drawCircle(c, 5, Paint()..color = _blue);
+  }
+
+  @override
+  bool shouldRepaint(_RadioPainter old) => old.selected != selected || old.dashed != dashed;
+}
+
+/// Multi-line text field that saves once when it loses focus.
+class _NoteField extends StatefulWidget {
+  final String initial;
+  final String? hint;
+  final bool readOnly;
+  final ValueChanged<String> onSave;
+  const _NoteField({super.key, required this.initial, required this.readOnly,
+      required this.onSave, this.hint});
+
+  @override
+  State<_NoteField> createState() => _NoteFieldState();
+}
+
+class _NoteFieldState extends State<_NoteField> {
+  late final TextEditingController _ctrl = TextEditingController(text: widget.initial);
   final _focus = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    final prov = context.read<AppProvider>();
-    _ctrl = TextEditingController(text: prov.rubricFeedback[widget.tab]?[widget.field] ?? '');
-    // Save once when the field loses focus, not on every keystroke.
     _focus.addListener(() {
-      if (!_focus.hasFocus) prov.setRubricFeedback(widget.tab, widget.field, _ctrl.text);
+      if (!_focus.hasFocus) widget.onSave(_ctrl.text);
     });
   }
 
@@ -185,14 +306,40 @@ class _FeedbackFieldState extends State<_FeedbackField> {
 
   @override
   Widget build(BuildContext context) {
-    final canEdit = context.select<AppProvider, bool>((p) => p.isAdmin);
-    return TextField(
-      controller: _ctrl,
-      focusNode: _focus,
-      readOnly: !canEdit,
-      maxLines: 2,
-      style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
-      decoration: InputDecoration(labelText: widget.label),
+    final isNote = widget.hint == null;
+    return Container(
+      color: isNote ? const Color(0xFFFAFBFD) : Colors.white,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (isNote)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 4),
+            child: Text('הערות', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _ink)),
+          ),
+        TextField(
+          controller: _ctrl,
+          focusNode: _focus,
+          readOnly: widget.readOnly,
+          minLines: isNote ? 2 : 4,
+          maxLines: null,
+          style: const TextStyle(fontSize: 13, color: _ink),
+          decoration: InputDecoration(
+            hintText: widget.hint ?? 'כיצד הקבוצה הצטיינה?',
+            hintStyle: const TextStyle(color: Color(0xFF999999)),
+            filled: true,
+            fillColor: Colors.white,
+            isDense: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }

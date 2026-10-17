@@ -56,6 +56,8 @@ const ACTIONS = {
   'switch-rubric-tab': (el) => switchRubricTab(el.dataset.arg),
   'set-rubric-mark': (el) => setRubricMark(el.dataset.category, el.dataset.field, Number(el.dataset.score)),
   'set-rubric-feedback': (el) => setRubricFeedback(el.dataset.category, el.dataset.field, el.value),
+  'set-rubric-note': (el) => setRubricNote(el.dataset.category, el.dataset.field, el.value),
+  'reset-rubric-tab': () => resetRubricTab(),
 
   // Robot
   'open-add-improvement': () => openAddImprovement(),

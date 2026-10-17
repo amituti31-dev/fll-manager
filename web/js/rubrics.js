@@ -1,21 +1,27 @@
 // ═══════════════════════════════════════════════════════
 // § 11 · RUBRICS — official judging grid (judging room)
 // ═══════════════════════════════════════════════════════
-// Marks live in state.officialRubric = { marks: { innovation: {fieldId: 1-4}, robot: {...} },
-// feedback: { innovation|robot|values: { greatJob, thinkAbout } } } (admin-data, mentor-only).
+// Laid out like FIRST Israel's rubric tool (fll-events.firstisrael.org.il/tools/rubrics).
+// state.officialRubric = { marks: { innovation|robot: {fieldId: 1-4} },
+//   notes: { innovation|robot: {fieldId: text} }   ← "כיצד הקבוצה הצטיינה?" when marked מצטיינת
+//   feedback: { innovation|robot|values: { greatJob, thinkAbout } } }  (admin-data, mentor-only)
 let _rubricTab = 'innovation';
 const _RUBRIC_TABS = [
-  ['innovation', '💡 פרויקט החדשנות'],
-  ['robot', '🤖 תכנון הרובוט'],
-  ['values', '⭐ ערכי הליבה'],
+  ['innovation', 'פרויקט החדשנות', '#5E82BF'],
+  ['robot', 'תכנון הרובוט', '#64AF75'],
+  ['values', 'ערכי הליבה', '#E4928B'],
 ];
+// Section-header row color per tab, as on the official site.
+const _RUBRIC_SECTION_BG = { innovation: '#D3DAED', robot: '#DAE8D8', values: '#F5DAD4' };
 
 function _officialRubric() {
   if (!state.officialRubric) state.officialRubric = {};
   const r = state.officialRubric;
-  if (!r.marks) r.marks = {};
-  if (!r.marks.innovation) r.marks.innovation = {};
-  if (!r.marks.robot) r.marks.robot = {};
+  ['marks', 'notes'].forEach(k => {
+    if (!r[k]) r[k] = {};
+    if (!r[k].innovation) r[k].innovation = {};
+    if (!r[k].robot) r[k].robot = {};
+  });
   if (!r.feedback) r.feedback = {};
   return r;
 }
@@ -53,6 +59,14 @@ function setRubricMark(cat, fieldId, level) {
   saveState(); renderRubricGrid();
 }
 
+function setRubricNote(cat, fieldId, value) {
+  if (!state.isAdmin) return;
+  const notes = _officialRubric().notes[cat];
+  if (!notes) return;
+  notes[fieldId] = String(value).slice(0, 2000);
+  saveState();
+}
+
 function setRubricFeedback(tab, key, value) {
   if (!state.isAdmin) return;
   const fb = _officialRubric().feedback;
@@ -61,55 +75,76 @@ function setRubricFeedback(tab, key, value) {
   saveState();
 }
 
+// "איפוס המחוון" — clears the current tab's marks, notes and feedback.
+function resetRubricTab() {
+  if (!state.isAdmin) return;
+  if (!confirm('לאפס את כל הסימונים בתחום השיפוט הזה?')) return;
+  const r = _officialRubric();
+  _rubricRows(_rubricTab).forEach(({ cat, field }) => {
+    delete r.marks[cat][field.id];
+    delete r.notes[cat][field.id];
+  });
+  delete r.feedback[_rubricTab];
+  saveState(); renderRubricGrid();
+}
+
 function renderRubricGrid() {
-  const tabsEl = document.getElementById('rubric-tabs');
-  const gridEl = document.getElementById('rubric-grid');
-  if (!tabsEl || !gridEl) return;
+  const el = document.getElementById('rubric-grid');
+  if (!el) return;
   const tab = _rubricTab;
   const colors = RUBRIC_COLORS[tab];
-  const { marks, feedback } = _officialRubric();
-  const rows = _rubricRows(tab);
-  const marked = rows.filter(r => marks[r.cat][r.field.id]).length;
+  const sectionBg = _RUBRIC_SECTION_BG[tab];
+  const { marks, notes, feedback } = _officialRubric();
+  const ro = state.isAdmin ? '' : ' readonly';
 
-  tabsEl.innerHTML = _RUBRIC_TABS.map(([key, label]) =>
-    `<button class="btn ${key === tab ? 'btn-primary' : 'btn-ghost'}" style="flex:1;font-size:13px" data-action="switch-rubric-tab" data-arg="${key}">${label}</button>`
-  ).join('');
-
-  let html = `<div class="rg-summary">סומנו ${marked} מתוך ${rows.length} קריטריונים${state.isAdmin ? '' : ' · רק מנטור יכול לסמן'}</div>`;
-  if (tab === 'values') {
-    html += `<div class="rg-note">ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו בשני המחוונים האחרים (25% מהניקוד). סימון כאן הוא אותו סימון כמו שם.</div>`;
-  }
-  html += `<div class="rg-scroll"><div class="rg-table">`;
-  html += `<div class="rg-row rg-head">${RUBRIC_LEVELS.map((l, i) =>
-    `<div class="rg-cell" style="background:${colors[i]}">${l}</div>`).join('')}</div>`;
+  let html = `
+    <div class="rg-top">
+      <span class="rg-title">מחווני שיפוט</span>
+      ${state.isAdmin ? `<button class="rg-reset" data-action="reset-rubric-tab">איפוס המחוון</button>` : ''}
+    </div>
+    <div class="rg-card">
+      <div class="rg-nav">
+        <span class="rg-nav-title">תחומי שיפוט</span>
+        ${_RUBRIC_TABS.map(([key, label, dot]) => `
+          <button class="rg-chip${key === tab ? ' on' : ''}" data-action="switch-rubric-tab" data-arg="${key}">
+            <span class="rg-dot" style="background:${dot}"></span>${label}</button>`).join('')}
+      </div>
+      ${tab === 'values' ? `<div class="rg-cv-note">ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו במחווני פרויקט החדשנות ותכנון הרובוט, ומהווים 25% מהניקוד. סימון כאן הוא אותו סימון כמו שם.</div>` : ''}
+      <div class="rg-scroll"><div class="rg-table">
+        <div class="rg-row rg-head">${RUBRIC_LEVELS.map((l, i) =>
+          `<div class="rg-cell" style="background:${colors[i]}">${l}</div>`).join('')}</div>`;
 
   let lastSection = null;
-  rows.forEach(({ cat, section, field }) => {
+  _rubricRows(tab).forEach(({ cat, section, field }) => {
     const sectionKey = cat + '.' + section.id;
     if (sectionKey !== lastSection) {
       lastSection = sectionKey;
       const prefix = tab === 'values' ? `${RUBRIC_GRID[cat].title} · ` : '';
-      html += `<div class="rg-section" style="background:${colors[0]}"><b>${prefix}${section.title}</b> - ${section.description}</div>`;
+      html += `<div class="rg-section" style="background:${sectionBg}"><b>${prefix}${section.title}</b>&nbsp; - &nbsp;${section.description}</div>`;
     }
     const current = marks[cat][field.id] || 0;
     html += `<div class="rg-row">${[1, 2, 3, 4].map(level => {
       const on = current === level;
       const text = field.levels[level - 1] || '';
-      return `<div class="rg-cell rg-option${on ? ' on' : ''}" style="${on ? `background:${colors[level - 1]};color:#1a1f36` : ''}"
-        data-action="set-rubric-mark" data-category="${cat}" data-field="${field.id}" data-score="${level}">
-        <span class="rg-radio${field.coreValues ? ' cv' : ''}">${on ? '●' : ''}</span><span>${text}</span></div>`;
+      return `<div class="rg-cell rg-option${text ? '' : ' rg-empty'}" data-action="set-rubric-mark" data-category="${cat}" data-field="${field.id}" data-score="${level}">
+        <span class="rg-radio${field.coreValues ? ' cv' : ''}${on ? ' on' : ''}"></span>${text ? `<span>${text}</span>` : ''}</div>`;
     }).join('')}</div>`;
+    if (current === 4) {
+      html += `<div class="rg-notes">
+        <label>הערות</label>
+        <textarea rows="2" placeholder="כיצד הקבוצה הצטיינה?" data-onchange="set-rubric-note" data-category="${cat}" data-field="${field.id}"${ro}>${sanitize(notes[cat][field.id] || '')}</textarea>
+      </div>`;
+    }
   });
-  html += `</div></div>`;
 
   const fb = feedback[tab] || {};
-  const ro = state.isAdmin ? '' : ' readonly';
   html += `
-    <div class="rg-feedback">
-      <label class="form-label">עבודה מצוינת...</label>
-      <textarea class="form-input" rows="2" data-onchange="set-rubric-feedback" data-category="${tab}" data-field="greatJob"${ro}>${sanitize(fb.greatJob || '')}</textarea>
-      <label class="form-label" style="margin-top:8px">חשבו על...</label>
-      <textarea class="form-input" rows="2" data-onchange="set-rubric-feedback" data-category="${tab}" data-field="thinkAbout"${ro}>${sanitize(fb.thinkAbout || '')}</textarea>
+        <div class="rg-fb-head" style="background:${sectionBg}"><div>עבודה מצוינת......</div><div>חשבו על......</div></div>
+        <div class="rg-fb-body">
+          <textarea rows="5" placeholder="עבודה מצוינת..." data-onchange="set-rubric-feedback" data-category="${tab}" data-field="greatJob"${ro}>${sanitize(fb.greatJob || '')}</textarea>
+          <textarea rows="5" placeholder="חשבו על..." data-onchange="set-rubric-feedback" data-category="${tab}" data-field="thinkAbout"${ro}>${sanitize(fb.thinkAbout || '')}</textarea>
+        </div>
+      </div></div>
     </div>`;
-  gridEl.innerHTML = html;
+  el.innerHTML = html;
 }
