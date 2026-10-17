@@ -109,6 +109,17 @@ class _RootRouterState extends State<_RootRouter> {
   static const _currentVersion = '1.0.45';
   bool _updateChecked = false;
 
+  // Check for an update as soon as the app opens — on the login screen too,
+  // not only after joining a team: a user stuck at login (e.g. a join bug)
+  // otherwise never sees the update that fixes it.
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () { if (mounted) _checkForUpdates(); });
+    });
+  }
+
   bool _isNewer(String remote) {
     final r = remote.split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final c = _currentVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
@@ -169,10 +180,6 @@ class _RootRouterState extends State<_RootRouter> {
   @override
   Widget build(BuildContext context) {
     final status = context.select<AppProvider, AppStatus>((p) => p.status);
-
-    if (status == AppStatus.ready) {
-      Future.delayed(const Duration(seconds: 5), _checkForUpdates);
-    }
 
     return switch (status) {
       AppStatus.loading         => const _SplashScreen(),
