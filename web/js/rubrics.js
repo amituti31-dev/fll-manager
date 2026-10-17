@@ -3,17 +3,6 @@
 // ═══════════════════════════════════════════════════════
 function renderRubrics(cat) {
   const rubrics = state.rubrics[cat] || [];
-  const total = rubrics.length * 4;
-  const scored = rubrics.reduce((a, r) => a + (r.score || 0), 0);
-  const pct = total ? Math.round((scored / total) * 100) : 0;
-
-  if (cat === 'values') {
-    const pctEl = document.getElementById('values-pct');
-    const progEl = document.getElementById('values-progress');
-    if (pctEl) pctEl.textContent = pct + '%';
-    if (progEl) progEl.style.width = pct + '%';
-  }
-
   const html = rubrics.map(r => `
     <div class="rubric-item">
       <div class="rubric-q">${sanitize(r.q)}</div>
@@ -27,8 +16,7 @@ function renderRubrics(cat) {
     </div>
   `).join('') || '<div style="color:var(--text3);padding:20px;text-align:center">אין שאלות עדיין. הוסף שאלות או ייבא מחוון רשמי.</div>';
 
-  const mainEl = document.getElementById(`${cat === 'values' ? 'values' : cat}-rubrics`);
-  if (mainEl) mainEl.innerHTML = html;
+  // All rubrics live in one place — the judging room (scoring screen).
   const scoringEl = document.getElementById(`scoring-${cat}-rubrics`);
   if (scoringEl) scoringEl.innerHTML = html;
 }
@@ -48,7 +36,8 @@ function deleteRubric(cat, id) {
   saveState(); renderRubrics(cat);
 }
 
-function importOfficialRubric(cat) {
+// Returns {added, removed}; caller saves/renders/notifies.
+function _mergeOfficialRubric(cat) {
   // Drop the old made-up default criteria (kept if the team wrote notes on them).
   const legacy = new Set(LEGACY_RUBRIC_TEXTS);
   const before = state.rubrics[cat].length;
@@ -59,10 +48,30 @@ function importOfficialRubric(cat) {
   OFFICIAL_RUBRICS[cat].forEach(q => {
     if (!existing.has(q)) { state.rubrics[cat].push({ id: Date.now() + Math.random(), q, score: 0, notes: '' }); added++; }
   });
-  saveState(); renderRubrics(cat);
+  return { added, removed };
+}
+
+function _notifyRubricImport(added, removed) {
   notify(added || removed
     ? `✅ נוספו ${added} קריטריונים רשמיים${removed ? ` (הוסרו ${removed} ישנים)` : ''}`
     : 'כל הקריטריונים כבר קיימים', 'success');
+}
+
+function importOfficialRubric(cat) {
+  const { added, removed } = _mergeOfficialRubric(cat);
+  saveState(); renderRubrics(cat);
+  _notifyRubricImport(added, removed);
+}
+
+function importAllOfficialRubrics() {
+  let added = 0, removed = 0;
+  ['innovation', 'robot', 'values'].forEach(cat => {
+    const r = _mergeOfficialRubric(cat);
+    added += r.added; removed += r.removed;
+    renderRubrics(cat);
+  });
+  saveState();
+  _notifyRubricImport(added, removed);
 }
 
 function addCustomRubric(cat) { state.pendingRubricCategory = cat; openModal('modal-rubric'); }

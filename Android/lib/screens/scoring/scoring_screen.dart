@@ -407,6 +407,21 @@ class _ScoringScreenState extends State<ScoringScreen>
     ]);
   }
 
+  Future<void> _importAllRubrics(AppProvider prov) async {
+    final messenger = ScaffoldMessenger.of(context);
+    var added = 0, removed = 0;
+    for (final cat in ['innovation', 'robot', 'values']) {
+      final (a, r) = await prov.importOfficialRubric(cat);
+      added += a;
+      removed += r;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(
+      added > 0 || removed > 0
+          ? '✅ נוספו $added קריטריונים רשמיים${removed > 0 ? ' (הוסרו $removed ישנים)' : ''}'
+          : 'כל הקריטריונים כבר קיימים',
+    )));
+  }
+
   // ── Tab 2: Judging Room ────────────────────────────
   Widget _buildJudgingTab(AppProvider prov) {
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -493,19 +508,32 @@ class _ScoringScreenState extends State<ScoringScreen>
           minimumSize: const Size(double.infinity, 48),
         ),
       ),
+      if (prov.isAdmin) ...[
+        SizedBox(height: 10),
+        ElevatedButton.icon(
+          onPressed: () => _importAllRubrics(prov),
+          icon: Text('📥'),
+          label: Text('ייבא את כל המחוונים הרשמיים', style: TextStyle(fontSize: 13)),
+          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
+        ),
+      ],
       SizedBox(height: 16),
 
-      // Innovation rubric
+      // All three rubrics in one place, in the official order
       _RubricSection(
-        icon: '💡', title: 'מחוון חדשנות', category: 'innovation',
+        icon: '💡', title: 'פרויקט החדשנות', category: 'innovation',
         color: AppColors.accent2, prov: prov,
       ),
       SizedBox(height: 12),
-
-      // Values rubric
       _RubricSection(
-        icon: '⭐', title: 'מחוון ערכים', category: 'values',
+        icon: '🤖', title: 'תכנון הרובוט', category: 'robot',
+        color: AppColors.accent, prov: prov,
+      ),
+      SizedBox(height: 12),
+      _RubricSection(
+        icon: '⭐', title: 'ערכי הליבה', category: 'values',
         color: AppColors.gold, prov: prov,
+        subtitle: 'הקריטריונים משני המחוונים שנספרים גם לערכי הליבה (25% מהניקוד)',
       ),
       SizedBox(height: 12),
 
@@ -553,9 +581,11 @@ class _RubricSection extends StatelessWidget {
   final String category;
   final Color color;
   final AppProvider prov;
+  final String? subtitle;
   const _RubricSection({
     required this.icon, required this.title,
     required this.category, required this.color, required this.prov,
+    this.subtitle,
   });
 
   @override
@@ -609,6 +639,12 @@ class _RubricSection extends StatelessWidget {
             ],
           ]),
         ),
+
+        if (subtitle != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+            child: Text(subtitle!, style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+          ),
 
         if (items.isEmpty)
           Padding(

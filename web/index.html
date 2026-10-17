@@ -396,33 +396,13 @@
             <span style="font-size:36px">⭐</span>
             <div>
               <h3 style="font-weight:800;font-size:18px">ערכי ליבה – Core Values</h3>
-              <p style="color:var(--text2);font-size:13px;margin-top:4px">מחוון הערכה ולוח פתקים</p>
+              <p style="color:var(--text2);font-size:13px;margin-top:4px">לוח פתקים · המחוון נמצא בחדר השיפוט</p>
             </div>
           </div>
         </div>
 
-        <!-- Tab bar -->
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <button id="values-tab-rubrics" class="btn btn-primary" style="flex:1" data-action="switch-values-tab" data-arg="rubrics">📋 מחוון</button>
-          <button id="values-tab-sticky" class="btn btn-ghost" style="flex:1" data-action="switch-values-tab" data-arg="sticky">📝 לוח פתקים</button>
-        </div>
-
-        <!-- Panel: Rubrics (default) -->
-        <div id="values-panel-rubrics">
-          <div id="values-rubrics"><!-- populated --></div>
-          <div class="admin-only" id="values-admin-box" style="margin-top:16px">
-            <div class="card" style="border-color:var(--accent);background:rgba(61,127,255,0.05)">
-              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
-                <button class="btn btn-primary" style="margin-right:auto" data-action="import-official-rubric" data-arg="values">📥 ייבא מחוון רשמי</button>
-                <button class="btn btn-ghost" data-action="add-custom-rubric" data-arg="values">＋ הוסף שאלה</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel: Sticky board (hidden by default) -->
-        <div id="values-panel-sticky" style="display:none">
+        <!-- Sticky board -->
+        <div id="values-panel-sticky">
           <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
             <button class="btn btn-primary" id="values-sticky-add-btn" data-action="show-add-sticky-modal">＋ הוסף פתק</button>
           </div>
@@ -493,17 +473,6 @@
           </div>
         </div>
 
-        <div class="admin-only" id="robot-admin-box" style="margin-top:16px">
-          <div class="card" style="border-color:var(--accent)">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <span style="font-size:14px;font-weight:700;color:var(--accent)">🔵 מצב אדמין</span>
-              <button class="btn btn-primary" style="margin-right:auto" data-action="import-official-rubric" data-arg="robot">📥 ייבא מחוון רשמי</button>
-              <button class="btn btn-ghost" data-action="add-custom-rubric" data-arg="robot">＋ הוסף שאלה</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="robot-rubrics" style="margin-top:16px"><!-- populated --></div>
       </div>
 
       <!-- ═══ INNOVATION ═══ -->
@@ -529,17 +498,6 @@
           </div>
           <!-- Step cards -->
           <div id="innov-steps-list"><!-- rendered by JS --></div>
-          <!-- Rubrics + Admin -->
-          <div id="innovation-rubrics" style="margin-top:16px"></div>
-          <div class="admin-only" id="innov-admin-box" style="margin-top:16px">
-            <div class="card" style="border-color:var(--accent2)">
-              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                <span style="font-size:14px;font-weight:700;color:var(--accent2)">🟢 מצב אדמין</span>
-                <button class="btn btn-success" style="margin-right:auto" data-action="import-official-rubric" data-arg="innovation">📥 ייבא מחוון רשמי</button>
-                <button class="btn btn-ghost" data-action="add-custom-rubric" data-arg="innovation">＋ הוסף שאלה</button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Panel: Research -->
@@ -612,7 +570,10 @@
             </div>
           </div>
 
-          <div class="admin-only" style="margin:12px 0 4px">
+          <div class="admin-only" style="margin:12px 0 4px;display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-primary" style="width:100%;border-radius:12px;padding:12px;font-weight:700" data-action="import-all-official-rubrics">
+              📥 ייבא את כל המחוונים הרשמיים
+            </button>
             <button class="btn btn-ghost" style="width:100%;border-radius:12px;padding:12px;font-weight:700;border:2px solid var(--border)" data-action="open-official-rubrics-site">
               📋 מחווני שיפוט רשמיים – FIRST Israel ↗
             </button>
@@ -621,7 +582,7 @@
           <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
             <div class="card" style="padding:0;overflow:hidden">
               <div data-action="toggle-rubric-section" data-arg="innovation" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
-                <span style="font-weight:700;font-size:14px">💡 פרויקט חדשנות</span>
+                <span style="font-weight:700;font-size:14px">💡 פרויקט החדשנות</span>
                 <span id="rubric-chevron-innovation" style="transition:transform 0.2s;display:inline-block">▾</span>
               </div>
               <div id="rubric-section-innovation" style="padding:12px 16px">
@@ -632,26 +593,27 @@
               </div>
             </div>
             <div class="card" style="padding:0;overflow:hidden">
-              <div data-action="toggle-rubric-section" data-arg="values" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
-                <span style="font-weight:700;font-size:14px">⭐ ערכי FLL</span>
-                <span id="rubric-chevron-values" style="transition:transform 0.2s;display:inline-block">▾</span>
-              </div>
-              <div id="rubric-section-values" style="padding:12px 16px">
-                <div id="scoring-values-rubrics"><!-- populated --></div>
-                <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-                  <button class="btn btn-ghost" style="font-size:12px" data-action="add-custom-rubric" data-arg="values">＋ הוסף שאלה</button>
-                </div>
-              </div>
-            </div>
-            <div class="card" style="padding:0;overflow:hidden">
               <div data-action="toggle-rubric-section" data-arg="robot" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
-                <span style="font-weight:700;font-size:14px">🤖 עיצוב הרובוט</span>
+                <span style="font-weight:700;font-size:14px">🤖 תכנון הרובוט</span>
                 <span id="rubric-chevron-robot" style="transition:transform 0.2s;display:inline-block">▾</span>
               </div>
               <div id="rubric-section-robot" style="padding:12px 16px">
                 <div id="scoring-robot-rubrics"><!-- populated --></div>
                 <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
                   <button class="btn btn-ghost" style="font-size:12px" data-action="add-custom-rubric" data-arg="robot">＋ הוסף שאלה</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div data-action="toggle-rubric-section" data-arg="values" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)">
+                <span style="font-weight:700;font-size:14px">⭐ ערכי הליבה</span>
+                <span id="rubric-chevron-values" style="transition:transform 0.2s;display:inline-block">▾</span>
+              </div>
+              <div id="rubric-section-values" style="padding:12px 16px">
+                <div style="font-size:12px;color:var(--text3);margin-bottom:8px">הקריטריונים משני המחוונים שנספרים גם לערכי הליבה (25% מהניקוד)</div>
+                <div id="scoring-values-rubrics"><!-- populated --></div>
+                <div class="admin-only" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-ghost" style="font-size:12px" data-action="add-custom-rubric" data-arg="values">＋ הוסף שאלה</button>
                 </div>
               </div>
             </div>
@@ -1504,7 +1466,6 @@
   <script src="js/innovation.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/tasks.js"></script>
-  <script src="js/values.js"></script>
   <script src="js/scoring.js"></script>
   <script src="js/checklist.js"></script>
   <script src="js/archive.js"></script>

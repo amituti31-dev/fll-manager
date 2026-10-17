@@ -11,14 +11,14 @@
 //  §08  DAILY LOGS .............. saveLog, renderTimeline, deleteLog
 //  §09  MEMBERS ................. renderMembers, saveMember, leaveTeam
 //  §10  MISSIONS ................ renderMissions, filterMissions
-//  §11  RUBRICS ................. renderRubrics, setScore, importOfficialRubric
+//  §11  RUBRICS ................. renderRubrics, setScore, importOfficialRubric, importAllOfficialRubrics
 //  §12  GALLERY & IMPROVEMENTS .. saveImprovement, renderGallery, makeTimelapse
 //  §13  INNOVATION PROJECT ...... INNOV_STEPS, renderInnovProject, switchInnovTab
 //  §14  RESEARCH & INTERVIEWS ... saveFinding, saveInterview, renderResearchHub
 //  §15  RECORDING ............... startRecording
 //  §16  CHAT .................... initChatScreen, switchChatTab, sendChatMessage
 //  §17  MEMBER TASKS & MY TASKS . saveMemberTask, renderMyTasks, switchMyTasksTab
-//  §18  VALUES & STICKY NOTES ... switchValuesTab, saveSticky, renderStickyBoard
+//  §18  VALUES & STICKY NOTES ... saveSticky, renderStickyBoard
 //  §19  SCORING ................. switchScoringTab, renderScoring, saveRunScore
 //  §20  TIMERS .................. startTimer, startJudgingTimer, playBuzzer
 //  §21  CHECKLIST ............... renderChecklist, toggleChecklist

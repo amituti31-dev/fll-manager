@@ -50,8 +50,8 @@ const ACTIONS = {
   'save-edited-log': (el) => saveEditedLog(el, Number(el.dataset.id)),
 
   // Values
-  'switch-values-tab': (el) => switchValuesTab(el.dataset.arg),
   'import-official-rubric': (el) => importOfficialRubric(el.dataset.arg),
+  'import-all-official-rubrics': () => importAllOfficialRubrics(),
   'add-custom-rubric': (el) => addCustomRubric(el.dataset.arg),
   'show-add-sticky-modal': () => showAddStickyModal(),
 
