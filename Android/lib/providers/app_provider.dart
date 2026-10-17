@@ -218,8 +218,12 @@ class AppProvider extends ChangeNotifier {
     );
     gallery = mergedGallery.map(GalleryItem.fromMap).toList();
 
-    final linksRaw = await FirebaseService.loadLinks(teamId!);
-    links = linksRaw.map(LinkItem.fromMap).toList();
+    // Links are shared with web in data.links. Older Android versions kept them
+    // in a separate 'links' doc — merge those in once, then empty that doc.
+    final sharedLinks = _parseList(data?['links'], LinkItem.fromMap);
+    final legacyLinks = (await FirebaseService.loadLinks(teamId!)).map(LinkItem.fromMap).toList();
+    links = [...sharedLinks, ...legacyLinks.where((l) => !sharedLinks.any((s) => s.id == l.id))];
+    final migrateLinks = legacyLinks.isNotEmpty;
 
     final strategyRaw = await FirebaseService.loadStrategyBoards(teamId!);
     strategyBoards = strategyRaw.map(StrategyBoard.fromMap).toList();
@@ -320,11 +324,27 @@ class AppProvider extends ChangeNotifier {
         };
       }
       lastBackupAt = adminData['lastBackupAt'] as String?;
-      if (adminData['judgingQuestions'] != null) {
-        judgingQuestions = _parseList(adminData['judgingQuestions'], JudgingQuestion.fromMap);
+    }
+    // Judging Q&A is shared with web in data.judgingQuestions (any member can
+    // answer); older Android versions kept it in mentor-only admin-data.
+    final jq = data?['judgingQuestions'] ?? adminData?['judgingQuestions'];
+    if (jq is List && jq.isNotEmpty) judgingQuestions = _parseList(jq, JudgingQuestion.fromMap);
+    // Mission practice status is shared with web in data.missionStatuses
+    // (any member); older Android versions kept it inside the mission list.
+    final statuses = data?['missionStatuses'];
+    if (statuses is Map) {
+      for (final m in missions) {
+        final st = statuses[m.id.toString()];
+        if (st is String) m.status = st;
       }
     }
     _applyOfficialBonuses();
+    if (migrateLinks) {
+      try {
+        await _saveData();
+        await FirebaseService.saveLinks(teamId!, const []);
+      } catch (_) {}
+    }
   }
 
   static List<T> _parseList<T>(dynamic raw, T Function(Map<String, dynamic>) fromMap) {
@@ -429,6 +449,9 @@ class AppProvider extends ChangeNotifier {
       'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
       'milestones': milestones.map((m) => m.toMap()).toList(),
       'meetingPlans': meetingPlans.map((m) => m.toMap()).toList(),
+      'links': links.map((l) => l.toMap()).toList(),
+      'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
+      'missionStatuses': {for (final m in missions) if (m.status != 'not_tried') m.id.toString(): m.status},
       // Planned-meetings feature was removed — the calendar shows value stickies instead.
       'meetings': FieldValue.delete(),
     });
@@ -453,7 +476,8 @@ class AppProvider extends ChangeNotifier {
           'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
         },
         'officialRubric': {'marks': rubricMarks, 'notes': rubricNotes, 'feedback': rubricFeedback},
-        'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
+        // Moved to "data" (any member can answer) — drop the old mentor-only copy.
+        'judgingQuestions': FieldValue.delete(),
       });
     } catch (_) {}
   }
@@ -1342,10 +1366,8 @@ class AppProvider extends ChangeNotifier {
 
   // ─── Links ────────────────────────────────────────────
 
-  Future<void> _saveLinks() async {
-    if (teamId == null) return;
-    await FirebaseService.saveLinks(teamId!, links.map((l) => l.toMap()).toList());
-  }
+  // Links live in data.links (shared with web).
+  Future<void> _saveLinks() => _saveData();
 
   Future<void> addLink(LinkItem item) async {
     links.add(item);

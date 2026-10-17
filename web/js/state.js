@@ -88,6 +88,10 @@ async function saveState() {
     await window.db.collection(window.FB_PROJECT).doc("data").set({
       logs, findings, stickies, memberTasks, missionChecks, precisionTokens, links, interviews, missionExtra,
       innovationProblem, innovationSolution, innovationSharing,
+      // Shared with Android: practice status per mission, and judging Q&A as a
+      // flat list [{id, category, question, answer}] (web groups it by category).
+      missionStatuses: state.missionStatuses || {},
+      ...(state.judgingQs ? { judgingQuestions: [].concat(...Object.values(state.judgingQs)) } : {}),
       milestones, meetingPlans, seasonStory,
       // Clean up the copy written before images moved to their own subcollection.
       improvements: firebase.firestore.FieldValue.delete(),
@@ -203,6 +207,32 @@ async function loadState() {
     if (dataSnap.exists) Object.assign(state, dataSnap.data());
     if (adminDataSnap.exists) Object.assign(state, adminDataSnap.data());
     applyOfficialBonuses();
+
+    // Judging Q&A comes from the cloud as a flat list (shared with Android).
+    // data.judgingQuestions is current; admin-data's is an older Android copy
+    // (Object.assign above applied admin-data last, so prefer data explicitly).
+    const jqData = dataSnap.exists ? dataSnap.data().judgingQuestions : null;
+    const jq = (Array.isArray(jqData) && jqData.length) ? jqData : state.judgingQuestions;
+    if (Array.isArray(jq) && jq.length) {
+      const g = { robot: [], innovation: [], values: [] };
+      jq.forEach(q => (g[q.category] || (g[q.category] = [])).push(q));
+      state.judgingQs = g;
+    }
+    delete state.judgingQuestions;
+
+    // Links: older Android versions kept them in a separate 'links' doc —
+    // merge those into data.links once, then empty that doc.
+    try {
+      const linksDoc = await window.db.collection(window.FB_PROJECT).doc('links').get();
+      const legacy = (linksDoc.exists && linksDoc.data().items) || [];
+      if (legacy.length) {
+        const have = new Set((state.links || []).map(l => String(l.id)));
+        state.links = [...(state.links || []), ...legacy.filter(l => !have.has(String(l.id)))
+          .map(l => ({ ...l, author: l.author || l.addedBy || '' }))];
+        await saveState();
+        await window.db.collection(window.FB_PROJECT).doc('links').set({ items: [] });
+      }
+    } catch (e) { console.warn('Links migration:', e); }
 
     // Innovation steps used to be kept only in this browser (state.innovSteps,
     // localStorage). Move any text there into the synced fields Android uses —

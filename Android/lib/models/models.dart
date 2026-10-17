@@ -614,13 +614,14 @@ class LinkItem {
     title:    m['title']    as String? ?? '',
     url:      m['url']      as String? ?? '',
     category: m['category'] as String? ?? 'general',
-    addedBy:  m['addedBy']  as String? ?? '',
+    // Shared with web in data.links, whose field is `author` (older Android: `addedBy`).
+    addedBy:  m['author'] as String? ?? m['addedBy'] as String? ?? '',
     date:     m['date']     as String? ?? '',
   );
 
   Map<String, dynamic> toMap() => {
     'id': id, 'title': title, 'url': url,
-    'category': category, 'addedBy': addedBy, 'date': date,
+    'category': category, 'author': addedBy, 'date': date,
   };
 }
 
