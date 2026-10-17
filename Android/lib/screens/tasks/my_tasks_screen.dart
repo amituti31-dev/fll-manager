@@ -33,7 +33,7 @@ class _MyTasksScreenState extends State<MyTasksScreen>
     final uid = prov.currentUser?.id ?? '';
 
     final myTasks = prov.memberTasks
-        .where((t) => t.memberId == uid || t.memberId == 'all')
+        .where((t) => taskAppliesTo(t, prov.members.where((m) => m.id == uid).firstOrNull ?? prov.currentUser))
         .toList();
 
     final pending  = myTasks.where((t) => !t.done).toList();
@@ -126,7 +126,7 @@ class _TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overdue  = AppProvider.isTaskOverdue(task);
-    final isForAll = task.memberId == 'all';
+    final isForAll = isGroupTask(task.memberId);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -169,7 +169,7 @@ class _TaskCard extends StatelessWidget {
             const SizedBox(height: 6),
             Wrap(spacing: 6, runSpacing: 4, children: [
               if (isForAll)
-                _Tag(text: '👥 כל הקבוצה', color: AppColors.accent),
+                _Tag(text: taskGroupLabels[task.memberId]!, color: AppColors.accent),
               if (task.due != null)
                 _Tag(
                   text: '${overdue ? "⚠️ " : "📅 "}${task.due!}',

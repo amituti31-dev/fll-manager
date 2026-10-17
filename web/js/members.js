@@ -13,7 +13,7 @@ function toggleJuniorMentor(id) {
 function renderMembers() {
   const el = document.getElementById('members-list');
   el.innerHTML = state.members.map(m => {
-    const tasks = (state.memberTasks || []).filter(t => (!t.done) && (String(t.memberId) === String(m.id) || t.memberId === 'all'));
+    const tasks = (state.memberTasks || []).filter(t => !t.done && taskAppliesTo(t, m));
     const pending = tasks.length;
     return `
     <div class="member-card" style="flex-direction:column;align-items:stretch${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? ';cursor:pointer' : ''}"
@@ -28,7 +28,7 @@ function renderMembers() {
         ${pending > 0 ? `<span style="background:var(--accent3);color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">${pending} משימות</span>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:14px;padding:4px" data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}" title="צ'אט פרטי">💬</button>` : ''}
-        ${m.role !== 'admin' && String(m.id) !== String(state.currentUser?.id) ? `
+        ${(state.isAdmin || m.role !== 'admin') && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px" data-action="show-add-member-task-modal" data-id="${sanitize(String(m.id))}" title="הוסף משימה">📋</button>` : ''}
         ${state.isAdmin && m.role !== 'admin' ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px;opacity:${m.juniorMentor ? '1' : '0.45'}" data-action="toggle-junior-mentor" data-id="${sanitize(String(m.id))}" title="${m.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר'}">🌱</button>` : ''}
@@ -42,7 +42,7 @@ function renderMembers() {
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px">
             <input type="checkbox" ${t.done ? 'checked' : ''} data-onchange="toggle-member-task" data-id="${t.id}" style="accent-color:var(--accent2);width:16px;height:16px">
             <span style="${t.done ? 'text-decoration:line-through;color:var(--text3)' : ''};flex:1">${sanitize(t.desc)}</span>
-            ${t.memberId === 'all' ? `<span style="background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;font-size:10px">👥 לכולם</span>` : ''}
+            ${taskGroupBadge(t)}
             ${t.due ? `<span style="color:var(--text3);font-size:11px">${sanitize(t.due)}</span>` : ''}
             ${state.isAdmin ? `<button data-action="delete-member-task" data-id="${t.id}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;padding:0 4px">✕</button>` : ''}
           </div>

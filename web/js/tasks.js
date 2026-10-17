@@ -11,9 +11,8 @@ function switchMyTasksTab(tab) {
 
 function renderMyTasks() {
   const uid = state.currentUser?.id;
-  const allTasks = (state.memberTasks || []).filter(t =>
-    t.memberId === 'all' || String(t.memberId) === String(uid)
-  );
+  const me = (state.members || []).find(m => String(m.id) === String(uid)) || state.currentUser;
+  const allTasks = (state.memberTasks || []).filter(t => taskAppliesTo(t, me));
   const pending = allTasks.filter(t => !t.done);
   const done    = allTasks.filter(t =>  t.done);
 
@@ -24,7 +23,7 @@ function renderMyTasks() {
         <div style="flex:1">
           <div style="${isDone ? 'text-decoration:line-through;color:var(--text3)' : 'font-weight:600'};font-size:14px">${sanitize(t.desc)}</div>
           <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
-            ${t.memberId === 'all' ? `<span style="background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;font-size:11px">👥 לכולם</span>` : ''}
+            ${taskGroupBadge(t, 11)}
             ${t.due  ? `<span style="color:var(--text3);font-size:12px">📅 ${sanitize(t.due)}</span>` : ''}
             ${t.date ? `<span style="color:var(--text3);font-size:12px">${sanitize(t.date)}</span>` : ''}
           </div>

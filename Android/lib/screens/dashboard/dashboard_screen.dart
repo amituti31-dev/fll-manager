@@ -42,7 +42,8 @@ class DashboardScreen extends StatelessWidget {
     final prov = context.watch<AppProvider>();
     final lastScore = prov.scores.isEmpty ? 0 : prov.scores.last.score;
     final total     = prov.realMissions.length;
-    final teamTasks = prov.memberTasks.where((t) => t.memberId == 'all' && !t.done).toList();
+    final teamTasks = prov.memberTasks
+        .where((t) => isGroupTask(t.memberId) && taskAppliesTo(t, prov.currentUser) && !t.done).toList();
 
     return ListView(padding: const EdgeInsets.all(16), children: [
       // ── Quick actions ──────────────────────────────────

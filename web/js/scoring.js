@@ -312,10 +312,14 @@ function renderStickyBoard() {
 function showAddMemberTaskModal(preselect) {
   const sel = document.getElementById('task-member-select');
   if (!sel) return;
-  const students = state.members.filter(m => m.role !== 'admin');
+  // Mentors can assign to anyone (mentors too) or to a group; students to students.
+  const assignable = state.isAdmin ? state.members : state.members.filter(m => m.role !== 'admin');
+  const groups = state.isAdmin
+    ? [['all', '👥 כולם (משימה לכל הקבוצה)'], ['all-mentors', '👑 כל המנטורים'], ['all-students', '🎓 כל התלמידים']]
+    : [];
   sel.innerHTML =
-    (state.isAdmin ? `<option value="all">👥 כולם (משימה לכל הקבוצה)</option>` : '') +
-    students.map(m => `<option value="${m.id}" ${String(m.id) === String(preselect) ? 'selected' : ''}>${sanitize(m.name)}</option>`).join('');
+    groups.map(([v, l]) => `<option value="${v}">${l}</option>`).join('') +
+    assignable.map(m => `<option value="${m.id}" ${String(m.id) === String(preselect) ? 'selected' : ''}>${m.role === 'admin' ? '👑 ' : ''}${sanitize(m.name)}</option>`).join('');
   document.getElementById('task-desc').value = '';
   document.getElementById('task-due').value = '';
   openModal('modal-member-task');
@@ -326,12 +330,13 @@ function saveMemberTask() {
   const desc = document.getElementById('task-desc').value.trim().slice(0, 500);
   if (!desc) { notify('נדרש תיאור משימה', 'error'); return; }
   if (!state.memberTasks) state.memberTasks = [];
-  const isAll = memberId === 'all';
-  const member = isAll ? null : state.members.find(m => String(m.id) === String(memberId));
+  const isGroup = Object.prototype.hasOwnProperty.call(TASK_GROUPS, memberId);
+  const groupNames = { 'all': 'כולם', 'all-mentors': 'כל המנטורים', 'all-students': 'כל התלמידים' };
+  const member = isGroup ? null : state.members.find(m => String(m.id) === String(memberId));
   const task = {
     id: Date.now(),
     memberId,
-    memberName: isAll ? 'כולם' : (member?.name || ''),
+    memberName: isGroup ? groupNames[memberId] : (member?.name || ''),
     desc,
     due: document.getElementById('task-due').value,
     done: false,
@@ -342,7 +347,7 @@ function saveMemberTask() {
   if (task.due) scheduleTaskReminder(task);
   closeModal('modal-member-task');
   renderMembers();
-  notify(isAll ? '✅ משימה נוספה לכל הקבוצה' : `✅ משימה נוספה ל-${member?.name || 'חבר'}`, 'success');
+  notify(isGroup ? `✅ משימה נוספה ל${groupNames[memberId]}` : `✅ משימה נוספה ל-${member?.name || 'חבר'}`, 'success');
 }
 
 function toggleMemberTask(id) {

@@ -72,6 +72,21 @@ function imageSrc(v) {
   return /^[A-Za-z0-9+/]+={0,2}$/.test(bare) && bare.length > 100 ? 'data:image/jpeg;base64,' + bare : '';
 }
 
+// Task targets besides a single member id ('all' existed before; the other two are new).
+const TASK_GROUPS = { 'all': '👥 לכולם', 'all-mentors': '👑 לכל המנטורים', 'all-students': '🎓 לכל התלמידים' };
+function isGroupTask(t) { return Object.prototype.hasOwnProperty.call(TASK_GROUPS, t.memberId); }
+// Does task t apply to member m (a member object)?
+function taskAppliesTo(t, m) {
+  if (!m) return t.memberId === 'all';
+  if (t.memberId === 'all') return true;
+  if (t.memberId === 'all-mentors') return m.role === 'admin';
+  if (t.memberId === 'all-students') return m.role !== 'admin';
+  return String(t.memberId) === String(m.id);
+}
+function taskGroupBadge(t, size = 10) {
+  return isGroupTask(t) ? `<span style="background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;font-size:${size}px">${TASK_GROUPS[t.memberId]}</span>` : '';
+}
+
 function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }

@@ -475,6 +475,21 @@ class ChatMessage {
 }
 
 // ─── Member Task ─────────────────────────────────────
+/// Task targets besides a single member id ('all' existed before; the other two are new).
+const taskGroupLabels = {'all': '👥 כל הקבוצה', 'all-mentors': '👑 כל המנטורים', 'all-students': '🎓 כל התלמידים'};
+bool isGroupTask(String memberId) => taskGroupLabels.containsKey(memberId);
+
+/// Does task [t] apply to member [m]?
+bool taskAppliesTo(MemberTask t, Member? m) {
+  if (m == null) return t.memberId == 'all';
+  return switch (t.memberId) {
+    'all' => true,
+    'all-mentors' => m.isAdmin,
+    'all-students' => !m.isAdmin,
+    _ => t.memberId == m.id,
+  };
+}
+
 class MemberTask {
   final int id;
   final String memberId;

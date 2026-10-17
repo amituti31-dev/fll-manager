@@ -189,7 +189,7 @@ class _MyTasksTabState extends State<_MyTasksTab> with SingleTickerProviderState
     final prov = widget.prov;
     final myId = prov.currentUser?.id ?? '';
     final tasks = prov.memberTasks
-        .where((t) => t.memberId == myId || t.memberId == 'all')
+        .where((t) => taskAppliesTo(t, prov.members.where((m) => m.id == myId).firstOrNull ?? prov.currentUser))
         .toList();
 
     final pending = tasks.where((t) => !t.done).toList();
@@ -278,8 +278,8 @@ class _MyTaskCard extends StatelessWidget {
             fontSize: 14, color: textColor,
             decoration: task.done ? TextDecoration.lineThrough : null,
           )),
-          if (task.memberId == 'all')
-            Text('👥 כל הקבוצה', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+          if (isGroupTask(task.memberId))
+            Text(taskGroupLabels[task.memberId]!, style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
           if (task.due != null)
             Text(
               overdue && !task.done ? '⚠️ ${task.due!} - עבר הדדליין!' : '📅 ${task.due!}',
@@ -318,7 +318,7 @@ class _MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMe = member.id == prov.currentUser?.id;
     final tasks = prov.memberTasks
-        .where((t) => (t.memberId == member.id || t.memberId == 'all') && !t.done)
+        .where((t) => taskAppliesTo(t, member) && !t.done)
         .toList();
     final pending = tasks.length;
 
@@ -597,13 +597,14 @@ class _AddTaskSheet extends StatefulWidget {
 class _AddTaskSheetState extends State<_AddTaskSheet> {
   final _descCtrl = TextEditingController();
   DateTime? _due;
-  late bool _forAll;
+  // 'member' (pick one below) or a group: 'all' / 'all-mentors' / 'all-students'.
+  late String _target;
   Member? _selected;
 
   @override
   void initState() {
     super.initState();
-    _forAll = widget.forMember == null;
+    _target = widget.forMember == null ? 'all' : 'member';
     final prov = context.read<AppProvider>();
     final assignable = prov.isAdmin ? prov.members : prov.members.where((m) => !m.isAdmin).toList();
     _selected = widget.forMember ?? (assignable.isNotEmpty ? assignable.first : null);
@@ -685,29 +686,22 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
           ),
         ),
         SizedBox(height: 12),
-        GestureDetector(
-          onTap: () => setState(() => _forAll = !_forAll),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: _forAll ? AppColors.accent.withAlpha(20) : AppColors.surface2,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _forAll ? AppColors.accent : AppColors.border),
+        Text('למי?', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        SizedBox(height: 6),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (final (value, label) in [
+            ('member', '👤 חבר מסוים'),
+            ('all', '👥 כולם'),
+            if (prov.isAdmin) ('all-mentors', '👑 כל המנטורים'),
+            ('all-students', '🎓 כל התלמידים'),
+          ])
+            ChoiceChip(
+              label: Text(label, style: TextStyle(fontSize: 12)),
+              selected: _target == value,
+              onSelected: (_) => setState(() => _target = value),
             ),
-            child: Row(children: [
-              Text('👥', style: TextStyle(fontSize: 16)),
-              SizedBox(width: 10),
-              Expanded(child: Text('משימה לכל הקבוצה',
-                  style: TextStyle(fontSize: 14, color: AppColors.textPrimary))),
-              Switch(
-                value: _forAll,
-                onChanged: (v) => setState(() => _forAll = v),
-                activeThumbColor: AppColors.accent,
-              ),
-            ]),
-          ),
-        ),
-        if (!_forAll && prov.members.isNotEmpty) ...[
+        ]),
+        if (_target == 'member' && prov.members.isNotEmpty) ...[
           SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -742,8 +736,9 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
           child: ElevatedButton(
             onPressed: () async {
               if (_descCtrl.text.trim().isEmpty) return;
-              final assignId   = _forAll ? 'all' : (_selected?.id ?? 'all');
-              final assignName = _forAll ? 'כל הקבוצה' : (_selected?.name ?? '');
+              const groupNames = {'all': 'כל הקבוצה', 'all-mentors': 'כל המנטורים', 'all-students': 'כל התלמידים'};
+              final assignId   = _target == 'member' ? (_selected?.id ?? 'all') : _target;
+              final assignName = _target == 'member' ? (_selected?.name ?? '') : groupNames[_target]!;
               final dueStr = _due == null ? null : '${_due!.day}/${_due!.month}/${_due!.year}';
               await prov.addMemberTask(MemberTask(
                 id: DateTime.now().millisecondsSinceEpoch,

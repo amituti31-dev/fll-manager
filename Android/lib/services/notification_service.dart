@@ -50,8 +50,8 @@ class NotificationService {
     await _plugin.zonedSchedule(
       task.id,
       '⏰ תזכורת: משימה מחר',
-      task.memberId == 'all'
-          ? 'כל הקבוצה: $desc'
+      isGroupTask(task.memberId)
+          ? '${task.memberName}: $desc'
           : '${task.memberName}: $desc',
       scheduled,
       const NotificationDetails(

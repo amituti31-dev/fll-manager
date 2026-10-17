@@ -1076,8 +1076,10 @@ class AppProvider extends ChangeNotifier {
     return DateTime(y, m, d).isBefore(DateTime.now());
   }
 
-  List<MemberTask> getOverdueTasksFor(String memberId) =>
-      memberTasks.where((t) => (t.memberId == memberId || t.memberId == 'all') && isTaskOverdue(t)).toList();
+  List<MemberTask> getOverdueTasksFor(String memberId) {
+    final m = members.where((x) => x.id == memberId).firstOrNull ?? (currentUser?.id == memberId ? currentUser : null);
+    return memberTasks.where((t) => taskAppliesTo(t, m) && isTaskOverdue(t)).toList();
+  }
 
   int get overdueCountForMe => getOverdueTasksFor(currentUser?.id ?? '').length;
 
