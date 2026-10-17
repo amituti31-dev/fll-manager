@@ -172,6 +172,7 @@ async function resetTeamData() {
   state.memberTasks = [];
   state.checklist = state.checklist.map(c => ({ ...c, done: false }));
   state.milestones = [];
+  state.meetingPlans = [];
   await saveState();
   populateAll();
   notify('✅ הנתונים אופסו בהצלחה', 'success');

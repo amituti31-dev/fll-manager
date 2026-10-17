@@ -259,9 +259,16 @@ class _AddStickySheetState extends State<_AddStickySheet> {
 
 // ─── Board Tab ────────────────────────────────────────
 
-class _BoardTab extends StatelessWidget {
+class _BoardTab extends StatefulWidget {
   final AppProvider prov;
   const _BoardTab({required this.prov});
+
+  @override
+  State<_BoardTab> createState() => _BoardTabState();
+}
+
+class _BoardTabState extends State<_BoardTab> {
+  bool _byMeeting = false; // false: a section per core value; true: grouped by date / meeting
 
   static const _values = [
     ('🔍', 'גילוי',       'discovery',  Color(0xFF3D7FFF)),
@@ -272,8 +279,54 @@ class _BoardTab extends StatelessWidget {
     ('😄', 'הנאה',        'fun',        Color(0xFFEC407A)),
   ];
 
+  Widget _viewToggle() => Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: Wrap(spacing: 8, children: [
+      ChoiceChip(label: Text('לפי ערך'), selected: !_byMeeting, onSelected: (_) => setState(() => _byMeeting = false)),
+      ChoiceChip(label: Text('לפי מפגש'), selected: _byMeeting, onSelected: (_) => setState(() => _byMeeting = true)),
+    ]),
+  );
+
+  Widget _byMeetingView(AppProvider prov) {
+    final byDate = <String, List<StickyNote>>{};
+    for (final s in prov.stickies) {
+      byDate.putIfAbsent(s.date, () => []).add(s);
+    }
+    final dates = byDate.keys.toList()..sort((a, b) => b.compareTo(a));
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _viewToggle(),
+        for (final date in dates) ...[
+          Builder(builder: (_) {
+            final meeting = prov.meetingForDay(date);
+            final d = DateTime.tryParse(date);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(children: [
+                Expanded(child: Text(meeting != null ? '📋 ${meeting.displayTitle}' : '📅 ללא מפגש',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary))),
+                Text('${d != null ? '${d.day}.${d.month}.${d.year}' : 'ללא תאריך'} · ${byDate[date]!.length} פתקים',
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+              ]),
+            );
+          }),
+          Wrap(spacing: 10, runSpacing: 10, children: [
+            for (final note in byDate[date]!)
+              Builder(builder: (_) {
+                final v = _values.firstWhere((v) => v.$3 == note.value, orElse: () => _values.first);
+                return _StickyCard(note: note, color: v.$4, icon: v.$1, isAdmin: prov.isAdmin);
+              }),
+          ]),
+          SizedBox(height: 20),
+        ],
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final prov = widget.prov;
     final isAdmin = prov.isAdmin;
     final allNotes = prov.stickies;
 
@@ -290,9 +343,12 @@ class _BoardTab extends StatelessWidget {
       );
     }
 
+    if (_byMeeting) return _byMeetingView(prov);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _viewToggle(),
         for (final v in _values) ...[
           Builder(builder: (ctx) {
             final notes = allNotes.where((s) => s.value == v.$3).toList();

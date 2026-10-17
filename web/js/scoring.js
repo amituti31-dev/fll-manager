@@ -276,6 +276,26 @@ function deleteSticky(id) {
   saveState(); renderStickyBoard();
 }
 
+// Sticky board view: 'value' (a column per core value) or 'meeting' (grouped by
+// date, under that day's meeting plan title when there is one).
+let _stickyView = 'value';
+function switchStickyView(view) {
+  _stickyView = view === 'meeting' ? 'meeting' : 'value';
+  document.getElementById('sticky-view-value').className = _stickyView === 'value' ? 'btn btn-primary' : 'btn btn-ghost';
+  document.getElementById('sticky-view-meeting').className = _stickyView === 'meeting' ? 'btn btn-primary' : 'btn btn-ghost';
+  renderStickyBoard();
+}
+
+function _stickyNoteHtml(s, cfg) {
+  return `
+          <div class="sticky-note" style="margin-bottom:10px">
+            ${state.isAdmin ? `<button class="sticky-note-delete" data-action="delete-sticky" data-id="${s.id}">✕</button>` : ''}
+            <div class="sticky-note-value" style="color:${cfg.bg}">${cfg.label}</div>
+            <div class="sticky-note-text">${sanitize(s.text)}</div>
+            <div class="sticky-note-date">${formatDate(s.date)}</div>
+          </div>`;
+}
+
 function renderStickyBoard() {
   const board = document.getElementById('values-sticky-board');
   if (!board) return;
@@ -287,6 +307,20 @@ function renderStickyBoard() {
     </div>`;
     return;
   }
+  if (_stickyView === 'meeting') {
+    const byDate = {};
+    stickies.forEach(st => { (byDate[st.date || ''] = byDate[st.date || ''] || []).push(st); });
+    board.innerHTML = Object.keys(byDate).sort((a, b) => b.localeCompare(a)).map(date => {
+      const meeting = (state.meetingPlans || []).find(m => m.date === date);
+      return `
+      <div class="sticky-column">
+        <div class="sticky-column-title">${meeting ? `📋 ${sanitize(meeting.title || 'מפגש')}` : '📅 ללא מפגש'}</div>
+        <div style="font-size:12px;color:var(--text3);margin:-4px 0 8px">${date ? formatDate(date) : 'ללא תאריך'} · ${byDate[date].length} פתקים</div>
+        ${byDate[date].map(st => _stickyNoteHtml(st, STICKY_VALUES[st.value] || { label: '📌', bg: 'var(--text3)' })).join('')}
+      </div>`;
+    }).join('');
+    return;
+  }
   // Group by value
   const groups = {};
   Object.keys(STICKY_VALUES).forEach(v => { groups[v] = stickies.filter(s => s.value === v); });
@@ -296,14 +330,7 @@ function renderStickyBoard() {
     return `
       <div class="sticky-column">
         <div class="sticky-column-title" style="color:${cfg.bg}">${cfg.label}</div>
-        ${notes.map(s => `
-          <div class="sticky-note" style="margin-bottom:10px">
-            ${state.isAdmin ? `<button class="sticky-note-delete" data-action="delete-sticky" data-id="${s.id}">✕</button>` : ''}
-            <div class="sticky-note-value" style="color:${cfg.bg}">${cfg.label}</div>
-            <div class="sticky-note-text">${sanitize(s.text)}</div>
-            <div class="sticky-note-date">${formatDate(s.date)}</div>
-          </div>
-        `).join('')}
+        ${notes.map(s => _stickyNoteHtml(s, cfg)).join('')}
       </div>`;
   }).join('');
 }

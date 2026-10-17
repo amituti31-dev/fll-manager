@@ -405,8 +405,10 @@
 
         <!-- Sticky board -->
         <div id="values-panel-sticky">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-            <button class="btn btn-primary" id="values-sticky-add-btn" data-action="show-add-sticky-modal">＋ הוסף פתק</button>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="sticky-view-value" data-action="switch-sticky-view" data-arg="value">לפי ערך</button>
+            <button class="btn btn-ghost" id="sticky-view-meeting" data-action="switch-sticky-view" data-arg="meeting">לפי מפגש</button>
+            <button class="btn btn-primary" style="margin-right:auto" id="values-sticky-add-btn" data-action="show-add-sticky-modal">＋ הוסף פתק</button>
           </div>
           <div id="values-sticky-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
             <!-- populated by JS -->
@@ -902,10 +904,18 @@
           <div id="cal-weekday-row" style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px"></div>
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
           <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap">
+            <span style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3d7fff;margin-left:4px"></span>מפגש</span>
             <span style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#f5c842;margin-left:4px"></span>אבן דרך</span>
             <span style="font-size:11px;color:var(--text3)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00d4a0;margin-left:4px"></span>בוצע</span>
             <span style="font-size:11px;color:var(--text3)">📌 פתקי ערכים (לפי צבע הערך)</span>
           </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <span class="card-icon">📋</span><span class="card-title">מפגשים</span>
+            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-meeting-plan-modal">➕ מפגש</button>
+          </div>
+          <div id="meeting-plans-list"><!-- populated --></div>
         </div>
         <div class="card">
           <div class="card-header">
@@ -1186,10 +1196,39 @@
     <div class="modal-title" id="cal-day-title">📅</div>
     <div id="cal-day-items"></div>
     <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-primary" style="flex:1" id="cal-day-meeting-plan" data-action="show-meeting-plan-modal">📋 תכנית מפגש</button>
       <button class="btn btn-ghost" style="flex:1" id="cal-day-add-milestone" data-action="quick-add-milestone">🚩 הוסף אבן דרך</button>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-cal-day">סגור</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Plan Modal -->
+<div class="modal-overlay" id="modal-meeting-plan">
+  <div class="modal">
+    <div class="modal-title" id="meeting-plan-modal-title">📋 מפגש חדש</div>
+    <div class="form-group">
+      <label class="form-label">תאריך *</label>
+      <input type="date" class="form-input" id="meeting-plan-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">כותרת</label>
+      <input type="text" class="form-input" id="meeting-plan-title" placeholder="למשל: בניית זרוע למשימה M03">
+    </div>
+    <div class="form-group">
+      <label class="form-label">מה מתכננים לעשות</label>
+      <textarea class="form-input" id="meeting-plan-plan" rows="4" placeholder="סדר יום, מטרות, מי עושה מה..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">מה קרה בפועל (אחרי המפגש)</label>
+      <textarea class="form-input" id="meeting-plan-summary" rows="3" placeholder="מה הספקנו, מה נשאר לפעם הבאה..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-danger" style="margin-left:auto" id="meeting-plan-delete" data-action="delete-meeting-plan">🗑️ מחק</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-meeting-plan">ביטול</button>
+      <button class="btn btn-primary" data-action="save-meeting-plan">💾 שמור</button>
     </div>
   </div>
 </div>

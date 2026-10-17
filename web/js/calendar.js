@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// § 31 · CALENDAR (milestones + value-sticky notes)
+// § 31 · CALENDAR (meeting plans + milestones + value-sticky notes)
 // ═══════════════════════════════════════════════════════
 const _calHebrewMonths = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const _calHebrewWeekdays = ['א','ב','ג','ד','ה','ו','ש']; // Sunday-first
@@ -20,6 +20,8 @@ function _stickiesForDay(iso) {
 
 function _chipsForDay(iso) {
   const chips = [];
+  const meeting = _meetingForDay(iso);
+  if (meeting) chips.push({ icon: '📋', text: _meetingTitle(meeting), color: '#3d7fff' });
   (state.milestones || []).forEach(m => {
     if (m.targetDate === iso) chips.push({ icon: '🚩', text: m.title, color: '#f5c842' });
     if (m.actualDate === iso) chips.push({ icon: '✅', text: m.title, color: '#00d4a0' });
@@ -103,9 +105,20 @@ function _renderMonthInto(prefix, monthDate) {
 function showCalDay(iso) {
   const milestones = (state.milestones || []).filter(m => m.targetDate === iso || m.actualDate === iso);
   const stickies = _stickiesForDay(iso);
+  const meeting = _meetingForDay(iso);
   document.getElementById('cal-day-title').textContent = `📅 ${formatDate(iso)}`;
+  const meetingHtml = meeting ? `
+    <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:8px;border-right:3px solid var(--accent)">
+      <div style="font-weight:800;font-size:14px;margin-bottom:6px">📋 ${sanitize(_meetingTitle(meeting))}</div>
+      ${meeting.plan ? `<div style="font-size:12px;color:var(--accent);font-weight:700">מה מתכננים</div>
+        <div style="font-size:13px;white-space:pre-wrap;margin-bottom:6px">${sanitize(meeting.plan)}</div>` : ''}
+      ${meeting.summary ? `<div style="font-size:12px;color:var(--accent2);font-weight:700">מה קרה בפועל</div>
+        <div style="font-size:13px;white-space:pre-wrap">${sanitize(meeting.summary)}</div>` : ''}
+    </div>` : '';
   const itemsHtml = [
+    meetingHtml,
     ...milestones.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🚩 ${sanitize(m.title)}</div>`),
+    stickies.length ? `<div style="font-size:12px;font-weight:700;color:var(--text3);margin-top:8px">📌 ${meeting ? 'פתקים מהמפגש' : 'פתקים'} (${stickies.length})</div>` : '',
     ...stickies.map(s => {
       const cfg = STICKY_VALUES[s.value] || { label: '📌', bg: 'var(--text3)' };
       return `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">
@@ -117,12 +130,16 @@ function showCalDay(iso) {
   document.getElementById('cal-day-items').innerHTML = itemsHtml ||
     `<div style="color:var(--text3);font-size:13px;padding:6px 0">אין פריטים ביום הזה</div>`;
   document.getElementById('cal-day-add-milestone').dataset.arg = iso;
+  const planBtn = document.getElementById('cal-day-meeting-plan');
+  planBtn.dataset.arg = iso;
+  planBtn.textContent = meeting ? '✏️ ערוך מפגש' : '📋 תכנית מפגש';
   openModal('modal-cal-day');
 }
 
 function renderCalendar() {
   renderMonthGrid();
   renderDashboardCalendar();
+  renderMeetingPlans();
   const milestonesEl = document.getElementById('milestones-list');
   if (!milestonesEl) return;
 
@@ -195,4 +212,73 @@ function saveMilestoneActual() {
   const actual = document.getElementById('milestone-actual-date').value;
   m.actualDate = (actual && actual !== m.targetDate) ? actual : null;
   saveState(); closeModal('modal-milestone-actual'); renderCalendar();
+}
+
+// ── Meeting plans ──
+// state.meetingPlans = [{id, date, title, plan, summary}] — "data" tier (any member).
+// A plan is one meeting: what we intend to do, and afterwards what actually happened.
+// The value stickies added on that date are shown under it ("the meeting's notes").
+let _editingMeetingPlanId = null;
+
+function _meetingForDay(iso) {
+  return (state.meetingPlans || []).find(m => m.date === iso) || null;
+}
+
+function showMeetingPlanModal(presetDate, id) {
+  const existing = id ? (state.meetingPlans || []).find(m => String(m.id) === String(id))
+                      : (presetDate ? _meetingForDay(presetDate) : null);
+  _editingMeetingPlanId = existing ? existing.id : null;
+  document.getElementById('meeting-plan-modal-title').textContent = existing ? '📋 תכנית מפגש' : '📋 מפגש חדש';
+  document.getElementById('meeting-plan-date').value = existing ? existing.date : (presetDate || _localIsoToday());
+  document.getElementById('meeting-plan-title').value = existing ? existing.title : '';
+  document.getElementById('meeting-plan-plan').value = existing ? (existing.plan || '') : '';
+  document.getElementById('meeting-plan-summary').value = existing ? (existing.summary || '') : '';
+  document.getElementById('meeting-plan-delete').style.display = existing ? '' : 'none';
+  closeModal('modal-cal-day');
+  openModal('modal-meeting-plan');
+}
+
+function saveMeetingPlan() {
+  const date = document.getElementById('meeting-plan-date').value;
+  const title = document.getElementById('meeting-plan-title').value.trim().slice(0, 120);
+  const plan = document.getElementById('meeting-plan-plan').value.trim().slice(0, 3000);
+  const summary = document.getElementById('meeting-plan-summary').value.trim().slice(0, 3000);
+  if (!date) { notify('נדרש תאריך', 'error'); return; }
+  if (!title && !plan) { notify('נדרשת כותרת או תכנית', 'error'); return; }
+  if (!state.meetingPlans) state.meetingPlans = [];
+  const clash = state.meetingPlans.find(m => m.date === date && m.id !== _editingMeetingPlanId);
+  if (clash) { notify('כבר יש מפגש בתאריך הזה', 'error'); return; }
+  const existing = state.meetingPlans.find(m => m.id === _editingMeetingPlanId);
+  if (existing) Object.assign(existing, { date, title, plan, summary });
+  else state.meetingPlans.push({ id: Date.now(), date, title, plan, summary });
+  saveState(); closeModal('modal-meeting-plan'); renderCalendar(); renderStickyBoard();
+  notify('📋 המפגש נשמר', 'success');
+}
+
+function deleteMeetingPlan() {
+  if (!_editingMeetingPlanId || !confirm('למחוק את תכנית המפגש? הפתקים של אותו יום לא יימחקו.')) return;
+  state.meetingPlans = (state.meetingPlans || []).filter(m => m.id !== _editingMeetingPlanId);
+  saveState(); closeModal('modal-meeting-plan'); renderCalendar(); renderStickyBoard();
+}
+
+function _meetingTitle(m) { return m.title || 'מפגש'; }
+
+// The "מפגשים" card on the calendar screen.
+function renderMeetingPlans() {
+  const el = document.getElementById('meeting-plans-list');
+  if (!el) return;
+  const plans = [...(state.meetingPlans || [])].sort((a, b) => b.date.localeCompare(a.date));
+  el.innerHTML = plans.length ? plans.map(m => {
+    const notes = _stickiesForDay(m.date).length;
+    return `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" data-action="show-meeting-plan-modal" data-id="${m.id}">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:700;font-size:14px">📋 ${sanitize(_meetingTitle(m))}</span>
+          <span style="background:rgba(61,127,255,0.15);color:var(--accent);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${formatDate(m.date)}</span>
+          ${m.summary ? `<span style="color:var(--accent2);font-size:11px;font-weight:700">✅ סוכם</span>` : ''}
+          ${notes ? `<span style="color:var(--text3);font-size:11px">📌 ${notes} פתקים</span>` : ''}
+        </div>
+        ${m.plan ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;white-space:pre-wrap;max-height:3.2em;overflow:hidden">${sanitize(m.plan)}</div>` : ''}
+      </div>`;
+  }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין מפגשים עדיין. לחצו על יום בלוח כדי להוסיף תכנית מפגש.</div>`;
 }

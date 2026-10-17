@@ -35,13 +35,14 @@ class _DayChip {
 class MonthCalendar extends StatefulWidget {
   final List<Milestone> milestones;
   final List<StickyNote> stickies;
+  final List<MeetingPlan> meetingPlans;
   final void Function(DateTime day, List<Milestone> milestones, List<StickyNote> stickies)? onDayTap;
 
   /// When false (the dashboard), the grid always shows the current month with no prev/next.
   final bool showNavigation;
 
   const MonthCalendar({super.key, required this.milestones, required this.stickies, this.onDayTap,
-      this.showNavigation = true});
+      this.showNavigation = true, this.meetingPlans = const []});
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -66,6 +67,9 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
   List<_DayChip> _chipsFor(String iso) {
     final chips = <_DayChip>[];
+    for (final m in widget.meetingPlans) {
+      if (m.date == iso) chips.add(_DayChip('📋', m.displayTitle, AppColors.accent));
+    }
     for (final m in widget.milestones) {
       if (m.targetDate == iso) chips.add(_DayChip('🚩', m.title, AppColors.gold));
       if (m.actualDate == iso) chips.add(_DayChip('✅', m.title, AppColors.accent2));
@@ -202,6 +206,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
       ),
       SizedBox(height: 10),
       Wrap(spacing: 14, children: [
+        _Legend(AppColors.accent, 'מפגש'),
         _Legend(AppColors.gold, 'אבן דרך'),
         _Legend(AppColors.accent2, 'בוצע'),
         Text('📌 פתקי ערכים (לפי צבע הערך)', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),

@@ -49,6 +49,7 @@ class AppProvider extends ChangeNotifier {
   List<LinkItem> links = [];
   List<StrategyBoard> strategyBoards = [];
   List<Milestone> milestones = [];
+  List<MeetingPlan> meetingPlans = [];
 
   static List<ChecklistItem> _defaultChecklist() => [
     ChecklistItem(id: 1, text: 'ארגון חברי הקבוצה'),
@@ -116,6 +117,7 @@ class AppProvider extends ChangeNotifier {
     links = [];
     strategyBoards = [];
     milestones = [];
+    meetingPlans = [];
   }
 
   // ─── Boot ──────────────────────────────────────────
@@ -213,6 +215,7 @@ class AppProvider extends ChangeNotifier {
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
       milestones = _parseList(data['milestones'], Milestone.fromMap);
+      meetingPlans = _parseList(data['meetingPlans'], MeetingPlan.fromMap);
       final pt = data['precisionTokens'];
       if (pt is num && pt >= 0 && pt <= 6) precisionTokens = pt.toInt();
       if (data['missionChecks'] != null) {
@@ -379,6 +382,7 @@ class AppProvider extends ChangeNotifier {
       'precisionTokens': precisionTokens,
       'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
       'milestones': milestones.map((m) => m.toMap()).toList(),
+      'meetingPlans': meetingPlans.map((m) => m.toMap()).toList(),
       // Planned-meetings feature was removed — the calendar shows value stickies instead.
       'meetings': FieldValue.delete(),
     });
@@ -447,6 +451,7 @@ class AppProvider extends ChangeNotifier {
     'links': links.map((l) => l.toMap()).toList(),
     'strategyBoards': strategyBoards.map((b) => b.toMap()).toList(),
     'milestones': milestones.map((m) => m.toMap()).toList(),
+    'meetingPlans': meetingPlans.map((m) => m.toMap()).toList(),
   };
 
   // ─── Auth actions ──────────────────────────────────
@@ -535,6 +540,7 @@ class AppProvider extends ChangeNotifier {
       'innovationProblem': '',
       'innovationSolution': '',
       'milestones': [],
+      'meetingPlans': [],
     }, {
       'members': [founder.toMap()],
       'scores': [],
@@ -841,6 +847,31 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  // ─── Meeting plans ────────────────────────────────
+
+  MeetingPlan? meetingForDay(String iso) => meetingPlans.where((m) => m.date == iso).firstOrNull;
+
+  /// Adds or replaces (by id) a meeting plan. Returns false if another meeting
+  /// already exists on that date.
+  Future<bool> saveMeetingPlan(MeetingPlan plan) async {
+    if (meetingPlans.any((m) => m.date == plan.date && m.id != plan.id)) return false;
+    final i = meetingPlans.indexWhere((m) => m.id == plan.id);
+    if (i == -1) {
+      meetingPlans.add(plan);
+    } else {
+      meetingPlans[i] = plan;
+    }
+    notifyListeners();
+    await _saveData();
+    return true;
+  }
+
+  Future<void> deleteMeetingPlan(int id) async {
+    meetingPlans.removeWhere((m) => m.id == id);
+    notifyListeners();
+    await _saveData();
+  }
+
   // ─── Milestones ───────────────────────────────────
 
   Future<void> addMilestone(Milestone milestone) async {
@@ -981,6 +1012,7 @@ class AppProvider extends ChangeNotifier {
     innovationSolution = '';
     gallery = [];
     milestones = [];
+    meetingPlans = [];
     for (final q in judgingQuestions) { q.answer = ''; }
     notifyListeners();
     await _saveData();

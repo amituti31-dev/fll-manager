@@ -99,6 +99,7 @@ class DashboardScreen extends StatelessWidget {
         child: MonthCalendar(
           milestones: prov.milestones,
           stickies: prov.stickies,
+          meetingPlans: prov.meetingPlans,
           showNavigation: false,
           onDayTap: (day, dayMilestones, dayStickies) =>
               CalendarScreen.showDaySheet(context, day, dayMilestones, dayStickies),

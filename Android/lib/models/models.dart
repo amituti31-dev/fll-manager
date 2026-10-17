@@ -748,6 +748,32 @@ class ChecklistItem {
   Map<String, dynamic> toMap() => {'id': id, 'text': text, 'done': done};
 }
 
+// ─── Meeting plan ─────────────────────────────────────
+/// One team meeting: what we plan to do and, afterwards, what actually
+/// happened. The value stickies added on [date] are "that meeting's notes".
+/// Shared with web as data.meetingPlans.
+class MeetingPlan {
+  final int id;
+  String date; // YYYY-MM-DD
+  String title;
+  String plan;
+  String summary;
+
+  MeetingPlan({required this.id, required this.date, this.title = '', this.plan = '', this.summary = ''});
+
+  factory MeetingPlan.fromMap(Map<String, dynamic> m) => MeetingPlan(
+    id: (m['id'] as num).toInt(),
+    date: m['date'] as String? ?? '',
+    title: m['title'] as String? ?? '',
+    plan: m['plan'] as String? ?? '',
+    summary: m['summary'] as String? ?? '',
+  );
+
+  Map<String, dynamic> toMap() => {'id': id, 'date': date, 'title': title, 'plan': plan, 'summary': summary};
+
+  String get displayTitle => title.isEmpty ? 'מפגש' : title;
+}
+
 // ─── Milestone ──────────────────────────────────────────
 class Milestone {
   final int id;
