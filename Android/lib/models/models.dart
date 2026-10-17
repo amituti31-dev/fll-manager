@@ -61,6 +61,10 @@ class LogEntry {
   final String? imageBase64;
   final String? title;
   final String? audioPath;
+  /// Daily-log checklists (shared with web): topics worked on and core values
+  /// shown — at least one of each for new logs. [topic] stays = the first topic.
+  final List<String> topics;
+  final List<String> values;
 
   LogEntry({
     required this.id,
@@ -71,7 +75,11 @@ class LogEntry {
     this.imageBase64,
     this.title,
     this.audioPath,
+    this.topics = const [],
+    this.values = const [],
   });
+
+  List<String> get allTopics => topics.isNotEmpty ? topics : [topic];
 
   factory LogEntry.fromMap(Map<String, dynamic> m) => LogEntry(
     id: m['id'] as int,
@@ -82,6 +90,8 @@ class LogEntry {
     imageBase64: m['image'] as String?,
     title: m['title'] as String?,
     audioPath: m['audioPath'] as String?,
+    topics: (m['topics'] as List?)?.map((e) => e.toString()).toList() ?? const [],
+    values: (m['values'] as List?)?.map((e) => e.toString()).toList() ?? const [],
   );
 
   Map<String, dynamic> toMap() => {
@@ -93,6 +103,8 @@ class LogEntry {
     'image': imageBase64,
     'title': title,
     'audioPath': audioPath,
+    if (topics.isNotEmpty) 'topics': topics,
+    if (values.isNotEmpty) 'values': values,
   };
 }
 

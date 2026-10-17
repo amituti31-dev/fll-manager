@@ -256,7 +256,7 @@ function exportSeasonData(seasonName, data, type = 'pdf') {
 
   if (type === 'excel') {
     const rows = [['תאריך','מחבר','נושא','תוכן']];
-    (data.logs || []).forEach(l => rows.push([l.date, l.author, l.topic, l.text]));
+    (data.logs || []).forEach(l => rows.push([l.date, l.author, logTopics(l).join(', '), l.text]));
     rows.push([]);
     rows.push(['שם חבר','אימייל','תפקיד']);
     (data.members || []).forEach(m => rows.push([m.name, m.email, m.role === 'admin' ? 'מנטור' : 'תלמיד']));
@@ -309,7 +309,7 @@ function exportSeasonData(seasonName, data, type = 'pdf') {
     ${(data.logs||[]).length ? `
     <h2>📝 יומן פעילות</h2>
     <table><tr><th>תאריך</th><th>מחבר</th><th>נושא</th><th>תוכן</th></tr>
-    ${(data.logs||[]).slice(0,50).map(l=>`<tr><td>${l.date}</td><td>${l.author}</td><td>${l.topic}</td><td>${l.text}</td></tr>`).join('')}
+    ${(data.logs||[]).slice(0,50).map(l=>`<tr><td>${l.date}</td><td>${l.author}</td><td>${logTopics(l).join(', ')}</td><td>${l.text}</td></tr>`).join('')}
     </table>` : ''}
     ${(data.findings||[]).length ? `
     <h2>🔬 ממצאי מחקר</h2>

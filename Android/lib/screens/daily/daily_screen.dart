@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/month_calendar.dart' show coreValueStyles;
 
 class DailyScreen extends StatefulWidget {
   const DailyScreen({super.key});
@@ -34,7 +35,7 @@ class _DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     var items = prov.logs.reversed.toList();
-    if (_filter.isNotEmpty) { items = items.where((l) => l.topic == _filter).toList(); }
+    if (_filter.isNotEmpty) { items = items.where((l) => l.allTopics.contains(_filter)).toList(); }
     if (_search.isNotEmpty) { items = items.where((l) => l.text.contains(_search) || l.author.contains(_search)).toList(); }
 
     return Column(children: [
@@ -97,6 +98,8 @@ class _LogCard extends StatelessWidget {
   final LogEntry log;
   const _LogCard({required this.log});
 
+  static const _topicNames = {'general': 'כללי', 'robot': 'רובוט', 'innovation': 'חדשנות', 'values': 'ערכים'};
+
   static final _topicConfig = {
     'robot':      ('🤖', AppColors.accent,  'tag-robot'),
     'innovation': ('💡', AppColors.accent2, 'tag-innovation'),
@@ -133,7 +136,19 @@ class _LogCard extends StatelessWidget {
         ]),
         SizedBox(height: 8),
         Text(log.text, style: TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.5)),
-        if (log.imageBase64 != null && log.imageBase64!.startsWith('data:image')) ...[
+        if (log.topics.isNotEmpty || log.values.isNotEmpty) ...[
+          SizedBox(height: 8),
+          Wrap(spacing: 4, runSpacing: 4, children: [
+            for (final t in log.allTopics)
+              _MiniTag('${(_topicConfig[t] ?? _topicConfig['general']!).$1} ${_topicNames[t] ?? t}',
+                  (_topicConfig[t] ?? _topicConfig['general']!).$2),
+            for (final v in log.values)
+              if (coreValueStyles[v] != null)
+                _MiniTag('${coreValueStyles[v]!.$1} ${coreValueStyles[v]!.$2}', coreValueStyles[v]!.$3),
+          ]),
+        ],
+        // Older Android saves stored bare base64 (no data: prefix) — decode either.
+        if (log.imageBase64 != null && log.imageBase64!.length > 100) ...[
           SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
@@ -184,7 +199,9 @@ class _AddLogSheet extends StatefulWidget {
 
 class _AddLogSheetState extends State<_AddLogSheet> {
   final _textCtrl = TextEditingController();
-  String _topic = 'general';
+  final Set<String> _topics = {};
+  final Set<String> _values = {};
+  String? _error;
   String? _imageBase64;
   bool _saving = false;
   bool _pickingImage = false;
@@ -210,11 +227,17 @@ class _AddLogSheetState extends State<_AddLogSheet> {
   Future<void> _save() async {
     final text = _textCtrl.text.trim();
     if (text.isEmpty) return;
+    if (_topics.isEmpty) { setState(() => _error = 'סמנו לפחות נושא אחד'); return; }
+    if (_values.isEmpty) { setState(() => _error = 'סמנו לפחות ערך ליבה אחד'); return; }
     setState(() => _saving = true);
+    final topics = [for (final t in ['general', 'robot', 'innovation', 'values']) if (_topics.contains(t)) t];
+    final values = [for (final v in coreValueStyles.keys) if (_values.contains(v)) v];
     final prov = context.read<AppProvider>();
     await prov.addLog(LogEntry(
       id: DateTime.now().millisecondsSinceEpoch,
-      topic: _topic,
+      topic: topics.first,
+      topics: topics,
+      values: values,
       text: text,
       author: prov.currentUser?.name ?? 'אנונימי',
       date: DateTime.now().toIso8601String().split('T')[0],
@@ -234,24 +257,32 @@ class _AddLogSheetState extends State<_AddLogSheet> {
         Text('📝 תיעוד יומי חדש',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
         SizedBox(height: 16),
-        Row(children: [
-          for (final t in [('📌', 'general'), ('🤖', 'robot'), ('💡', 'innovation'), ('⭐', 'values')])
-            Expanded(child: Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: GestureDetector(
-                onTap: () => setState(() => _topic = t.$2),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: _topic == t.$2 ? AppColors.accent.withAlpha(40) : AppColors.surface2,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _topic == t.$2 ? AppColors.accent : AppColors.border),
-                  ),
-                  child: Text(t.$1, textAlign: TextAlign.center, style: TextStyle(fontSize: 20)),
-                ),
-              ),
-            )),
+        Text('על מה עבדתם? (לפחות נושא אחד)', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        SizedBox(height: 6),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (final t in [('📌 כללי', 'general'), ('🤖 רובוט', 'robot'), ('💡 חדשנות', 'innovation'), ('⭐ ערכים', 'values')])
+            FilterChip(
+              label: Text(t.$1, style: TextStyle(fontSize: 12)),
+              selected: _topics.contains(t.$2),
+              onSelected: (on) => setState(() { on ? _topics.add(t.$2) : _topics.remove(t.$2); _error = null; }),
+            ),
         ]),
+        SizedBox(height: 12),
+        Text('איזה ערכי ליבה באו לידי ביטוי? (לפחות אחד)', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        SizedBox(height: 6),
+        Wrap(spacing: 6, runSpacing: 6, children: [
+          for (final e in coreValueStyles.entries)
+            FilterChip(
+              label: Text('${e.value.$1} ${e.value.$2}', style: TextStyle(fontSize: 12)),
+              selected: _values.contains(e.key),
+              selectedColor: e.value.$3.withAlpha(60),
+              onSelected: (on) => setState(() { on ? _values.add(e.key) : _values.remove(e.key); _error = null; }),
+            ),
+        ]),
+        if (_error != null) ...[
+          SizedBox(height: 8),
+          Text(_error!, style: TextStyle(color: AppColors.red, fontSize: 12)),
+        ],
         SizedBox(height: 12),
         TextField(
           controller: _textCtrl,
@@ -309,3 +340,16 @@ class _AddLogSheetState extends State<_AddLogSheet> {
   }
 }
 
+
+class _MiniTag extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _MiniTag(this.text, this.color);
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+    decoration: BoxDecoration(color: color.withAlpha(35), borderRadius: BorderRadius.circular(10)),
+    child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+  );
+}

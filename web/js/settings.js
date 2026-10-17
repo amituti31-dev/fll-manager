@@ -166,7 +166,7 @@ function initCharts() {
 
   // פרויקט חדשנות: ממוצע של 4 מדדים
   const innRubricRatio = rubricRatio('innovation');
-  const innovLogs = (state.logs || []).filter(l => l.topic === 'innovation').length;
+  const innovLogs = (state.logs || []).filter(l => logTopics(l).includes('innovation')).length;
   const innPct = Math.round((
     (getInnovStep('problem')  ? 1 : 0) +
     (getInnovStep('solution') ? 1 : 0) +

@@ -998,13 +998,12 @@
   <div class="modal">
     <div class="modal-title">📝 תיעוד יומי חדש</div>
     <div class="form-group">
-      <label class="form-label">נושא</label>
-      <select class="form-input" id="log-topic">
-        <option value="general">📌 כללי</option>
-        <option value="robot">🤖 רובוט</option>
-        <option value="innovation">💡 חדשנות</option>
-        <option value="values">⭐ ערכים</option>
-      </select>
+      <label class="form-label">על מה עבדתם? (לפחות נושא אחד) *</label>
+      <div class="check-chips" id="log-topics"><!-- filled by showAddLogModal() --></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">איזה ערכי ליבה באו לידי ביטוי? (לפחות אחד) *</label>
+      <div class="check-chips" id="log-values"><!-- filled by showAddLogModal() --></div>
     </div>
     <div class="form-group">
       <label class="form-label">מה עשית היום?</label>

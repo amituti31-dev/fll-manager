@@ -629,3 +629,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 
 /* precision-tokens picker (robot + scoring screens) */
 .pt-select { width: auto; padding: 4px 8px; font-size: 12px; min-height: 0; }
+
+/* checkbox "chips" (daily log topics / core values) */
+.check-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.check-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 20px; font-size: 13px; background: var(--surface2);
+}
+.check-chip input { accent-color: var(--accent); margin: 0; }
+.check-chip:has(input:checked) { border-color: var(--accent); background: rgba(61,127,255,0.15); }
