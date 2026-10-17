@@ -16,7 +16,7 @@ const coreValueStyles = <String, (String, String, Color)>{
   'impact':     ('🌍', 'השפעה',      Color(0xFFFF6B35)),
   'inclusion':  ('🤝', 'הכלה',       Color(0xFFFFD700)),
   'teamwork':   ('👥', 'עבודת צוות', Color(0xFFAB47BC)),
-  'fun':        ('😄', 'כיף',        Color(0xFFEC407A)),
+  'fun':        ('😄', 'הנאה',        Color(0xFFEC407A)),
 };
 
 class _DayChip {

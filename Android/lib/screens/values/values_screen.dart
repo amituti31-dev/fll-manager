@@ -68,7 +68,7 @@ class _StickiesTab extends StatelessWidget {
     ('🌍', 'השפעה',     'impact',     Color(0xFFFF6B35)),
     ('🤝', 'הכלה',     'inclusion',  Color(0xFFFFD700)),
     ('👥', 'עבודת צוות','teamwork',   Color(0xFFAB47BC)),
-    ('😄', 'כיף',       'fun',        Color(0xFFEC407A)),
+    ('😄', 'הנאה',       'fun',        Color(0xFFEC407A)),
   ];
 
   @override
@@ -251,7 +251,7 @@ class _AddStickySheetState extends State<_AddStickySheet> {
   String _iconForLabel() {
     const map = {
       'גילוי': '🔍', 'חדשנות': '💡', 'השפעה': '🌍',
-      'הכלה': '🤝', 'עבודת צוות': '👥', 'כיף': '😄',
+      'הכלה': '🤝', 'עבודת צוות': '👥', 'הנאה': '😄',
     };
     return map[widget.label] ?? '⭐';
   }
@@ -269,7 +269,7 @@ class _BoardTab extends StatelessWidget {
     ('🌍', 'השפעה',      'impact',     Color(0xFFFF6B35)),
     ('🤝', 'הכלה',      'inclusion',  Color(0xFFFFD700)),
     ('👥', 'עבודת צוות', 'teamwork',   Color(0xFFAB47BC)),
-    ('😄', 'כיף',        'fun',        Color(0xFFEC407A)),
+    ('😄', 'הנאה',        'fun',        Color(0xFFEC407A)),
   ];
 
   @override

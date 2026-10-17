@@ -249,9 +249,9 @@ const STICKY_VALUES = {
   discovery: { label: '🔍 גילוי', bg: '#3d6fd4', text: '#e8f0ff' },
   innovation: { label: '💡 חדשנות', bg: '#00a882', text: '#e0fff8' },
   impact:     { label: '🌍 השפעה', bg: '#e05a20', text: '#fff0e8' },
-  inclusion:  { label: '🤝 שילוב', bg: '#c4a000', text: '#fffbe0' },
+  inclusion:  { label: '🤝 הכלה', bg: '#c4a000', text: '#fffbe0' },
   teamwork:   { label: '👥 עבודת צוות', bg: '#7c4fc4', text: '#f3e8ff' },
-  fun:        { label: '🎉 כיף', bg: '#c43060', text: '#ffe8f0' },
+  fun:        { label: '🎉 הנאה', bg: '#c43060', text: '#ffe8f0' },
 };
 
 function showAddStickyModal() { openModal('modal-sticky'); }
