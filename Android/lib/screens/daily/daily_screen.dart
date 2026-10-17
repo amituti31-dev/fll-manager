@@ -34,7 +34,7 @@ class _DailyScreenState extends State<DailyScreen> {
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
-    var items = prov.logs.reversed.toList();
+    var items = prov.dailyLogs.reversed.toList();
     if (_filter.isNotEmpty) { items = items.where((l) => l.allTopics.contains(_filter)).toList(); }
     if (_search.isNotEmpty) { items = items.where((l) => l.text.contains(_search) || l.author.contains(_search)).toList(); }
 

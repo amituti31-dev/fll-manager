@@ -36,12 +36,14 @@ function renderInnovProject() {
   const findings   = state.findings   || [];
   const interviews = state.interviews || [];
 
+  const appResearch = (state.logs || []).filter(l => l.topic === 'research');
+  const appSharing = (state.logs || []).filter(l => l.topic === 'sharing');
   const isDone = {
     problem:    !!getInnovStep('problem'),
-    research:   findings.length > 0,
+    research:   findings.length > 0 || appResearch.length > 0,
     interviews: interviews.length > 0,
     solution:   !!getInnovStep('solution'),
-    sharing:    !!getInnovStep('sharing'),
+    sharing:    !!getInnovStep('sharing') || appSharing.length > 0,
   };
   const doneCount = Object.values(isDone).filter(Boolean).length;
 
@@ -67,7 +69,8 @@ function renderInnovProject() {
   listEl.innerHTML = INNOV_STEPS.map(s => {
     const done = isDone[s.key];
     let contentText = '';
-    if (s.key === 'research')   contentText = findings.length   ? `${findings.length} ממצאים נוספו`   : s.emptyText;
+    if (s.key === 'research')   contentText = (findings.length + appResearch.length) ? `${findings.length + appResearch.length} ממצאים נוספו`   : s.emptyText;
+    else if (s.key === 'sharing' && appSharing.length) contentText = [getInnovStep('sharing'), ...appSharing.map(l => (l.title ? l.title + ': ' : '') + l.text)].filter(Boolean).join(' · ');
     else if (s.key === 'interviews') contentText = interviews.length ? `${interviews.length} ראיונות נוספו` : s.emptyText;
     else contentText = getInnovStep(s.key) || s.emptyText;
 
@@ -197,16 +200,24 @@ function saveFinding() {
   notify('✅ ממצא נשמר', 'success');
 }
 
+// Research hub: web findings + the research findings and ideas Android saves as
+// log entries (topics 'research' / 'ideas'), newest first.
 function renderResearchHub() {
   const el = document.getElementById('research-hub');
-  if (!state.findings.length) {
+  const items = [
+    ...(state.findings || []).map(f => ({ ...f, kind: 'finding' })),
+    ...(state.logs || []).filter(l => l.topic === 'research' || l.topic === 'ideas').map(l => ({ ...l, kind: l.topic })),
+  ].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || (b.id || 0) - (a.id || 0));
+  if (!items.length) {
     el.innerHTML = `<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px"><div style="font-size:28px;margin-bottom:8px">🔬</div><div>הוסף ממצאי מחקר ופגישות עם מומחים</div></div>`;
     return;
   }
-  el.innerHTML = state.findings.slice(-5).reverse().map(f => `
+  el.innerHTML = items.slice(0, 20).map(f => `
     <div style="border-bottom:1px solid var(--border);padding:10px 0">
-      <div style="font-size:12px;color:var(--text3)">${sanitize(f.author)} · ${formatDate(f.date)}</div>
-      <div style="font-size:13px;margin-top:4px">${sanitize(f.text)}</div>
+      <div style="font-size:12px;color:var(--text3)">${f.kind === 'ideas' ? '💭 רעיון · ' : ''}${sanitize(f.author || '')} · ${formatDate(f.date)}</div>
+      ${f.title ? `<div style="font-size:13px;font-weight:700;margin-top:4px">${sanitize(f.title)}</div>` : ''}
+      <div style="font-size:13px;margin-top:4px;white-space:pre-wrap">${sanitize(f.text)}</div>
+      ${imageSrc(f.image) ? `<img src="${imageSrc(f.image)}" alt="" style="max-width:100%;max-height:200px;border-radius:8px;margin-top:6px">` : ''}
       ${f.tag ? `<span class="timeline-tag tag-innovation">${sanitize(f.tag)}</span>` : ''}
     </div>
   `).join('');

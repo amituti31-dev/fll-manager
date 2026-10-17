@@ -342,7 +342,7 @@ class _CategoryProgress extends StatelessWidget {
     final problemPct  = prov.innovationProblem.trim().isNotEmpty ? 1.0 : 0.0;
     final solutionPct = prov.innovationSolution.trim().isNotEmpty ? 1.0 : 0.0;
     final rubricPct   = prov.rubricRatio('innovation');
-    final innovLogs   = prov.logs.where((l) => l.allTopics.contains('innovation')).length;
+    final innovLogs   = prov.dailyLogs.where((l) => l.allTopics.contains('innovation')).length;
     final logsPct     = math.min(innovLogs / 5.0, 1.0);
     final innovPct    = (problemPct + solutionPct + rubricPct + logsPct) / 4;
 

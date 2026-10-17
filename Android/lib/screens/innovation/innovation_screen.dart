@@ -77,7 +77,12 @@ class _ProjectTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sharingLogs = prov.logs.where((l) => l.topic == 'sharing').toList().reversed.toList();
+    final sharingLogs = [
+      ...prov.logs.where((l) => l.topic == 'sharing').toList().reversed,
+      // Community sharing written on web (a single text field there).
+      if (prov.webInnovationSharing.trim().isNotEmpty)
+        LogEntry(id: -1, topic: 'sharing', text: prov.webInnovationSharing, author: 'מהאתר', date: '', title: 'שיתוף עם הקהילה'),
+    ];
 
     return ListView(padding: const EdgeInsets.all(16), children: [
 
@@ -216,10 +221,10 @@ class _ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasProblem   = prov.innovationProblem.isNotEmpty;
-    final hasResearch  = prov.logs.any((l) => l.topic == 'research');
+    final hasResearch  = prov.researchEntries.isNotEmpty;
     final hasIdeas     = prov.logs.any((l) => l.topic == 'ideas');
     final hasSolution  = prov.innovationSolution.isNotEmpty;
-    final hasSharing   = prov.logs.any((l) => l.topic == 'sharing');
+    final hasSharing   = prov.logs.any((l) => l.topic == 'sharing') || prov.webInnovationSharing.trim().isNotEmpty;
     final done = [hasProblem, hasResearch, hasIdeas, hasSolution, hasSharing].where((b) => b).length;
 
     return Container(
@@ -453,7 +458,7 @@ class _ResearchTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final findings = prov.logs.where((l) => l.topic == 'research').toList().reversed.toList();
+    final findings = prov.researchEntries.reversed.toList();
 
     return ListView(padding: const EdgeInsets.all(16), children: [
       Container(

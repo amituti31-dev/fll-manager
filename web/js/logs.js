@@ -6,6 +6,12 @@
 const LOG_TOPICS = [['general', '📌 כללי'], ['robot', '🤖 רובוט'], ['innovation', '💡 חדשנות'], ['values', '⭐ ערכים']];
 const LOG_VALUES = ['discovery', 'innovation', 'impact', 'inclusion', 'teamwork', 'fun'];
 
+// Android saves innovation research / ideas / community sharing as log entries
+// with these topics — they belong to the innovation screen, not the daily log.
+const INNOVATION_LOG_TOPICS = ['research', 'ideas', 'sharing'];
+function isInnovationLog(l) { return INNOVATION_LOG_TOPICS.includes(l.topic); }
+function dailyLogs() { return (state.logs || []).filter(l => !isInnovationLog(l)); }
+
 function logTopics(l) { return (l.topics && l.topics.length) ? l.topics : [l.topic || 'general']; }
 
 function _checkChipsHtml(group, options, selected) {
@@ -26,7 +32,7 @@ function logTagsHtml(l) {
 
 function renderTimeline(filter = '', search = '') {
   const container = document.getElementById('timeline-container');
-  let items = [...state.logs].reverse();
+  let items = [...dailyLogs()].reverse();
   if (filter) items = items.filter(l => logTopics(l).includes(filter));
   if (search) items = items.filter(l => l.text.includes(search) || l.author.includes(search));
   if (!items.length) {
@@ -57,7 +63,7 @@ function renderTimeline(filter = '', search = '') {
 
 function renderRecentLogs() {
   const el = document.getElementById('recent-logs');
-  const items = [...state.logs].reverse().slice(0, 3);
+  const items = [...dailyLogs()].reverse().slice(0, 3);
   el.innerHTML = items.map(l => `
     <div class="timeline-item">
       <div class="timeline-dot"></div>

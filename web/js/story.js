@@ -66,7 +66,7 @@ function _seasonStoryInput() {
   const days = {};
   const day = d => (days[d] = days[d] || { meeting: null, logs: [], notes: [], milestones: [] });
   (state.meetingPlans || []).forEach(m => { if (m.date) day(m.date).meeting = m; });
-  (state.logs || []).forEach(l => { if (l.date) day(l.date).logs.push(l); });
+  dailyLogs().forEach(l => { if (l.date) day(l.date).logs.push(l); });
   (state.stickies || []).forEach(s => { if (s.date) day(s.date).notes.push(s); });
   (state.milestones || []).forEach(m => {
     const d = m.done ? (m.actualDate || m.targetDate) : m.targetDate;

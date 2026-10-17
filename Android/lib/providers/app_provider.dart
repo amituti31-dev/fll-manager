@@ -25,6 +25,11 @@ class AppProvider extends ChangeNotifier {
 
   String innovationProblem = '';
   String innovationSolution = '';
+  /// Web's innovation "research findings" (data.findings) and "community sharing"
+  /// text (data.innovationSharing) — shown read-only next to Android's own
+  /// research/sharing log entries. Android never writes these fields.
+  List<LogEntry> webFindings = [];
+  String webInnovationSharing = '';
   /// AI "season story" generated on web/desktop (data.seasonStory) — read-only here,
   /// never written by Android so a stale copy can't overwrite a newer story.
   String? seasonStoryText;
@@ -243,6 +248,19 @@ class AppProvider extends ChangeNotifier {
       logs = _parseList(data['logs'], LogEntry.fromMap);
       innovationProblem = data['innovationProblem'] as String? ?? '';
       innovationSolution = data['innovationSolution'] as String? ?? '';
+      webInnovationSharing = data['innovationSharing'] as String? ?? '';
+      webFindings = [
+        for (final f in (data['findings'] as List? ?? const []))
+          if (f is Map)
+            LogEntry(
+              id: (f['id'] as num?)?.toInt() ?? 0,
+              topic: 'research',
+              text: f['text']?.toString() ?? '',
+              author: f['author']?.toString() ?? '',
+              date: f['date']?.toString() ?? '',
+              title: (f['tag']?.toString().isNotEmpty ?? false) ? f['tag'].toString() : null,
+            ),
+      ];
       final story = data['seasonStory'];
       seasonStoryText = story is Map ? story['text'] as String? : null;
       seasonStoryCreatedAt = story is Map ? story['createdAt'] as String? : null;
@@ -880,6 +898,15 @@ class AppProvider extends ChangeNotifier {
   }
 
   List<Mission> get realMissions => missions.where(isRealMission).toList();
+
+  static const innovationLogTopics = {'research', 'ideas', 'sharing'};
+
+  /// Daily-log entries only (innovation research/ideas/sharing are separate).
+  List<LogEntry> get dailyLogs => logs.where((l) => !innovationLogTopics.contains(l.topic)).toList();
+
+  /// Research findings from both clients (Android log entries + web findings).
+  List<LogEntry> get researchEntries =>
+      [...logs.where((l) => l.topic == 'research'), ...webFindings]..sort((a, b) => a.date.compareTo(b.date));
 
   int get doneMissions => realMissions.where((m) => missionChecks[m.id] == true).length;
 
