@@ -25,6 +25,7 @@ Team-management app for a FIRST LEGO League team. Three clients share one Fireba
 - `data` — anything **any** team member (student or mentor) can write: logs, `missionChecks`, `missionExtra`, links, stickies, memberTasks, interviews, innovation fields, etc.
 - `admin-data` — **mentor-only** write: members (raw PINs stripped before sync), scores, `officialRubric`, checklist, seasons, `customMissions` (the mission list, shared by both clients; the old Android-only `missions` field is read as a fallback and deleted on save), judgingDoc. (The older `rubrics` free-form question lists are still loaded/saved/archived but no longer shown anywhere.)
 - `archives` — mentor-only.
+- `chats` — group/private chat + announcements. **Mentor-only for read and write** (`isMentorOnlyDoc` in the rules); both clients hide the chat from students.
 - `gallery`, `improvements` — small anchor docs whose only real content is a `photos` subcollection (`/{teamId}/gallery/photos/{id}`, `/{teamId}/improvements/photos/{id}`), one document per photo. Member-writable (not mentor-only). See "Images" below.
 - `fll-teams-registry` (top-level collection) — sanitized-email → `{teamId, role}`, the source of truth Firestore rules read to authorize.
 
