@@ -218,6 +218,7 @@ function renderResearchHub() {
       ${f.title ? `<div style="font-size:13px;font-weight:700;margin-top:4px">${sanitize(f.title)}</div>` : ''}
       <div style="font-size:13px;margin-top:4px;white-space:pre-wrap">${sanitize(f.text)}</div>
       ${imageSrc(f.image) ? `<img src="${imageSrc(f.image)}" alt="" style="max-width:100%;max-height:200px;border-radius:8px;margin-top:6px">` : ''}
+      ${f.audioPath ? `<div style="font-size:12px;color:var(--text3);margin-top:4px">🎙️ הקלטה זמינה רק בטלפון שהקליט אותה</div>` : ''}
       ${f.tag ? `<span class="timeline-tag tag-innovation">${sanitize(f.tag)}</span>` : ''}
     </div>
   `).join('');

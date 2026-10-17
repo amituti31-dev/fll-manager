@@ -626,7 +626,14 @@ class _FindingCardState extends State<_FindingCard> {
             }),
           ),
         ],
-        if (f.audioPath != null) ...[
+        // Recordings are saved as a file on the phone that recorded them (there's
+        // no shared file storage on the free Firebase plan), so other devices
+        // can't play them — say so instead of showing a dead play button.
+        if (f.audioPath != null && !File(f.audioPath!).existsSync()) ...[
+          SizedBox(height: 8),
+          Text('🎙️ הקלטה זמינה רק בטלפון שהקליט אותה',
+              style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+        ] else if (f.audioPath != null) ...[
           SizedBox(height: 8),
           GestureDetector(
             onTap: _togglePlay,
