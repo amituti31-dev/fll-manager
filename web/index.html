@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="/icon-512.png">
 <!-- Content Security Policy - blocks inline XSS and untrusted scripts -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https://www.gstatic.com https://www.googleapis.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://*.firebasestorage.app wss://*.firebaseio.com https://accounts.google.com https://apis.google.com;">
-<title>FLL Team Manager – Unearthed 2026</title>
+<title>FLL Team Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="vendor/chart.umd.min.js"></script>
 
@@ -208,7 +208,7 @@
       <div class="team-logo" id="sidebar-logo" data-action="navigate" data-arg="settings" title="הגדרות קבוצה">🤖</div>
       <div>
         <div class="team-name" id="sidebar-team-name">FLL Team</div>
-        <div class="season-badge" id="sidebar-season-badge">Unearthed 2026</div>
+        <div class="season-badge" id="sidebar-season-badge">BIOGLOW™</div>
       </div>
     </div>
     <div class="sidebar-nav">
@@ -420,7 +420,7 @@
               <span style="font-size:36px">🤖</span>
               <div>
                 <h3 style="font-weight:800;font-size:18px">תכנון רובוט</h3>
-                <p style="color:var(--text2);font-size:13px;margin-top:4px" id="robot-header-mission-count">Unearthed 2026 – 15 משימות</p>
+                <p style="color:var(--text2);font-size:13px;margin-top:4px" id="robot-header-mission-count">BIOGLOW™</p>
               </div>
             </div>
           </div>
@@ -439,7 +439,7 @@
 
         <div class="card">
           <div class="card-header">
-            <span class="card-icon">📋</span><span class="card-title" id="missions-card-title">15 משימות – Unearthed 2026</span>
+            <span class="card-icon">📋</span><span class="card-title" id="missions-card-title">משימות</span>
             <span id="missions-custom-badge" class="mission-stat-pill in-progress" style="display:none;margin-right:8px">✏️ מותאם אישית</span>
             <button class="btn btn-ghost admin-only" style="font-size:11px;margin-right:auto;padding:6px 10px" data-action="reset-missions-default">🔄 איפוס משימות</button>
             <label id="robot-import-json-btn" class="btn btn-ghost admin-only" style="font-size:11px;cursor:pointer;padding:6px 10px">
@@ -595,7 +595,7 @@
             </div>
           </div>
           <div class="card" id="scoring-missions-card" style="margin-bottom:12px">
-            <div class="card-header"><span class="card-icon">📋</span><span class="card-title" id="scoring-missions-card-title">משימות Unearthed 2026</span></div>
+            <div class="card-header"><span class="card-icon">📋</span><span class="card-title" id="scoring-missions-card-title">משימות</span></div>
             <div id="scoring-missions"><!-- populated --></div>
           </div>
           <div class="card">
@@ -686,7 +686,7 @@
               <span style="font-size:36px">📦</span>
               <div>
                 <h3 style="font-weight:800;font-size:18px">עונות וארכיון</h3>
-                <p style="color:var(--text2);font-size:13px">עונה פעילה: <strong id="active-season-label">Unearthed 2026</strong></p>
+                <p style="color:var(--text2);font-size:13px">עונה פעילה: <strong id="active-season-label">BIOGLOW™</strong></p>
               </div>
               <div style="margin-right:auto;display:flex;gap:8px;flex-wrap:wrap" class="admin-only">
                 <button class="btn btn-primary" data-action="open-new-season-modal">🆕 עונה חדשה</button>
@@ -740,7 +740,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">שם העונה</label>
-              <input type="text" class="form-input" id="settings-season-name" placeholder="לדוגמה: Unearthed 2026">
+              <input type="text" class="form-input" id="settings-season-name" placeholder="לדוגמה: BIOGLOW™">
             </div>
             <div class="form-group">
               <label class="form-label">לוגו קבוצה</label>
@@ -827,7 +827,7 @@
             <div class="card-header"><span class="card-icon">ℹ️</span><span class="card-title">אודות</span></div>
             <p style="color:var(--text2);font-size:13px;line-height:1.8">
               <strong>FLL Team Manager</strong><br>
-              גרסה 1.0.38 – Unearthed 2026<br>
+              גרסה 1.0.38<br>
               פותח עבור קבוצות FIRST LEGO League
             </p>
             <div style="margin-top:12px;background:var(--surface2);border-radius:10px;padding:12px">
@@ -1271,11 +1271,11 @@
   <div class="modal">
     <div class="modal-title">🆕 פתח עונה חדשה</div>
     <div style="background:rgba(255,107,53,0.1);border:1px solid var(--accent3);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--text2)">
-      ⚠️ פתיחת עונה חדשה תעביר את כל נתוני העונה הנוכחית לארכיון.
+      ⚠️ פתיחת עונה חדשה תעביר את כל נתוני העונה הנוכחית לארכיון, ורשימת המשימות תתעדכן למשימות הרשמיות של FIRST.
     </div>
     <div class="form-group">
       <label class="form-label">שם עונה חדשה</label>
-      <input type="text" class="form-input" id="new-season-name" placeholder="למשל: Submerged 2027">
+      <input type="text" class="form-input" id="new-season-name" placeholder="למשל: BIOGLOW™">
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-season">ביטול</button>

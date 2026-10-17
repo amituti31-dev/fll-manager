@@ -44,7 +44,7 @@ function renderMissions() {
   const done = missions.filter(m => state.missionChecks[m.id]).length;
   document.getElementById('stat-missions').textContent = `${done}/${missions.length}`;
 
-  const seasonLabel = state.currentSeason || 'Unearthed 2026';
+  const seasonLabel = state.currentSeason || OFFICIAL_SEASON_NAME;
   const headerCount = document.getElementById('robot-header-mission-count');
   if (headerCount) headerCount.textContent = `${seasonLabel} – ${missions.length} משימות`;
   const cardTitle = document.getElementById('missions-card-title');
@@ -107,7 +107,7 @@ function saveMissionExtra() {
     const id = _missionExtraId;
     // NOTE: editing a single mission snapshots the *entire* current list into
     // state.customMissions, not just this one mission's diff. From this point
-    // the team stops following MISSIONS_2026 automatically — future changes
+    // the team stops following OFFICIAL_MISSIONS automatically — future changes
     // to that built-in fallback (e.g. an app update) won't reach them, since
     // they're now on their own frozen copy. This is intentional (Android's
     // `missions` list works the same way, always a concrete copy, never a

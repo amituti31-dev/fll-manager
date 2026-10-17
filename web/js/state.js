@@ -15,7 +15,7 @@ function defaultState() {
     currentUser: null,
     isAdmin: false,
     theme: 'dark',
-    currentSeason: 'Unearthed 2026',
+    currentSeason: OFFICIAL_SEASON_NAME,
     members: [],
     logs: [],
     improvements: [],
@@ -25,12 +25,12 @@ function defaultState() {
     scores: [],
     checklist: DEFAULT_CHECKLIST.map(item => ({ ...item })),
     seasons: [
-      { name: 'Unearthed 2026', year: 2026, archived: false, topScore: 0 },
+      { name: OFFICIAL_SEASON_NAME, year: 2026, archived: false, topScore: 0 },
     ],
     missionChecks: {},
     missionStatuses: {},      // id → 'not_tried'|'in_progress'|'ready'
     missionExtra: {},         // id → { bonus, rules, bonusDone, bonusPts } — free-text bonus/rule notes + bonus score per mission
-    customMissions: [],       // mentor-imported mission list (overrides MISSIONS_2026 when populated)
+    customMissions: [],       // mentor-imported mission list (overrides OFFICIAL_MISSIONS when populated; shared with Android)
     pendingRubricCategory: null,
     teamGallery: [],          // [{id, image, caption, date, author}]
     links: [],                // [{id, title, url, category, author, date}]
@@ -91,6 +91,8 @@ async function saveState() {
     const officialRubric = state.officialRubric || null;
     await window.db.collection(window.FB_PROJECT).doc("admin-data").set({
       members, scores, rubrics, checklist, seasons, customMissions, judgingDoc, officialRubric,
+      // Old Android-only copy of the mission list — both clients now share customMissions.
+      missions: firebase.firestore.FieldValue.delete(),
       // Clean up the copies written by v1.0.8, before these moved to "data".
       missionChecks: firebase.firestore.FieldValue.delete(),
       links: firebase.firestore.FieldValue.delete(),

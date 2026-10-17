@@ -15,23 +15,29 @@ const DEFAULT_CHECKLIST = [
   { id: 5, text: 'זרועות ורובוט ארוזים', done: false },
 ];
 
-// Official FLL Unearthed 2026 missions (source: FIRST Israel scorer)
-const MISSIONS_2026 = [
-  { id: 1,  name: 'M01 – ציוד הגנה', pts: 20 },
-  { id: 2,  name: 'M02 – בית הגידול', pts: 20 },
-  { id: 3,  name: 'M03 – ניטור מים', pts: 20 },
-  { id: 4,  name: 'M04 – דגימת ליבה', pts: 20 },
-  { id: 5,  name: 'M05 – שחרור עץ', pts: 25 },
-  { id: 6,  name: 'M06 – הזזת מכון קידוח', pts: 25 },
-  { id: 7,  name: 'M07 – משאבה', pts: 25 },
-  { id: 8,  name: 'M08 – שחרור אבנים', pts: 20 },
-  { id: 9,  name: 'M09 – אנרגיה סולארית', pts: 25 },
-  { id: 10, name: 'M10 – אוורור מרחב', pts: 20 },
-  { id: 11, name: 'M11 – כלי עבודה', pts: 20 },
-  { id: 12, name: 'M12 – מכונת קידוח', pts: 30 },
-  { id: 13, name: 'M13 – הרים חומר', pts: 25 },
-  { id: 14, name: 'M14 – פינוי', pts: 20 },
-  { id: 15, name: 'M15 – נקודת ציון', pts: 20 },
+// Official FIRST LEGO League season + robot-game missions, from FIRST Israel's scorer
+// (fll-events.firstisrael.org.il/tools/scorer, scoresheet version 2026-08-04) and season list
+// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission can score (530 total).
+// Keep web/js/defaults.js and Android/lib/models/models.dart identical; update both each season.
+const OFFICIAL_SEASON_NAME = 'BIOGLOW™';
+const OFFICIAL_MISSIONS = [
+  { id: 1,  name: "M01 – סקר בעזרת רחפן", pts: 30 },
+  { id: 2,  name: "M02 – זרעים נפצים", pts: 30 },
+  { id: 3,  name: "M03 – להפוך את הסלע", pts: 30 },
+  { id: 4,  name: "M04 – עלים ברי מזל", pts: 30 },
+  { id: 5,  name: "M05 – שורשים מתפרסים", pts: 20 },
+  { id: 6,  name: "M06 – טירוף חותכי העלים", pts: 40 },
+  { id: 7,  name: "M07 – תפטיר אדיר", pts: 40 },
+  { id: 8,  name: "M08 – פלונטר", pts: 30 },
+  { id: 9,  name: "M09 – פלטפורמת מחקר", pts: 30 },
+  { id: 10, name: "M10 – בתי גידול זעירים ועדינים", pts: 20 },
+  { id: 11, name: "M11 – חלון אל העבר", pts: 20 },
+  { id: 12, name: "M12 – זקן היער", pts: 30 },
+  { id: 13, name: "M13 – מין מפתח", pts: 30 },
+  { id: 14, name: "M14 – זרעים של התחדשות", pts: 40 },
+  { id: 15, name: "M15 – אדריכלות ביוצנטרית", pts: 40 },
+  { id: 16, name: "ביקורת ציוד", pts: 20 },
+  { id: 17, name: "אסימוני דיוק", pts: 50 },
 ];
 
 // Official FIRST Israel judging rubrics (fll-events.firstisrael.org.il/tools/rubrics,

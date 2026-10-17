@@ -6,7 +6,7 @@ function renderSeasons() {
   if (!el) return;
   // עדכן תווית עונה פעילה
   const lbl = document.getElementById('active-season-label');
-  if (lbl) lbl.textContent = state.currentSeason || 'Unearthed 2026';
+  if (lbl) lbl.textContent = state.currentSeason || OFFICIAL_SEASON_NAME;
 
   el.innerHTML = [...state.seasons].reverse().map((s, i) => `
     <div class="card" style="margin-bottom:10px">
@@ -27,7 +27,12 @@ function renderSeasons() {
   `).join('');
 }
 
-function openNewSeasonModal() { openModal('modal-season'); }
+function openNewSeasonModal() {
+  // Suggest the current official season unless the team is already on it.
+  const input = document.getElementById('new-season-name');
+  if (input) input.value = state.currentSeason === OFFICIAL_SEASON_NAME ? '' : OFFICIAL_SEASON_NAME;
+  openModal('modal-season');
+}
 
 async function createNewSeason() {
   const name = document.getElementById('new-season-name').value.trim();
@@ -74,6 +79,9 @@ async function createNewSeason() {
   state.findings = [];
   state.scores = [];
   state.missionChecks = {};
+  // New season → back to the built-in official missions (ids now mean different missions).
+  state.customMissions = [];
+  state.missionExtra = {};
   state.rubrics = { values: [], robot: [], innovation: [] };
   state.officialRubric = { marks: { innovation: {}, robot: {} }, notes: { innovation: {}, robot: {} }, feedback: {} };
   state.stickies = [];

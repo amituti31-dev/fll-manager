@@ -2,7 +2,7 @@
 //  FLL MANAGER — JavaScript Index
 //  ───────────────────────────────────────────────────────────────
 //  §01  UTILITIES .............. sanitize, sanitizeUrl, getMissions, getMissionsScoreTotal, notify
-//  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, RUBRIC_GRID
+//  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, OFFICIAL_MISSIONS, RUBRIC_GRID
 //  §02  CONSTANTS & STATE ....... state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
 //  §05  TEAM SETUP .............. loginGoTo, create team, join team
@@ -60,10 +60,10 @@ function sanitizeUrl(url) {
 }
 
 // getMissions() - the mission list currently in effect: a mentor-imported
-// list if one exists, otherwise the built-in MISSIONS_2026 fallback (kept
+// list if one exists, otherwise the built-in OFFICIAL_MISSIONS fallback (kept
 // so offline/first-load teams always have a working mission set).
 function getMissions() {
-  return (state.customMissions && state.customMissions.length) ? state.customMissions : MISSIONS_2026;
+  return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }
 
 // getMissionsScoreTotal() - base mission points (for checked missions) plus

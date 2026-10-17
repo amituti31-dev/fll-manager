@@ -65,7 +65,7 @@ async function createWindow(port) {
       contextIsolation: true,
     },
     icon: path.join(__dirname, 'web', 'icon-512.png'),
-    title: 'FLL Manager – Unearthed 2026',
+    title: 'FLL Manager',
     autoHideMenuBar: true,
   });
 

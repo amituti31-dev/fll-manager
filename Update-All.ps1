@@ -52,7 +52,7 @@ $f = $f -replace "static const _currentVersion = '[^']*'", "static const _curren
 [System.IO.File]::WriteAllText("$AndroidDir\lib\main.dart", $f, $UTF8)
 
 $f = [System.IO.File]::ReadAllText("$AndroidDir\lib\screens\settings\settings_screen.dart", $UTF8)
-$f = [regex]::Replace($f, '\d+\.\d+\.\d+(?= . Unearthed)', $NewVersion)
+$f = [regex]::Replace($f, '\d+\.\d+\.\d+(?=\\n)', $NewVersion)
 [System.IO.File]::WriteAllText("$AndroidDir\lib\screens\settings\settings_screen.dart", $f, $UTF8)
 
 Write-Host "  OK" -ForegroundColor Green

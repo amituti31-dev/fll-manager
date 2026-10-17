@@ -12,7 +12,7 @@ class AppProvider extends ChangeNotifier {
   String? teamId;
   String teamName = 'FLL Team';
   String? teamLogo;
-  String currentSeason = 'Unearthed 2026';
+  String currentSeason = officialSeasonName;
   String? mentorCode;
   String? studentCode;
 
@@ -28,7 +28,7 @@ class AppProvider extends ChangeNotifier {
   List<Member> members = [];
   List<LogEntry> logs = [];
   List<ArchivedSeason> archives = [];
-  List<Mission> missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+  List<Mission> missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
   List<Improvement> improvements = [];
   List<Interview> interviews = [];
   List<ScoreRun> scores = [];
@@ -87,13 +87,13 @@ class AppProvider extends ChangeNotifier {
   void _resetToDefaults() {
     teamName = 'FLL Team';
     teamLogo = null;
-    currentSeason = 'Unearthed 2026';
+    currentSeason = officialSeasonName;
     mentorCode = null;
     studentCode = null;
     members = [];
     logs = [];
     archives = [];
-    missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     improvements = [];
     interviews = [];
     scores = [];
@@ -165,7 +165,7 @@ class AppProvider extends ChangeNotifier {
     if (settings != null) {
       teamName = settings['teamName'] as String? ?? 'FLL Team';
       teamLogo = settings['teamLogo'] as String?;
-      currentSeason = settings['currentSeason'] as String? ?? 'Unearthed 2026';
+      currentSeason = settings['currentSeason'] as String? ?? officialSeasonName;
       mentorCode = settings['mentorCode'] as String?;
       studentCode = settings['studentCode'] as String?;
       isDarkMode = settings['isDarkMode'] as bool? ?? true;
@@ -234,7 +234,14 @@ class AppProvider extends ChangeNotifier {
         final raw = adminData['missionChecks'] as Map<String, dynamic>;
         missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
       }
-      if (adminData['missions'] != null) {
+      // Shared with web as `customMissions` (empty = the built-in official list).
+      // `missions` is the old Android-only field, read only as a fallback.
+      final shared = adminData['customMissions'];
+      if (shared is List) {
+        missions = shared.isEmpty
+            ? officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList()
+            : _parseList(shared, Mission.fromMap);
+      } else if (adminData['missions'] != null) {
         missions = _parseList(adminData['missions'], Mission.fromMap);
       }
       if (adminData['rubrics'] != null) {
@@ -382,7 +389,8 @@ class AppProvider extends ChangeNotifier {
         'checklist': checklist.map((c) => c.toMap()).toList(),
         // Clean up the copy written by v1.0.8, before this moved to "data".
         'missionChecks': FieldValue.delete(),
-        'missions': missions.map((m) => m.toMap()).toList(),
+        'customMissions': missions.map((m) => m.toMap()).toList(),
+        'missions': FieldValue.delete(),
         'rubrics': {
           'values': rubrics['values']!.map((r) => r.toMap()).toList(),
           'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
@@ -526,7 +534,7 @@ class AppProvider extends ChangeNotifier {
       'scores': [],
       'checklist': checklist.map((c) => c.toMap()).toList(),
       'missionChecks': {},
-      'missions': missions.map((m) => m.toMap()).toList(),
+      'customMissions': missions.map((m) => m.toMap()).toList(),
       'rubrics': {'values': [], 'robot': [], 'innovation': []},
     });
     await FirebaseService.saveJoinCodes(teamId: tid, teamName: tName, mentorCode: mc, studentCode: sc);
@@ -646,10 +654,10 @@ class AppProvider extends ChangeNotifier {
   }
 
   // NOTE: unlike web (where editing one mission has to snapshot the whole
-  // MISSIONS_2026 fallback into state.customMissions the first time it
+  // OFFICIAL_MISSIONS fallback into state.customMissions the first time it
   // happens), `missions` here is always a concrete, directly-owned list —
   // even freshly after resetMissions() it's a copy, never a live reference
-  // to missions2026. So there's no separate "locked in" moment on Android:
+  // to officialMissions. So there's no separate "locked in" moment on Android:
   // it's effectively always been that way, from first boot.
   Future<void> updateMission(int id, String name, int pts) async {
     final m = missions.firstWhere((m) => m.id == id);
@@ -660,13 +668,13 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> resetMissions() async {
-    missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     notifyListeners();
     await _saveData();
   }
 
   // Full replace with a mentor-imported mission list (JSON import). Distinct
-  // from resetMissions(), which reverts to the built-in missions2026 —
+  // from resetMissions(), which reverts to the built-in officialMissions —
   // this replaces with an arbitrary list and, since ids may no longer line
   // up with the old set, resets missionChecks/missionExtra to avoid stale
   // notes/ticks pointing at the wrong mission.
@@ -877,7 +885,7 @@ class AppProvider extends ChangeNotifier {
     missionChecks = {};
     missionExtra = {};
     scores = [];
-    missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
     rubricNotes = {'innovation': {}, 'robot': {}};
@@ -893,7 +901,7 @@ class AppProvider extends ChangeNotifier {
     scores = [];
     missionChecks = {};
     missionExtra = {};
-    missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
     rubricNotes = {'innovation': {}, 'robot': {}};

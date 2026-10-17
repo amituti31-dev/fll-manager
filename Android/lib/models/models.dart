@@ -176,22 +176,29 @@ class MissionExtra {
   Map<String, dynamic> toMap() => {'bonus': bonus, 'bonusPts': bonusPts, 'rules': rules, 'bonusDone': bonusDone};
 }
 
-final List<Mission> missions2026 = [
-  Mission(id: 1,  name: 'M01 – צמח קטן',         pts: 20),
-  Mission(id: 2,  name: 'M02 – בית הצמחים',       pts: 20),
-  Mission(id: 3,  name: 'M03 – מנהרת ים',         pts: 20),
-  Mission(id: 4,  name: 'M04 – ספינת ים',         pts: 20),
-  Mission(id: 5,  name: 'M05 – שרשרת עץ',         pts: 25),
-  Mission(id: 6,  name: 'M06 – קוצים וכדור כוח',  pts: 25),
-  Mission(id: 7,  name: 'M07 – חישוק',            pts: 25),
-  Mission(id: 8,  name: 'M08 – שרשרת פחם',        pts: 20),
-  Mission(id: 9,  name: 'M09 – לא רכוס סינורית', pts: 25),
-  Mission(id: 10, name: 'M10 – ממחזר חרכוב',      pts: 20),
-  Mission(id: 11, name: 'M11 – כוח עמוק',         pts: 20),
-  Mission(id: 12, name: 'M12 – ספינת קוצים',      pts: 30),
-  Mission(id: 13, name: 'M13 – חרוב הבר',         pts: 25),
-  Mission(id: 14, name: 'M14 – פחמן',             pts: 20),
-  Mission(id: 15, name: 'M15 – נקודת ציפור',      pts: 20),
+// Official FIRST LEGO League season + robot-game missions, from FIRST Israel's scorer
+// (fll-events.firstisrael.org.il/tools/scorer, scoresheet version 2026-08-04) and season list
+// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission can score (530 total).
+// Keep web/js/defaults.js and Android/lib/models/models.dart identical; update both each season.
+const officialSeasonName = 'BIOGLOW™';
+final List<Mission> officialMissions = [
+  Mission(id: 1,  name: 'M01 – סקר בעזרת רחפן', pts: 30),
+  Mission(id: 2,  name: 'M02 – זרעים נפצים', pts: 30),
+  Mission(id: 3,  name: 'M03 – להפוך את הסלע', pts: 30),
+  Mission(id: 4,  name: 'M04 – עלים ברי מזל', pts: 30),
+  Mission(id: 5,  name: 'M05 – שורשים מתפרסים', pts: 20),
+  Mission(id: 6,  name: 'M06 – טירוף חותכי העלים', pts: 40),
+  Mission(id: 7,  name: 'M07 – תפטיר אדיר', pts: 40),
+  Mission(id: 8,  name: 'M08 – פלונטר', pts: 30),
+  Mission(id: 9,  name: 'M09 – פלטפורמת מחקר', pts: 30),
+  Mission(id: 10, name: 'M10 – בתי גידול זעירים ועדינים', pts: 20),
+  Mission(id: 11, name: 'M11 – חלון אל העבר', pts: 20),
+  Mission(id: 12, name: 'M12 – זקן היער', pts: 30),
+  Mission(id: 13, name: 'M13 – מין מפתח', pts: 30),
+  Mission(id: 14, name: 'M14 – זרעים של התחדשות', pts: 40),
+  Mission(id: 15, name: 'M15 – אדריכלות ביוצנטרית', pts: 40),
+  Mission(id: 16, name: 'ביקורת ציוד', pts: 20),
+  Mission(id: 17, name: 'אסימוני דיוק', pts: 50),
 ];
 
 // ─── Score Run ────────────────────────────────────────
