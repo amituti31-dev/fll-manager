@@ -285,6 +285,7 @@ class AppProvider extends ChangeNotifier {
         judgingQuestions = _parseList(adminData['judgingQuestions'], JudgingQuestion.fromMap);
       }
     }
+    _applyOfficialBonuses();
   }
 
   static List<T> _parseList<T>(dynamic raw, T Function(Map<String, dynamic>) fromMap) {
@@ -667,8 +668,30 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  /// Pre-fills the official bonus (text + points) for missions that are still
+  /// the official ones (same id and name), unless the team already set one.
+  /// Also splits the bonus out of a mission's pts if an older version saved the
+  /// combined max (e.g. M01 as 30 instead of 20 + 10 bonus).
+  void _applyOfficialBonuses() {
+    officialBonuses.forEach((id, b) {
+      final (bonusPts, bonusText) = b;
+      final official = officialMissions.where((m) => m.id == id).firstOrNull;
+      final m = missions.where((x) => x.id == id).firstOrNull;
+      if (official == null || m == null || m.name != official.name) return;
+      if (m.pts == official.pts + bonusPts) m.pts = official.pts;
+      final extra = missionExtra[id];
+      if (extra == null) {
+        missionExtra[id] = MissionExtra(bonus: bonusText, bonusPts: bonusPts);
+      } else if (extra.bonusPts <= 0) {
+        extra.bonusPts = bonusPts;
+        if (extra.bonus.isEmpty) extra.bonus = bonusText;
+      }
+    });
+  }
+
   Future<void> resetMissions() async {
     missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
+    _applyOfficialBonuses();
     notifyListeners();
     await _saveData();
   }

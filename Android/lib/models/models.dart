@@ -178,28 +178,37 @@ class MissionExtra {
 
 // Official FIRST LEGO League season + robot-game missions, from FIRST Israel's scorer
 // (fll-events.firstisrael.org.il/tools/scorer, scoresheet version 2026-08-04) and season list
-// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission can score (530 total).
+// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission scores without its
+// bonus; officialBonuses holds the bonus parts (450 + 80 = 530 total).
 // Keep web/js/defaults.js and Android/lib/models/models.dart identical; update both each season.
 const officialSeasonName = 'BIOGLOW™';
 final List<Mission> officialMissions = [
-  Mission(id: 1,  name: 'M01 – סקר בעזרת רחפן', pts: 30),
+  Mission(id: 1,  name: 'M01 – סקר בעזרת רחפן', pts: 20),
   Mission(id: 2,  name: 'M02 – זרעים נפצים', pts: 30),
-  Mission(id: 3,  name: 'M03 – להפוך את הסלע', pts: 30),
-  Mission(id: 4,  name: 'M04 – עלים ברי מזל', pts: 30),
+  Mission(id: 3,  name: 'M03 – להפוך את הסלע', pts: 20),
+  Mission(id: 4,  name: 'M04 – עלים ברי מזל', pts: 10),
   Mission(id: 5,  name: 'M05 – שורשים מתפרסים', pts: 20),
   Mission(id: 6,  name: 'M06 – טירוף חותכי העלים', pts: 40),
-  Mission(id: 7,  name: 'M07 – תפטיר אדיר', pts: 40),
+  Mission(id: 7,  name: 'M07 – תפטיר אדיר', pts: 20),
   Mission(id: 8,  name: 'M08 – פלונטר', pts: 30),
   Mission(id: 9,  name: 'M09 – פלטפורמת מחקר', pts: 30),
   Mission(id: 10, name: 'M10 – בתי גידול זעירים ועדינים', pts: 20),
   Mission(id: 11, name: 'M11 – חלון אל העבר', pts: 20),
   Mission(id: 12, name: 'M12 – זקן היער', pts: 30),
   Mission(id: 13, name: 'M13 – מין מפתח', pts: 30),
-  Mission(id: 14, name: 'M14 – זרעים של התחדשות', pts: 40),
+  Mission(id: 14, name: 'M14 – זרעים של התחדשות', pts: 20),
   Mission(id: 15, name: 'M15 – אדריכלות ביוצנטרית', pts: 40),
   Mission(id: 16, name: 'ביקורת ציוד', pts: 20),
   Mission(id: 17, name: 'אסימוני דיוק', pts: 50),
 ];
+// mission id → (bonus pts, official bonus text); pre-filled into missionExtra.
+const Map<int, (int, String)> officialBonuses = {
+  1: (10, 'מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר'),
+  3: (10, 'הסלע הוחזר למצב ההתחלתי שלו'),
+  4: (20, 'החרגול נשאר במצבו ההתחלתי לאורך המקצה'),
+  7: (20, 'חיבורים בין תפטיר פרוס לחלוטין של קבוצה אחת לשורש צמח פרוס לחלוטין של הקבוצה ממול'),
+  14: (20, 'זרעים שנוגעים בשטיח'),
+};
 
 // ─── Score Run ────────────────────────────────────────
 class ScoreRun {

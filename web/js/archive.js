@@ -82,6 +82,7 @@ async function createNewSeason() {
   // New season → back to the built-in official missions (ids now mean different missions).
   state.customMissions = [];
   state.missionExtra = {};
+  applyOfficialBonuses();
   state.rubrics = { values: [], robot: [], innovation: [] };
   state.officialRubric = { marks: { innovation: {}, robot: {} }, notes: { innovation: {}, robot: {} }, feedback: {} };
   state.stickies = [];

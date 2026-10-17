@@ -66,6 +66,26 @@ function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }
 
+// Pre-fills the official bonus (text + points) for missions that are still the
+// official ones (same id and name), unless the team already set a bonus there.
+// Also splits a bonus out of a mission's pts if an older version saved the
+// combined max (e.g. M01 as 30 instead of 20 + 10 bonus), so it isn't counted twice.
+function applyOfficialBonuses() {
+  if (!state.missionExtra) state.missionExtra = {};
+  const missions = getMissions();
+  Object.entries(OFFICIAL_BONUSES).forEach(([idStr, b]) => {
+    const id = Number(idStr);
+    const official = OFFICIAL_MISSIONS.find(m => m.id === id);
+    const m = missions.find(x => x.id === id);
+    if (!official || !m || m.name !== official.name) return;
+    if (m.pts === official.pts + b.bonusPts) m.pts = official.pts;
+    const extra = state.missionExtra[id] || {};
+    if (!(extra.bonusPts > 0)) {
+      state.missionExtra[id] = { rules: '', bonusDone: false, ...extra, bonus: extra.bonus || b.bonus, bonusPts: b.bonusPts };
+    }
+  });
+}
+
 // getMissionsScoreTotal() - base mission points (for checked missions) plus
 // any achieved bonus points (state.missionExtra[id].bonusDone), used by both
 // the live scoring display and saved run history so they stay consistent.

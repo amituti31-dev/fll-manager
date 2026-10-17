@@ -17,28 +17,37 @@ const DEFAULT_CHECKLIST = [
 
 // Official FIRST LEGO League season + robot-game missions, from FIRST Israel's scorer
 // (fll-events.firstisrael.org.il/tools/scorer, scoresheet version 2026-08-04) and season list
-// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission can score (530 total).
+// (lems.firstisrael.org.il/api/portal/seasons). pts = the most each mission scores without its
+// bonus; OFFICIAL_BONUSES holds the bonus parts (450 + 80 = 530 total).
 // Keep web/js/defaults.js and Android/lib/models/models.dart identical; update both each season.
 const OFFICIAL_SEASON_NAME = 'BIOGLOW™';
 const OFFICIAL_MISSIONS = [
-  { id: 1,  name: "M01 – סקר בעזרת רחפן", pts: 30 },
+  { id: 1,  name: "M01 – סקר בעזרת רחפן", pts: 20 },
   { id: 2,  name: "M02 – זרעים נפצים", pts: 30 },
-  { id: 3,  name: "M03 – להפוך את הסלע", pts: 30 },
-  { id: 4,  name: "M04 – עלים ברי מזל", pts: 30 },
+  { id: 3,  name: "M03 – להפוך את הסלע", pts: 20 },
+  { id: 4,  name: "M04 – עלים ברי מזל", pts: 10 },
   { id: 5,  name: "M05 – שורשים מתפרסים", pts: 20 },
   { id: 6,  name: "M06 – טירוף חותכי העלים", pts: 40 },
-  { id: 7,  name: "M07 – תפטיר אדיר", pts: 40 },
+  { id: 7,  name: "M07 – תפטיר אדיר", pts: 20 },
   { id: 8,  name: "M08 – פלונטר", pts: 30 },
   { id: 9,  name: "M09 – פלטפורמת מחקר", pts: 30 },
   { id: 10, name: "M10 – בתי גידול זעירים ועדינים", pts: 20 },
   { id: 11, name: "M11 – חלון אל העבר", pts: 20 },
   { id: 12, name: "M12 – זקן היער", pts: 30 },
   { id: 13, name: "M13 – מין מפתח", pts: 30 },
-  { id: 14, name: "M14 – זרעים של התחדשות", pts: 40 },
+  { id: 14, name: "M14 – זרעים של התחדשות", pts: 20 },
   { id: 15, name: "M15 – אדריכלות ביוצנטרית", pts: 40 },
   { id: 16, name: "ביקורת ציוד", pts: 20 },
   { id: 17, name: "אסימוני דיוק", pts: 50 },
 ];
+// mission id → official bonus (pre-filled into missionExtra; see applyOfficialBonuses()).
+const OFFICIAL_BONUSES = {
+  1: { bonusPts: 10, bonus: "מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר" },
+  3: { bonusPts: 10, bonus: "הסלע הוחזר למצב ההתחלתי שלו" },
+  4: { bonusPts: 20, bonus: "החרגול נשאר במצבו ההתחלתי לאורך המקצה" },
+  7: { bonusPts: 20, bonus: "חיבורים בין תפטיר פרוס לחלוטין של קבוצה אחת לשורש צמח פרוס לחלוטין של הקבוצה ממול" },
+  14: { bonusPts: 20, bonus: "זרעים שנוגעים בשטיח" },
+};
 
 // Official FIRST Israel judging rubrics (fll-events.firstisrael.org.il/tools/rubrics,
 // rubric version 2025-11-23): each criterion has the official text for the first

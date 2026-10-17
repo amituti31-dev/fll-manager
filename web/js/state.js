@@ -188,6 +188,7 @@ async function loadState() {
     if (settingsSnap.exists) Object.assign(state, settingsSnap.data());
     if (dataSnap.exists) Object.assign(state, dataSnap.data());
     if (adminDataSnap.exists) Object.assign(state, adminDataSnap.data());
+    applyOfficialBonuses();
 
     // teamGallery: legacy source is the "items" field on the gallery anchor
     // doc itself (the pre-split web/Android format).
