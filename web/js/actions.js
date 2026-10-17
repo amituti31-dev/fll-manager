@@ -72,7 +72,6 @@ const ACTIONS = {
   'save-meeting-plan': () => saveMeetingPlan(),
   'delete-meeting-plan': () => deleteMeetingPlan(),
   'switch-sticky-view': (el) => switchStickyView(el.dataset.arg),
-  'set-member-type': (el) => setMemberType(el.dataset.id, el.value),
   'set-precision-tokens': (el) => setPrecisionTokens(el.value),
   'toggle-mission-bonus': (el) => toggleMissionBonus(Number(el.dataset.id)),
   'import-missions-json': (el) => importMissionsJson(el),

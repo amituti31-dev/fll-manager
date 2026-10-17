@@ -360,16 +360,6 @@ class _MemberCard extends StatelessWidget {
               child: Text('$pending משימות', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
             ),
           if (prov.isAdmin) ...[
-            if (!member.isAdmin)
-              PopupMenuButton<String>(
-                tooltip: 'סוג חבר',
-                icon: Icon(Icons.badge_outlined, size: 18, color: AppColors.textSecondary),
-                onSelected: (type) => context.read<AppProvider>().setMemberType(member.id, type),
-                itemBuilder: (_) => [
-                  CheckedPopupMenuItem(value: 'student', checked: member.role != 'junior', child: const Text('🎓 תלמיד')),
-                  CheckedPopupMenuItem(value: 'junior', checked: member.role == 'junior', child: const Text('🌱 מנטור צעיר')),
-                ],
-              ),
             IconButton(
               icon: Icon(Icons.add_task, size: 18, color: AppColors.accent2),
               onPressed: () => TeamScreen.showAddTaskDialog(context, forMember: member),

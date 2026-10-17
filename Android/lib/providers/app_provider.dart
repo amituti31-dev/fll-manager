@@ -1182,16 +1182,6 @@ class AppProvider extends ChangeNotifier {
   Future<void> changePassword(String currentPassword, String newPassword) =>
       FirebaseService.changePassword(currentPassword: currentPassword, newPassword: newPassword);
 
-  /// Mentors switch a non-mentor between 'student' and 'junior' (מנטור צעיר).
-  Future<void> setMemberType(String memberId, String type) async {
-    if (!isAdmin || !const {'student', 'junior'}.contains(type)) return;
-    final i = members.indexWhere((m) => m.id == memberId);
-    if (i == -1 || members[i].isAdmin) return;
-    members[i].role = type;
-    notifyListeners();
-    await _saveData();
-  }
-
   Future<void> updateMemberName(String memberId, String newName) async {
     final member = members.firstWhere((m) => m.id == memberId, orElse: () => members.first);
     member.name = newName;

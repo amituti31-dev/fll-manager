@@ -3,18 +3,9 @@
 // ═══════════════════════════════════════════════════════
 // Member types: 'admin' (מנטור), 'student' (תלמיד), 'junior' (מנטור צעיר — exactly
 // a student's permissions, different label; in the registry/rules it's 'student').
+// The type is chosen once, when a mentor adds the member, and isn't changed later.
 const MEMBER_TYPE_LABELS = { admin: '👑 מנטור', student: '🎓 תלמיד', junior: '🌱 מנטור צעיר' };
 function memberTypeLabel(m) { return MEMBER_TYPE_LABELS[m.role] || MEMBER_TYPE_LABELS.student; }
-
-// Mentors switch a non-mentor between student and junior mentor.
-function setMemberType(id, type) {
-  if (!state.isAdmin || !['student', 'junior'].includes(type)) return;
-  const m = (state.members || []).find(x => String(x.id) === String(id));
-  if (!m || m.role === 'admin') return;
-  m.role = type;
-  delete m.juniorMentor;
-  saveState(); renderMembers();
-}
 
 function renderMembers() {
   const el = document.getElementById('members-list');
@@ -36,11 +27,6 @@ function renderMembers() {
           <button class="btn btn-ghost btn-icon" style="font-size:14px;padding:4px" data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}" title="צ'אט פרטי">💬</button>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px" data-action="show-add-member-task-modal" data-id="${sanitize(String(m.id))}" title="הוסף משימה">📋</button>` : ''}
-        ${state.isAdmin && m.role !== 'admin' ? `
-          <select class="form-input" style="width:auto;padding:3px 6px;font-size:12px;min-height:0" data-onchange="set-member-type" data-id="${sanitize(String(m.id))}" title="סוג חבר">
-            <option value="student" ${m.role !== 'junior' ? 'selected' : ''}>🎓 תלמיד</option>
-            <option value="junior" ${m.role === 'junior' ? 'selected' : ''}>🌱 מנטור צעיר</option>
-          </select>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="color:var(--accent);font-size:12px;padding:4px" data-action="admin-change-name" data-id="${sanitize(String(m.id))}" title="שנה שם">✏️</button>
           <button class="btn btn-ghost btn-icon" style="color:var(--red)" data-action="remove-member" data-id="${sanitize(String(m.id))}" title="הסר">✕</button>` : ''}
