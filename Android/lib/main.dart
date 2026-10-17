@@ -106,7 +106,7 @@ class _RootRouter extends StatefulWidget {
 }
 
 class _RootRouterState extends State<_RootRouter> {
-  static const _currentVersion = '1.0.33';
+  static const _currentVersion = '1.0.34';
   bool _updateChecked = false;
 
   bool _isNewer(String remote) {
