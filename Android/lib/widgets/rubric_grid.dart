@@ -6,10 +6,11 @@ import '../providers/app_provider.dart';
 // Laid out like FIRST Israel's rubric tool (fll-events.firstisrael.org.il/tools/rubrics),
 // including its light look. On a phone the site itself switches from the 4-column
 // table to one card per criterion — that's what this mirrors.
+// (key, label, dot color, selected-chip color)
 const _tabs = [
-  ('innovation', 'פרויקט החדשנות', Color(0xFF5E82BF)),
-  ('robot', 'תכנון הרובוט', Color(0xFF64AF75)),
-  ('values', 'ערכי הליבה', Color(0xFFE4928B)),
+  ('innovation', 'פרויקט החדשנות', Color(0xFF5E82BF), Color(0xFF1E6FD9)),
+  ('robot', 'תכנון הרובוט', Color(0xFF64AF75), Color(0xFF2E7D32)),
+  ('values', 'ערכי הליבה', Color(0xFFE4928B), Color(0xFFD32F2F)),
 ];
 const _sectionBg = {
   'innovation': Color(0xFFD3DAED),
@@ -17,12 +18,12 @@ const _sectionBg = {
   'values': Color(0xFFF5DAD4),
 };
 const _ink = Color(0xFF1A1F36);
-const _blue = Color(0xFF1E6FD9);
+const _blue = Color(0xFF1E6FD9); // selected radio
 const _line = Color(0xFFE3E3E3);
 
 /// The official judging rubric: pick a judging area, and for every criterion
-/// just mark one of the four levels. The core-values tab is the flagged
-/// criteria of the other two (same marks). Mentors mark; others read only.
+/// just mark one of the four levels. Like the official site, the core-values
+/// tab has no criteria — only the feedback boxes. Mentors mark; others read only.
 class RubricGrid extends StatefulWidget {
   const RubricGrid({super.key});
 
@@ -51,7 +52,7 @@ class _RubricGridState extends State<RubricGrid> {
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
-    final rows = rubricRows(_tab);
+    final rows = _tab == 'values' ? const <({String cat, RubricSectionDef section, RubricFieldDef field})>[] : rubricRows(_tab);
 
     final children = <Widget>[];
     String? lastSection;
@@ -59,13 +60,12 @@ class _RubricGridState extends State<RubricGrid> {
       final key = '${r.cat}.${r.section.id}';
       if (key != lastSection) {
         lastSection = key;
-        final prefix = _tab == 'values' ? '${rubricTitles[r.cat]} · ' : '';
         children.add(Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           color: _sectionBg[_tab],
           child: Text.rich(TextSpan(children: [
-            TextSpan(text: '$prefix${r.section.title}', style: const TextStyle(fontWeight: FontWeight.w800)),
+            TextSpan(text: r.section.title, style: const TextStyle(fontWeight: FontWeight.w800)),
             TextSpan(text: '  -  ${r.section.description}'),
           ]), style: const TextStyle(fontSize: 12, color: _ink, height: 1.4)),
         ));
@@ -115,22 +115,22 @@ class _RubricGridState extends State<RubricGrid> {
             padding: const EdgeInsets.all(12),
             child: Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
               const Text('תחומי שיפוט', style: TextStyle(fontSize: 12, color: Color(0xFF555555))),
-              for (final (key, label, dot) in _tabs)
+              for (final (key, label, dot, sel) in _tabs)
                 GestureDetector(
                   onTap: () => setState(() => _tab = key),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: _tab == key ? const Color(0xFFF3F8FF) : Colors.white,
-                      border: Border.all(color: _tab == key ? _blue : const Color(0xFFCCCCCC), width: _tab == key ? 2 : 1),
+                      color: _tab == key ? sel.withAlpha(13) : Colors.white,
+                      border: Border.all(color: _tab == key ? sel : const Color(0xFFCCCCCC), width: _tab == key ? 2 : 1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(width: 7, height: 7, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                      Container(width: 7, height: 7, decoration: BoxDecoration(color: _tab == key ? sel : dot, shape: BoxShape.circle)),
                       const SizedBox(width: 7),
                       Text(label, style: TextStyle(
                         fontSize: 13,
-                        color: _tab == key ? _blue : const Color(0xFF333333),
+                        color: _tab == key ? sel : const Color(0xFF333333),
                         fontWeight: _tab == key ? FontWeight.w700 : FontWeight.w400,
                       )),
                     ]),
@@ -138,14 +138,6 @@ class _RubricGridState extends State<RubricGrid> {
                 ),
             ]),
           ),
-          if (_tab == 'values')
-            const Padding(
-              padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Text(
-                'ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו במחווני פרויקט החדשנות ותכנון הרובוט, ומהווים 25% מהניקוד. סימון כאן הוא אותו סימון כמו שם.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.4),
-              ),
-            ),
           ...children,
           // Feedback
           Container(

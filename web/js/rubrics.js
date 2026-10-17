@@ -6,10 +6,11 @@
 //   notes: { innovation|robot: {fieldId: text} }   ← "כיצד הקבוצה הצטיינה?" when marked מצטיינת
 //   feedback: { innovation|robot|values: { greatJob, thinkAbout } } }  (admin-data, mentor-only)
 let _rubricTab = 'innovation';
+// [key, label, dot color, selected-chip color]
 const _RUBRIC_TABS = [
-  ['innovation', 'פרויקט החדשנות', '#5E82BF'],
-  ['robot', 'תכנון הרובוט', '#64AF75'],
-  ['values', 'ערכי הליבה', '#E4928B'],
+  ['innovation', 'פרויקט החדשנות', '#5E82BF', '#1E6FD9'],
+  ['robot', 'תכנון הרובוט', '#64AF75', '#2E7D32'],
+  ['values', 'ערכי הליבה', '#E4928B', '#D32F2F'],
 ];
 // Section-header row color per tab, as on the official site.
 const _RUBRIC_SECTION_BG = { innovation: '#D3DAED', robot: '#DAE8D8', values: '#F5DAD4' };
@@ -26,8 +27,10 @@ function _officialRubric() {
   return r;
 }
 
-// [{cat, section, field}] — every criterion shown on a tab. The core-values
-// tab is the flagged criteria of the other two, so a mark there is the same mark.
+// [{cat, section, field}] — every criterion of a rubric. tab 'values' = the
+// criteria the official rubric counts toward core values (used for the score
+// ratio only — like the official site, the core-values tab itself has no
+// table, just the feedback boxes).
 function _rubricRows(tab) {
   const rows = [];
   const cats = tab === 'values' ? ['innovation', 'robot'] : [tab];
@@ -80,7 +83,7 @@ function resetRubricTab() {
   if (!state.isAdmin) return;
   if (!confirm('לאפס את כל הסימונים בתחום השיפוט הזה?')) return;
   const r = _officialRubric();
-  _rubricRows(_rubricTab).forEach(({ cat, field }) => {
+  if (_rubricTab !== 'values') _rubricRows(_rubricTab).forEach(({ cat, field }) => {
     delete r.marks[cat][field.id];
     delete r.notes[cat][field.id];
   });
@@ -105,22 +108,22 @@ function renderRubricGrid() {
     <div class="rg-card">
       <div class="rg-nav">
         <span class="rg-nav-title">תחומי שיפוט</span>
-        ${_RUBRIC_TABS.map(([key, label, dot]) => `
-          <button class="rg-chip${key === tab ? ' on' : ''}" data-action="switch-rubric-tab" data-arg="${key}">
-            <span class="rg-dot" style="background:${dot}"></span>${label}</button>`).join('')}
+        ${_RUBRIC_TABS.map(([key, label, dot, sel]) => `
+          <button class="rg-chip${key === tab ? ' on' : ''}" style="${key === tab ? `border-color:${sel};color:${sel};background:${sel}0d` : ''}" data-action="switch-rubric-tab" data-arg="${key}">
+            <span class="rg-dot" style="background:${key === tab ? sel : dot}"></span>${label}</button>`).join('')}
       </div>
-      ${tab === 'values' ? `<div class="rg-cv-note">ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו במחווני פרויקט החדשנות ותכנון הרובוט, ומהווים 25% מהניקוד. סימון כאן הוא אותו סימון כמו שם.</div>` : ''}
-      <div class="rg-scroll"><div class="rg-table">
+      <div class="rg-scroll"><div class="rg-table">`;
+  // The core-values tab has no criteria table on the official site — just the feedback.
+  if (tab !== 'values') html += `
         <div class="rg-row rg-head">${RUBRIC_LEVELS.map((l, i) =>
           `<div class="rg-cell" style="background:${colors[i]}">${l}</div>`).join('')}</div>`;
 
   let lastSection = null;
-  _rubricRows(tab).forEach(({ cat, section, field }) => {
+  (tab === 'values' ? [] : _rubricRows(tab)).forEach(({ cat, section, field }) => {
     const sectionKey = cat + '.' + section.id;
     if (sectionKey !== lastSection) {
       lastSection = sectionKey;
-      const prefix = tab === 'values' ? `${RUBRIC_GRID[cat].title} · ` : '';
-      html += `<div class="rg-section" style="background:${sectionBg}"><b>${prefix}${section.title}</b>&nbsp; - &nbsp;${section.description}</div>`;
+      html += `<div class="rg-section" style="background:${sectionBg}"><b>${section.title}</b>&nbsp; - &nbsp;${section.description}</div>`;
     }
     const current = marks[cat][field.id] || 0;
     html += `<div class="rg-row">${[1, 2, 3, 4].map(level => {

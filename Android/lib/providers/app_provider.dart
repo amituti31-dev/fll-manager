@@ -734,9 +734,10 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
-  /// "איפוס המחוון" — clears the marks, notes and feedback shown on [tab].
+  /// "איפוס המחוון" — clears the marks, notes and feedback shown on [tab]
+  /// (the core-values tab shows only feedback, so only that is cleared there).
   Future<void> resetRubricTab(String tab) async {
-    for (final r in rubricRows(tab)) {
+    for (final r in tab == 'values' ? const <({String cat, RubricSectionDef section, RubricFieldDef field})>[] : rubricRows(tab)) {
       rubricMarks[r.cat]?.remove(r.field.id);
       rubricNotes[r.cat]?.remove(r.field.id);
     }
