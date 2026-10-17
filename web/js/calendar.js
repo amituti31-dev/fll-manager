@@ -211,13 +211,13 @@ function renderCalendar() {
     return `
       <div style="padding:8px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:10px">
-          <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${m.done ? 'checked' : ''} data-onchange="toggle-milestone" data-id="${m.id}">
+          <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent2)" ${m.done ? 'checked' : ''} ${state.isAdmin ? '' : 'disabled'} data-onchange="toggle-milestone" data-id="${m.id}">
           <span style="flex:1;font-size:14px;${m.done ? 'text-decoration:line-through;color:var(--text3)' : ''}">${sanitize(m.title)}</span>
-          <button data-action="delete-milestone" data-id="${m.id}" style="background:none;border:none;color:var(--text3);cursor:pointer">✕</button>
+          ${state.isAdmin ? `<button data-action="delete-milestone" data-id="${m.id}" style="background:none;border:none;color:var(--text3);cursor:pointer">✕</button>` : ''}
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;margin-right:28px">
           <span style="background:rgba(245,200,66,0.15);color:#f5c842;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600">🚩 יעד: ${formatDate(m.targetDate)}</span>
-          <span style="cursor:pointer;background:${changed ? 'rgba(0,212,160,0.15)' : 'rgba(255,255,255,0.06)'};color:${changed ? 'var(--accent2)' : 'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600" data-action="show-milestone-actual-modal" data-id="${m.id}">${changed ? `✅ בוצע: ${formatDate(m.actualDate)}` : '➕ סמן תאריך בפועל'}</span>
+          <span style="cursor:pointer;background:${changed ? 'rgba(0,212,160,0.15)' : 'rgba(255,255,255,0.06)'};color:${changed ? 'var(--accent2)' : 'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600" ${state.isAdmin ? `data-action="show-milestone-actual-modal" data-id="${m.id}"` : ''}>${changed ? `✅ בוצע: ${formatDate(m.actualDate)}` : (state.isAdmin ? '➕ סמן תאריך בפועל' : 'טרם סומן תאריך בפועל')}</span>
           <span style="color:${st.color};font-size:11px;font-weight:700;padding:3px 4px">${st.icon} ${st.text}</span>
         </div>
       </div>`;
@@ -226,6 +226,7 @@ function renderCalendar() {
 
 // ── Milestones ──
 function showAddMilestoneModal(presetDate) {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   document.getElementById('milestone-title').value = '';
   if (presetDate) {
     document.getElementById('milestone-date').value = presetDate;
@@ -238,6 +239,7 @@ function showAddMilestoneModal(presetDate) {
 }
 
 function saveMilestone() {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   const title = document.getElementById('milestone-title').value.trim();
   const date = document.getElementById('milestone-date').value;
   if (!title) { notify('נדרשת כותרת', 'error'); return; }
@@ -249,11 +251,13 @@ function saveMilestone() {
 }
 
 function toggleMilestone(id) {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   const m = (state.milestones || []).find(x => x.id === id);
   if (m) { m.done = !m.done; saveState(); renderCalendar(); }
 }
 
 function deleteMilestone(id) {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   state.milestones = (state.milestones || []).filter(m => m.id !== id);
   saveState(); renderCalendar();
 }
@@ -261,6 +265,7 @@ function deleteMilestone(id) {
 let _editingMilestoneId = null;
 
 function showMilestoneActualModal(id) {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   const m = (state.milestones || []).find(x => x.id === id);
   if (!m) return;
   _editingMilestoneId = id;
@@ -269,6 +274,7 @@ function showMilestoneActualModal(id) {
 }
 
 function saveMilestoneActual() {
+  if (!state.isAdmin) { notify('רק מנטור יכול לערוך אבני דרך', 'error'); renderCalendar(); return; }
   const m = (state.milestones || []).find(x => x.id === _editingMilestoneId);
   if (!m) return;
   const actual = document.getElementById('milestone-actual-date').value;
@@ -289,6 +295,8 @@ function _meetingForDay(iso) {
 function showMeetingPlanModal(presetDate, id) {
   const existing = id ? (state.meetingPlans || []).find(m => String(m.id) === String(id))
                       : (presetDate ? _meetingForDay(presetDate) : null);
+  // Students: meetings are view-only — show that day's details instead.
+  if (!state.isAdmin) { if (existing) showCalDay(existing.date); else notify('רק מנטור יכול להוסיף מפגשים', 'error'); return; }
   _editingMeetingPlanId = existing ? existing.id : null;
   document.getElementById('meeting-plan-modal-title').textContent = existing ? '📋 תכנית מפגש' : '📋 מפגש חדש';
   document.getElementById('meeting-plan-date').value = existing ? existing.date : (presetDate || _localIsoToday());
@@ -305,6 +313,7 @@ function showMeetingPlanModal(presetDate, id) {
 }
 
 function saveMeetingPlan() {
+  if (!state.isAdmin) return;
   const date = document.getElementById('meeting-plan-date').value;
   const title = document.getElementById('meeting-plan-title').value.trim().slice(0, 120);
   const plan = document.getElementById('meeting-plan-plan').value.trim().slice(0, 3000);
@@ -322,6 +331,7 @@ function saveMeetingPlan() {
 }
 
 function deleteMeetingPlan() {
+  if (!state.isAdmin) return;
   if (!_editingMeetingPlanId || !confirm('למחוק את תכנית המפגש? הפתקים של אותו יום לא יימחקו.')) return;
   state.meetingPlans = (state.meetingPlans || []).filter(m => m.id !== _editingMeetingPlanId);
   saveState(); closeModal('modal-meeting-plan'); renderCalendar(); renderStickyBoard();
@@ -347,7 +357,7 @@ function _meetingRowHtml(m, today) {
       </div>
       ${!pending ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;white-space:pre-wrap;max-height:3em;overflow:hidden">${sanitize(m.summary)}</div>`
         : m.plan ? `<div style="font-size:12px;color:var(--text3);margin-top:4px;white-space:pre-wrap;max-height:3em;overflow:hidden">${sanitize(m.plan)}</div>` : ''}
-      ${overdue ? `<button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:4px 10px" data-action="show-meeting-plan-modal" data-id="${m.id}">✍️ כתוב סיכום</button>` : ''}
+      ${overdue && state.isAdmin ? `<button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:4px 10px" data-action="show-meeting-plan-modal" data-id="${m.id}">✍️ כתוב סיכום</button>` : ''}
     </div>`;
 }
 
@@ -376,6 +386,7 @@ function renderMeetingPlans() {
 function renderMeetingSummaryReminder() {
   const card = document.getElementById('dashboard-meeting-reminder');
   if (!card) return;
+  if (!state.isAdmin) { card.style.display = 'none'; return; } // only mentors write summaries
   const today = _localIsoToday();
   const overdue = (state.meetingPlans || [])
     .filter(m => m.date <= today && !String(m.summary || '').trim())

@@ -13,6 +13,7 @@ class StrategyBoardScreen extends StatelessWidget {
 
   static Future<void> showAddDialog(BuildContext context) async {
     final prov = context.read<AppProvider>();
+    if (!prov.isAdmin) return; // only mentors create boards (also enforced in firestore.rules)
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => const _NewBoardDialog(),
@@ -91,21 +92,21 @@ class StrategyBoardScreen extends StatelessWidget {
 
     if (boards.isEmpty) {
       return Column(children: [
-        _addButton(context),
+        if (prov.isAdmin) _addButton(context),
         Expanded(child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('🗺️', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
           Text('אין לוחות אסטרטגיה',
               style: TextStyle(color: AppColors.textTertiary, fontSize: 15)),
           const SizedBox(height: 6),
-          Text('לחץ "➕ לוח חדש" למעלה',
+          Text(prov.isAdmin ? 'לחץ "➕ לוח חדש" למעלה' : 'מנטור יכול ליצור לוח',
               style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
         ]))),
       ]);
     }
 
     return Column(children: [
-      _addButton(context),
+      if (prov.isAdmin) _addButton(context),
       Expanded(
         child: GridView.builder(
           padding: const EdgeInsets.all(12),
@@ -119,7 +120,7 @@ class StrategyBoardScreen extends StatelessWidget {
           itemBuilder: (_, i) => _BoardCard(
             board: boards[i],
             onTap: () => _openEditor(context, boards[i]),
-            onLongPress: () => _confirmDelete(context, prov, boards[i]),
+            onLongPress: () { if (prov.isAdmin) _confirmDelete(context, prov, boards[i]); },
           ),
         ),
       ),

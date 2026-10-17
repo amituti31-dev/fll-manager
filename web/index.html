@@ -233,7 +233,7 @@
       <div class="nav-item" id="nav-mytasks" data-action="navigate" data-arg="mytasks" title="המשימות שלי">
         <span class="nav-icon">✅</span><span class="nav-label">המשימות שלי</span>
       </div>
-      <div class="nav-item" id="nav-team" data-action="navigate" data-arg="team" title="ניהול קבוצה">
+      <div class="nav-item admin-only" id="nav-team" data-action="navigate" data-arg="team" title="ניהול קבוצה">
         <span class="nav-icon">👥</span><span class="nav-label">ניהול קבוצה</span>
       </div>
       <div class="nav-item admin-only" id="nav-chat" data-action="navigate" data-arg="chat" title="צ'אט קבוצה (מנטורים)">
@@ -898,7 +898,7 @@
         <div id="sb-list-view">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
             <span style="color:var(--text2);font-size:13px;flex:1">לוחות אסטרטגיה משותפים לכל הקבוצה — אותם לוחות בכל המכשירים.</span>
-            <button class="btn btn-primary" data-action="sb-new-board">➕ לוח חדש</button>
+            <button class="btn btn-primary admin-only" data-action="sb-new-board">➕ לוח חדש</button>
           </div>
           <div id="sb-board-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px"></div>
         </div>
@@ -963,14 +963,14 @@
         <div class="card" style="margin-bottom:16px">
           <div class="card-header">
             <span class="card-icon">📋</span><span class="card-title">מפגשים</span>
-            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-meeting-plan-modal">➕ מפגש</button>
+            <button class="btn btn-ghost admin-only" style="margin-right:auto" data-action="show-meeting-plan-modal">➕ מפגש</button>
           </div>
           <div id="meeting-plans-list"><!-- populated --></div>
         </div>
         <div class="card">
           <div class="card-header">
             <span class="card-icon">🚩</span><span class="card-title">אבני דרך</span>
-            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-add-milestone-modal">➕ אבן דרך</button>
+            <button class="btn btn-ghost admin-only" style="margin-right:auto" data-action="show-add-milestone-modal">➕ אבן דרך</button>
           </div>
           <div id="milestones-list"><!-- populated --></div>
         </div>
@@ -1149,7 +1149,7 @@
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-mission-extra">ביטול</button>
-      <button class="btn btn-primary" data-action="save-mission-extra">💾 שמור</button>
+      <button class="btn btn-primary admin-only" data-action="save-mission-extra">💾 שמור</button>
     </div>
   </div>
 </div>
@@ -1245,8 +1245,8 @@
     <div class="modal-title" id="cal-day-title">📅</div>
     <div id="cal-day-items"></div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-primary" style="flex:1" id="cal-day-meeting-plan" data-action="show-meeting-plan-modal">📋 תכנית מפגש</button>
-      <button class="btn btn-ghost" style="flex:1" id="cal-day-add-milestone" data-action="quick-add-milestone">🚩 הוסף אבן דרך</button>
+      <button class="btn btn-primary admin-only" style="flex:1" id="cal-day-meeting-plan" data-action="show-meeting-plan-modal">📋 תכנית מפגש</button>
+      <button class="btn btn-ghost admin-only" style="flex:1" id="cal-day-add-milestone" data-action="quick-add-milestone">🚩 הוסף אבן דרך</button>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-cal-day">סגור</button>

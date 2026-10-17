@@ -72,6 +72,14 @@ service cloud.firestore {
         && after[before.size()].role == 'student';
     }
 
+    // Strategy boards: any member may save changes to EXISTING boards (drawing),
+    // but only a mentor may add or delete boards — i.e. a non-mentor write must
+    // keep the number of boards unchanged.
+    function isStrategyEditOnly() {
+      return resource != null
+        && request.resource.data.get('boards', []).size() == resource.data.get('boards', []).size();
+    }
+
     function isProtectedDoc(document) {
       return document == 'settings' || document == 'admin-data'
         || document == 'archives';
@@ -125,7 +133,9 @@ service cloud.firestore {
     match /{teamId}/{document} {
       allow read: if isMember(teamId) && !isMentorOnlyDoc(document);
       allow read: if isMentor(teamId) && isMentorOnlyDoc(document);
-      allow write: if isMember(teamId) && !isProtectedDoc(document) && !isMentorOnlyDoc(document);
+      allow write: if isMember(teamId) && !isProtectedDoc(document) && !isMentorOnlyDoc(document)
+        && (document != 'strategy' || isStrategyEditOnly());
+      allow write: if isMentor(teamId) && document == 'strategy';
       allow write: if isMentor(teamId) && (isProtectedDoc(document) || isMentorOnlyDoc(document));
       allow update: if isSelfJoin(teamId, document);
       allow create: if isAuth() && !teamCreated(teamId);

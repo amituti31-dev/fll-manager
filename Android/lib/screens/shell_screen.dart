@@ -78,11 +78,12 @@ class _ShellScreenState extends State<ShellScreen> {
     _NavItem('⚙️', 'הגדרות'),
   ];
 
-  static const _chatIndex = 6;
+  /// Screens for mentors only: the chat (6) and team management (7).
+  static const _mentorOnly = {6, 7};
 
-  /// Drawer entries this user may see — the chat is mentors only.
+  /// Drawer entries this user may see.
   List<int> _visibleNav(AppProvider prov) =>
-      [for (var i = 0; i < _navItems.length; i++) if (i != _chatIndex || prov.isAdmin) i];
+      [for (var i = 0; i < _navItems.length; i++) if (!_mentorOnly.contains(i) || prov.isAdmin) i];
 
   Widget _buildScreen(int index) {
     return switch (index) {
@@ -129,7 +130,7 @@ class _ShellScreenState extends State<ShellScreen> {
         index: _selectedIndex,
         // The chat (index 6) is for mentors only (also enforced in firestore.rules).
         children: List.generate(_navItems.length,
-            (i) => i == _chatIndex && !prov.isAdmin ? const SizedBox.shrink() : _buildScreen(i)),
+            (i) => _mentorOnly.contains(i) && !prov.isAdmin ? const SizedBox.shrink() : _buildScreen(i)),
       ),
     );
   }

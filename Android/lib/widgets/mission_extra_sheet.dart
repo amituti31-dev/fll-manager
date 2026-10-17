@@ -52,6 +52,7 @@ class _MissionExtraSheetState extends State<MissionExtraSheet> {
   }
 
   Future<void> _save() async {
+    if (!_isAdmin) return; // students can read a mission's details, not edit them
     setState(() => _saving = true);
     final prov = context.read<AppProvider>();
     if (_isAdmin) {
@@ -98,32 +99,32 @@ class _MissionExtraSheetState extends State<MissionExtraSheet> {
           ],
           Text('בונוסים שמתקיימים במשימה', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           SizedBox(height: 4),
-          TextField(controller: _bonusCtrl, maxLines: 3,
+          TextField(controller: _bonusCtrl, maxLines: 3, readOnly: !_isAdmin,
               style: TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(hintText: 'לדוגמה: בונוס נוסף אם...')),
           SizedBox(height: 12),
           Text('ניקוד הבונוס', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           SizedBox(height: 4),
-          TextField(controller: _bonusPtsCtrl, keyboardType: TextInputType.number,
+          TextField(controller: _bonusPtsCtrl, keyboardType: TextInputType.number, readOnly: !_isAdmin,
               style: TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(hintText: '0')),
           SizedBox(height: 12),
           Text('חוקים נוספים למשימה', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           SizedBox(height: 4),
-          TextField(controller: _rulesCtrl, maxLines: 3,
+          TextField(controller: _rulesCtrl, maxLines: 3, readOnly: !_isAdmin,
               style: TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(hintText: 'הערות וחוקים נוספים...')),
           SizedBox(height: 8),
           CheckboxListTile(
             value: _bonusDone,
-            onChanged: (v) => setState(() => _bonusDone = v ?? false),
+            onChanged: _isAdmin ? (v) => setState(() => _bonusDone = v ?? false) : null,
             title: Text('🎁 השגנו את הבונוס', style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
             controlAffinity: ListTileControlAffinity.leading,
             activeColor: AppColors.accent2,
             contentPadding: EdgeInsets.zero,
           ),
           SizedBox(height: 12),
-          SizedBox(width: double.infinity,
+          if (_isAdmin) SizedBox(width: double.infinity,
             child: ElevatedButton(
               onPressed: _saving ? null : _save,
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent2),

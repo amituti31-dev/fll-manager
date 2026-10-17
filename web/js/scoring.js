@@ -336,7 +336,9 @@ function renderStickyBoard() {
 }
 
 // ── Admin: assign member tasks ──
+// Only mentors assign tasks (students can still tick their own as done).
 function showAddMemberTaskModal(preselect) {
+  if (!state.isAdmin) { notify('רק מנטור יכול להקצות משימות', 'error'); return; }
   const sel = document.getElementById('task-member-select');
   if (!sel) return;
   // Mentors can assign to anyone (mentors too) or to a group; students to students.
@@ -353,6 +355,7 @@ function showAddMemberTaskModal(preselect) {
 }
 
 function saveMemberTask() {
+  if (!state.isAdmin) return;
   const memberId = document.getElementById('task-member-select').value;
   const desc = document.getElementById('task-desc').value.trim().slice(0, 500);
   if (!desc) { notify('נדרש תיאור משימה', 'error'); return; }

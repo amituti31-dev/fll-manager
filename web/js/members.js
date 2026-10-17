@@ -28,7 +28,7 @@ function renderMembers() {
         ${pending > 0 ? `<span style="background:var(--accent3);color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">${pending} משימות</span>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:14px;padding:4px" data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}" title="צ'אט פרטי">💬</button>` : ''}
-        ${(state.isAdmin || m.role !== 'admin') && String(m.id) !== String(state.currentUser?.id) ? `
+        ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px" data-action="show-add-member-task-modal" data-id="${sanitize(String(m.id))}" title="הוסף משימה">📋</button>` : ''}
         ${state.isAdmin && m.role !== 'admin' ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px;opacity:${m.juniorMentor ? '1' : '0.45'}" data-action="toggle-junior-mentor" data-id="${sanitize(String(m.id))}" title="${m.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר'}">🌱</button>` : ''}

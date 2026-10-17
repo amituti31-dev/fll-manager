@@ -38,7 +38,7 @@ function renderMissions() {
         <div class="mission-status-row">
           ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" data-action="set-mission-status" data-id="${m.id}" data-status="${s}">${statusLabels[s]}</button>`).join('')}
         </div>
-        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">✏️ עריכה${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
+        <button class="mission-notes-btn ${hasBonus ? 'has-bonus' : ''}" data-action="open-mission-extra" data-id="${m.id}">${state.isAdmin ? '✏️ עריכה' : '📄 פרטים'}${extra.bonusDone ? ` 🎁+${extra.bonusPts || 0}` : ''}</button>
       </div>
     `;
   }).join('') || `<div style="color:var(--text3);padding:20px;text-align:center;grid-column:1/-1">אין משימות בקטגוריה זו</div>`;
@@ -92,10 +92,15 @@ function openMissionExtraModal(id) {
   document.getElementById('mission-extra-bonus-pts').value = extra.bonusPts || '';
   document.getElementById('mission-extra-rules').value = extra.rules || '';
   document.getElementById('mission-extra-done').checked = !!extra.bonusDone;
+  // Students can read a mission's bonus/rules but not edit them.
+  ['mission-extra-bonus', 'mission-extra-bonus-pts', 'mission-extra-rules', 'mission-extra-done'].forEach(fid => {
+    document.getElementById(fid).disabled = !state.isAdmin;
+  });
+  document.getElementById('mission-extra-title').textContent = `${state.isAdmin ? '✏️' : '📄'} ${m.name}`;
   openModal('modal-mission-extra');
 }
 function saveMissionExtra() {
-  if (_missionExtraId === null) return;
+  if (_missionExtraId === null || !state.isAdmin) return;
   if (!state.missionExtra) state.missionExtra = {};
   const bonusPts = Number(document.getElementById('mission-extra-bonus-pts').value);
   state.missionExtra[_missionExtraId] = {

@@ -105,7 +105,7 @@ class DashboardScreen extends StatelessWidget {
       ],
 
       // ── Meetings waiting for a summary ─────────────────
-      if (prov.meetingsAwaitingSummary.isNotEmpty) ...[
+      if (prov.isAdmin && prov.meetingsAwaitingSummary.isNotEmpty) ...[
         _SectionCard(
           icon: '✍️',
           title: 'מפגשים שמחכים לסיכום',

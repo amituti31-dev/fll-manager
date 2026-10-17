@@ -14,11 +14,23 @@ class CalendarScreen extends StatelessWidget {
 
   /// Add (or, if [plan] is given / a meeting exists on [date], edit) a meeting plan.
   static void showMeetingPlanDialog(BuildContext context, {DateTime? date, MeetingPlan? plan}) {
-    final existing = plan ?? (date != null ? context.read<AppProvider>().meetingForDay(isoOf(date)) : null);
+    final prov = context.read<AppProvider>();
+    final existing = plan ?? (date != null ? prov.meetingForDay(isoOf(date)) : null);
+    // Students: meetings are view-only — show that day's details instead.
+    if (!prov.isAdmin) {
+      if (existing != null) {
+        final day = DateTime.tryParse(existing.date) ?? DateTime.now();
+        showDaySheet(context, day,
+            prov.milestones.where((m) => m.targetDate == existing.date || m.actualDate == existing.date).toList(),
+            prov.stickies.where((s) => s.date == existing.date).toList());
+      }
+      return;
+    }
     showDialog(context: context, builder: (_) => _MeetingPlanDialog(initialDate: date, existing: existing));
   }
 
   static void showAddMilestoneDialog(BuildContext context, {DateTime? initialDate}) {
+    if (!context.read<AppProvider>().isAdmin) return;
     showDialog(context: context, builder: (_) => _AddMilestoneDialog(initialDate: initialDate));
   }
 
@@ -92,6 +104,7 @@ class CalendarScreen extends StatelessWidget {
                   ]),
                 ),
               ),
+            if (context.read<AppProvider>().isAdmin) ...[
             SizedBox(height: 16),
             Row(children: [
               Expanded(
@@ -116,6 +129,7 @@ class CalendarScreen extends StatelessWidget {
                 ),
               ),
             ]),
+            ],
           ]),
         ),
       ),
@@ -149,7 +163,7 @@ class CalendarScreen extends StatelessWidget {
       Row(children: [
         const _SectionTitle('📋', 'מפגשים'),
         const Spacer(),
-        TextButton.icon(
+        if (prov.isAdmin) TextButton.icon(
           onPressed: () => showMeetingPlanDialog(context),
           icon: Icon(Icons.add, size: 16, color: AppColors.accent),
           label: Text('מפגש', style: TextStyle(color: AppColors.accent, fontSize: 13)),
@@ -166,7 +180,7 @@ class CalendarScreen extends StatelessWidget {
       Row(children: [
         const _SectionTitle('🚩', 'אבני דרך'),
         const Spacer(),
-        TextButton.icon(
+        if (prov.isAdmin) TextButton.icon(
           onPressed: () => showAddMilestoneDialog(context),
           icon: Icon(Icons.add, size: 16, color: AppColors.accent),
           label: Text('אבן דרך', style: TextStyle(color: AppColors.accent, fontSize: 13)),
@@ -179,9 +193,9 @@ class CalendarScreen extends StatelessWidget {
         MilestoneProgress(milestones: milestones),
         ...milestones.map((m) => _MilestoneTile(
               milestone: m,
-              onToggle: () => prov.toggleMilestone(m.id),
-              onDelete: () => prov.deleteMilestone(m.id),
-              onTapActual: () => _editMilestoneActualDate(context, prov, m),
+              onToggle: prov.isAdmin ? () => prov.toggleMilestone(m.id) : () {},
+              onDelete: prov.isAdmin ? () => prov.deleteMilestone(m.id) : null,
+              onTapActual: prov.isAdmin ? () => _editMilestoneActualDate(context, prov, m) : () {},
               formatDate: _formatDate,
             )),
       ],
@@ -230,7 +244,7 @@ class _DateChip extends StatelessWidget {
 class _MilestoneTile extends StatelessWidget {
   final Milestone milestone;
   final VoidCallback onToggle;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete; // null → no delete button (students)
   final VoidCallback onTapActual;
   final String Function(String) formatDate;
   const _MilestoneTile({
@@ -268,7 +282,8 @@ class _MilestoneTile extends StatelessWidget {
                   decoration: milestone.done ? TextDecoration.lineThrough : null,
                 )),
           ),
-          GestureDetector(onTap: onDelete, child: Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
+          if (onDelete != null)
+            GestureDetector(onTap: onDelete, child: Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
         ]),
         SizedBox(height: 8),
         Padding(

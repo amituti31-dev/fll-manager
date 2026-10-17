@@ -11,7 +11,9 @@ class TeamScreen extends StatefulWidget {
   @override
   State<TeamScreen> createState() => _TeamScreenState();
 
+  // Only mentors assign tasks (students can still tick their own as done).
   static Future<void> showAddTaskDialog(BuildContext context, {Member? forMember}) {
+    if (!context.read<AppProvider>().isAdmin) return Future.value();
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

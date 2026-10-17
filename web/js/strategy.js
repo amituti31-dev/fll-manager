@@ -184,6 +184,7 @@ function renderStrategyList() {
 }
 
 function showNewStrategyBoardModal() {
+  if (!state.isAdmin) { notify('רק מנטור יכול ליצור לוח אסטרטגיה', 'error'); return; }
   document.getElementById('sb-new-title').value = '';
   const bg = document.getElementById('sb-new-bg');
   if (bg) bg.value = '';
@@ -191,6 +192,7 @@ function showNewStrategyBoardModal() {
 }
 
 async function createStrategyBoard() {
+  if (!state.isAdmin) return;
   const title = document.getElementById('sb-new-title').value.trim().slice(0, 80);
   if (!title) { notify('נדרש שם ללוח', 'error'); return; }
   const file = document.getElementById('sb-new-bg')?.files?.[0];
@@ -212,7 +214,7 @@ function openStrategyBoard(id) {
   document.getElementById('sb-list-view').style.display = 'none';
   document.getElementById('sb-editor-view').style.display = '';
   document.getElementById('sb-editor-title').textContent = _sbEdit.title || 'לוח';
-  document.getElementById('sb-delete-board').style.display = (state.isAdmin || _sbEdit.author === state.currentUser?.name) ? '' : 'none';
+  document.getElementById('sb-delete-board').style.display = state.isAdmin ? '' : 'none';
   _sbCanvas = document.getElementById('strategy-canvas');
   _sbCtx = _sbCanvas.getContext('2d');
   if (!_sbCanvas._sbBound) {
@@ -245,6 +247,7 @@ async function sbSaveBoard() {
 }
 
 async function sbDeleteBoard() {
+  if (!state.isAdmin) return;
   if (!_sbEdit || !confirm(`למחוק את הלוח "${_sbEdit.title}"?`)) return;
   if (await _sbDelete(_sbEdit.id)) { _sbEdit = null; renderStrategyList(); }
 }
