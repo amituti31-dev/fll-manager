@@ -519,6 +519,12 @@ class FirebaseService {
     });
   }
 
+  // Live sync streams (AppProvider._startLiveSync).
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> teamDocStream(String teamId, String docId) =>
+      _db.collection(teamId).doc(docId).snapshots();
+  static Stream<QuerySnapshot<Map<String, dynamic>>> photosStream(String teamId, String anchorDoc) =>
+      _db.collection(teamId).doc(anchorDoc).collection('photos').snapshots();
+
   static Future<List<Map<String, dynamic>>> loadStrategyBoards(String teamId) async {
     final snap = await _db.collection(teamId).doc('strategy').get();
     if (!snap.exists) return [];

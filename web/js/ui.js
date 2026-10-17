@@ -11,6 +11,7 @@ function initApp() {
   populateAll();
   navigate('dashboard');
   try { checkTaskReminders(); } catch(e) {}
+  try { startLiveSync(); } catch(e) { console.warn('startLiveSync:', e); }
 }
 
 function updateAdminUI() {

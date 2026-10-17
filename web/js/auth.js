@@ -486,6 +486,7 @@ function showLoginError(msg) {
 }
 
 async function signOut() {
+  try { stopLiveSync(); } catch(e) {}
   if (window.auth) await window.auth.signOut();
   state.currentUser = null;
   state.isAdmin = false;

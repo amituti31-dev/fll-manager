@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -139,6 +140,7 @@ class AppProvider extends ChangeNotifier {
     final fbUser = FirebaseService.currentUser;
     if (fbUser == null) {
       status = AppStatus.unauthenticated;
+      _stopLiveSync();
       notifyListeners();
       return;
     }
@@ -149,6 +151,7 @@ class AppProvider extends ChangeNotifier {
     final tid = await FirebaseService.findTeamForUser(email);
     if (tid == null) {
       status = AppStatus.needsTeam;
+      _stopLiveSync();
       notifyListeners();
       return;
     }
@@ -189,6 +192,7 @@ class AppProvider extends ChangeNotifier {
       await FirebaseService.registerUserToTeam(email, tid, member.role);
     }
     status = AppStatus.ready;
+    _startLiveSync();
     notifyListeners();
   }
 
@@ -449,7 +453,74 @@ class AppProvider extends ChangeNotifier {
 
   // "data" — writable by any team member (students included). missionChecks
   // is here too: any member can toggle a mission as done.
+  // ─── Live sync ─────────────────────────────────────
+  // Listens to the team's docs; when someone ELSE changes one (our own writes
+  // are skipped via metadata.hasPendingWrites), reloads the team data and
+  // notifies — so changes show up without reopening the app. Waits while one
+  // of our own saves is in flight, so a reload can't replace an unsaved change.
+  final List<StreamSubscription<dynamic>> _liveSubs = [];
+  Timer? _liveTimer;
+  int _savesInFlight = 0;
+
+  void _startLiveSync() {
+    _stopLiveSync();
+    final tid = teamId;
+    if (tid == null) return;
+    void watch(Stream<dynamic> stream, bool Function(dynamic snap) isLocal) {
+      var first = true; // the initial snapshot is what we already loaded
+      _liveSubs.add(stream.listen((snap) {
+        if (first) { first = false; return; }
+        if (isLocal(snap)) return;
+        _scheduleLiveReload();
+      }, onError: (_) {}));
+    }
+    for (final id in ['settings', 'data', 'admin-data', 'strategy']) {
+      watch(FirebaseService.teamDocStream(tid, id), (s) => (s as DocumentSnapshot).metadata.hasPendingWrites);
+    }
+    for (final anchor in ['gallery', 'improvements']) {
+      watch(FirebaseService.photosStream(tid, anchor), (s) => (s as QuerySnapshot).metadata.hasPendingWrites);
+    }
+  }
+
+  void _stopLiveSync() {
+    for (final s in _liveSubs) {
+      s.cancel();
+    }
+    _liveSubs.clear();
+    _liveTimer?.cancel();
+  }
+
+  void _scheduleLiveReload([Duration delay = const Duration(milliseconds: 800)]) {
+    _liveTimer?.cancel();
+    _liveTimer = Timer(delay, _liveReload);
+  }
+
+  Future<void> _liveReload() async {
+    if (teamId == null || status != AppStatus.ready) return;
+    if (_savesInFlight > 0) { _scheduleLiveReload(const Duration(milliseconds: 1500)); return; }
+    final email = currentUser?.email;
+    final admin = isAdmin;
+    try {
+      await loadTeamData();
+    } catch (_) {
+      return;
+    }
+    final me = members.where((m) => m.email == email).firstOrNull;
+    if (me != null) currentUser = me;
+    isAdmin = admin;
+    notifyListeners();
+  }
+
   Future<void> _saveData() async {
+    _savesInFlight++;
+    try {
+      await _saveDataImpl();
+    } finally {
+      _savesInFlight--;
+    }
+  }
+
+  Future<void> _saveDataImpl() async {
     if (teamId == null) return;
     await FirebaseService.saveData(teamId!, {
       'innovationProblem': innovationProblem,
@@ -607,6 +678,7 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.signOut();
     _resetToDefaults();
     status = AppStatus.unauthenticated;
+    _stopLiveSync();
     currentUser = null;
     isAdmin = false;
     teamId = null;
@@ -676,6 +748,7 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.saveJoinCodes(teamId: tid, teamName: tName, mentorCode: mc, studentCode: sc);
 
     status = AppStatus.ready;
+    _startLiveSync();
     notifyListeners();
   }
 
@@ -732,6 +805,7 @@ class AppProvider extends ChangeNotifier {
       }
     }
     status = AppStatus.ready;
+    _startLiveSync();
     notifyListeners();
   }
 
@@ -1138,6 +1212,7 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.signOut();
     _resetToDefaults();
     status = AppStatus.unauthenticated;
+    _stopLiveSync();
     currentUser = null;
     isAdmin = false;
     teamId = null;
@@ -1215,6 +1290,7 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.signOut();
     _resetToDefaults();
     status = AppStatus.unauthenticated;
+    _stopLiveSync();
     currentUser = null;
     isAdmin = false;
     teamId = null;
@@ -1232,6 +1308,7 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.reauthAndDeleteUser(password: password);
     _resetToDefaults();
     status = AppStatus.unauthenticated;
+    _stopLiveSync();
     currentUser = null;
     isAdmin = false;
     teamId = null;

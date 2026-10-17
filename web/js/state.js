@@ -59,8 +59,9 @@ async function saveState() {
   if (!window.db) return;
   // Debounce: wait 1s before writing to Firestore to batch rapid changes
   clearTimeout(_saveTimer);
+  window._savePending = true; // live sync (live.js) waits for this save
   _saveTimer = setTimeout(async () => {
-    if (!window.db) return;
+    if (!window.db) { window._savePending = false; return; }
   try {
     const { setup, teamName, teamLogo, currentSeason } = state;
     // competitionDate is shared with Android (settings doc), always 'YYYY-MM-DD'.
@@ -116,6 +117,7 @@ async function saveState() {
       links: firebase.firestore.FieldValue.delete(),
     }, { merge: true });
   } catch(e) { console.error("Firestore save error:", e); }
+  finally { window._savePending = false; }
   }, 1000);
 }
 

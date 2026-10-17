@@ -13,6 +13,7 @@
 //  §10  MISSIONS ................ renderMissions, filterMissions
 //  §32  BACKUP & RESTORE ....... createFullBackup, confirmRestore, renderBackupReminder (backup.js)
 //  §33  SEASON STORY (Gemini) .. generateSeasonStory, exportStickiesPrintable (story.js)
+//  §34  LIVE SYNC ............. startLiveSync, liveReload (live.js)
 //  §11  RUBRICS ................. renderRubricGrid, setRubricMark, rubricRatio
 //  §12  GALLERY & IMPROVEMENTS .. saveImprovement, renderGallery, makeTimelapse
 //  §13  INNOVATION PROJECT ...... INNOV_STEPS, renderInnovProject, switchInnovTab
