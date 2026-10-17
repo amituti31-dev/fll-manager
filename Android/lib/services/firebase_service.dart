@@ -492,6 +492,33 @@ class FirebaseService {
     await docRef.set({channel: msgs}, SetOptions(merge: true));
   }
 
+  /// Replaces (or adds) just this board inside the shared 'strategy' doc, in a
+  /// transaction — so people editing different boards don't overwrite each other.
+  static Future<void> upsertStrategyBoard(String teamId, Map<String, dynamic> board) async {
+    final ref = _db.collection(teamId).doc('strategy');
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      final boards = List<dynamic>.from((snap.data()?['boards'] as List?) ?? const []);
+      final i = boards.indexWhere((b) => b is Map && b['id'] == board['id']);
+      if (i >= 0) {
+        boards[i] = board;
+      } else {
+        boards.add(board);
+      }
+      tx.set(ref, {'boards': boards});
+    });
+  }
+
+  static Future<void> deleteStrategyBoardDoc(String teamId, int id) async {
+    final ref = _db.collection(teamId).doc('strategy');
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      final boards = List<dynamic>.from((snap.data()?['boards'] as List?) ?? const [])
+        ..removeWhere((b) => b is Map && b['id'] == id);
+      tx.set(ref, {'boards': boards});
+    });
+  }
+
   static Future<List<Map<String, dynamic>>> loadStrategyBoards(String teamId) async {
     final snap = await _db.collection(teamId).doc('strategy').get();
     if (!snap.exists) return [];

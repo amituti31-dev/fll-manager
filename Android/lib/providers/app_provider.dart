@@ -1410,28 +1410,24 @@ class AppProvider extends ChangeNotifier {
 
   // ─── Strategy Boards ─────────────────────────────────
 
-  Future<void> _saveStrategyBoards() async {
-    if (teamId == null) return;
-    await FirebaseService.saveStrategyBoards(teamId!, strategyBoards.map((b) => b.toMap()).toList());
-  }
-
+  // Boards are shared with web; each save/delete touches only that board.
   Future<void> addStrategyBoard(StrategyBoard board) async {
     strategyBoards.add(board);
     notifyListeners();
-    await _saveStrategyBoards();
+    if (teamId != null) await FirebaseService.upsertStrategyBoard(teamId!, board.toMap());
   }
 
   Future<void> updateStrategyBoard(StrategyBoard board) async {
     final idx = strategyBoards.indexWhere((b) => b.id == board.id);
     if (idx != -1) strategyBoards[idx] = board;
     notifyListeners();
-    await _saveStrategyBoards();
+    if (teamId != null) await FirebaseService.upsertStrategyBoard(teamId!, board.toMap());
   }
 
   Future<void> deleteStrategyBoard(int id) async {
     strategyBoards.removeWhere((b) => b.id == id);
     notifyListeners();
-    await _saveStrategyBoards();
+    if (teamId != null) await FirebaseService.deleteStrategyBoardDoc(teamId!, id);
   }
 
   // ─── Judging questions ─────────────────────────────

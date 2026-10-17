@@ -169,7 +169,6 @@ const ACTIONS = {
   'delete-team': () => deleteTeam(),
 
   // Strategy board
-  'sb-set-tool': (el) => sbSetTool(el.dataset.arg),
   'sb-set-color': (el) => sbSetColor(el.dataset.arg),
   'sb-set-color-custom': (el) => sbSetColor(el.value),
   'sb-set-width': (el) => sbSetWidth(Number(el.dataset.arg)),
@@ -177,7 +176,13 @@ const ACTIONS = {
   'sb-clear-drawing': () => sbClearDrawing(),
   'sb-upload-background': (el, e) => sbUploadBackground(e),
   'sb-clear-background': () => sbClearBackground(),
-  'sb-save-image': () => sbSaveImage(),
+  'sb-download': () => sbSaveImage(),
+  'sb-new-board': () => showNewStrategyBoardModal(),
+  'sb-create-board': () => createStrategyBoard(),
+  'sb-open-board': (el) => openStrategyBoard(el.dataset.id),
+  'sb-close-board': () => closeStrategyBoard(),
+  'sb-save-board': () => sbSaveBoard(),
+  'sb-delete-board': () => sbDeleteBoard(),
 
   // Gallery
   'add-team-photo': (el, e) => addTeamPhoto(e),

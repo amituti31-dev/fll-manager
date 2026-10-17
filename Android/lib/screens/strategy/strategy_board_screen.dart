@@ -148,16 +148,17 @@ class _BoardCard extends StatelessWidget {
         clipBehavior: Clip.hardEdge,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
-            child: board.backgroundBase64 != null
-                ? Stack(fit: StackFit.expand, children: [
-                    Image.memory(decodeImageDataUrl(board.backgroundBase64!), fit: BoxFit.cover),
-                    if (board.strokes.isNotEmpty)
-                      CustomPaint(painter: _PreviewPainter(board.strokes)),
-                  ])
-                : Container(
-                    color: AppColors.surface2,
-                    child: const Center(child: Text('🗺️', style: TextStyle(fontSize: 40))),
-                  ),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: strategyBoardAspect,
+                child: Stack(fit: StackFit.expand, children: [
+                  Container(color: const Color(0xFF1A2235)),
+                  if (board.backgroundBase64 != null)
+                    Image.memory(decodeImageDataUrl(board.backgroundBase64!), fit: BoxFit.contain),
+                  CustomPaint(painter: _PreviewPainter(board.strokes)),
+                ]),
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -185,16 +186,17 @@ class _PreviewPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Points are fractions of the 2:1 board; width is ‰ of its width.
     for (final s in strokes) {
       if (s.points.length < 2) continue;
       final paint = Paint()
         ..color = Color(s.colorValue)
-        ..strokeWidth = s.width
+        ..strokeWidth = s.width / 1000 * size.width
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round
         ..style = PaintingStyle.stroke;
-      final path = Path()..moveTo(s.points.first.x, s.points.first.y);
-      for (final p in s.points.skip(1)) path.lineTo(p.x, p.y);
+      final path = Path()..moveTo(s.points.first.x * size.width, s.points.first.y * size.height);
+      for (final p in s.points.skip(1)) path.lineTo(p.x * size.width, p.y * size.height);
       canvas.drawPath(path, paint);
     }
   }
@@ -225,7 +227,7 @@ class _NewBoardDialogState extends State<_NewBoardDialog> {
   Future<void> _pickImage() async {
     setState(() => _picking = true);
     try {
-      final file = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 60);
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1400, maxHeight: 1400, imageQuality: 70);
       if (file != null) {
         final bytes = await file.readAsBytes();
         setState(() => _bgBase64 = encodeImageDataUrl(bytes));
@@ -301,8 +303,8 @@ class _BoardEditor extends StatefulWidget {
 class _BoardEditorState extends State<_BoardEditor> {
   late final List<_DrawStroke> _strokes;
   _DrawStroke? _current;
-  Color _penColor = Colors.red;
-  double _penWidth = 3.0;
+  Color _penColor = const Color(0xFFFF4D4D);
+  double _penWidth = 8.0; // ‰ of the board width
   bool _saving = false;
   Uint8List? _bgBytes;
 
@@ -329,7 +331,7 @@ class _BoardEditorState extends State<_BoardEditor> {
   }
 
   Future<void> _pickBackground() async {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 60);
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1400, maxHeight: 1400, imageQuality: 70);
     if (file == null) return;
     final bytes = await file.readAsBytes();
     setState(() => _bgBytes = bytes);
@@ -408,34 +410,33 @@ class _BoardEditorState extends State<_BoardEditor> {
         ],
       ),
       body: Column(children: [
-        // ── Drawing canvas ──────────────────────────────
+        // ── Drawing canvas: a fixed 2:1 board, points stored as fractions ──
         Expanded(
-          child: GestureDetector(
-            onPanStart: (d) => setState(() {
-              _current = _DrawStroke(
-                points: [d.localPosition],
-                color: _penColor,
-                width: _penWidth,
-              );
-            }),
-            onPanUpdate: (d) => setState(() => _current?.points.add(d.localPosition)),
-            onPanEnd: (_) {
-              if (_current != null) {
-                _strokes.add(_current!);
-                setState(() => _current = null);
-              }
-            },
-            child: Stack(fit: StackFit.expand, children: [
-              // Background
-              if (_bgBytes != null)
-                Image.memory(_bgBytes!, fit: BoxFit.contain)
-              else
-                Container(color: const Color(0xFF1A2235)),
-              // Stroke layer
-              CustomPaint(
-                painter: _StrokePainter(strokes: _strokes, current: _current),
-              ),
-            ]),
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: strategyBoardAspect,
+              child: LayoutBuilder(builder: (context, box) {
+                Offset norm(Offset p) => Offset(
+                    (p.dx / box.maxWidth).clamp(0.0, 1.0), (p.dy / box.maxHeight).clamp(0.0, 1.0));
+                return GestureDetector(
+                  onPanStart: (d) => setState(() {
+                    _current = _DrawStroke(points: [norm(d.localPosition)], color: _penColor, width: _penWidth);
+                  }),
+                  onPanUpdate: (d) => setState(() => _current?.points.add(norm(d.localPosition))),
+                  onPanEnd: (_) {
+                    if (_current != null) {
+                      _strokes.add(_current!);
+                      setState(() => _current = null);
+                    }
+                  },
+                  child: Stack(fit: StackFit.expand, children: [
+                    Container(color: const Color(0xFF1A2235)),
+                    if (_bgBytes != null) Image.memory(_bgBytes!, fit: BoxFit.contain),
+                    CustomPaint(painter: _StrokePainter(strokes: _strokes, current: _current)),
+                  ]),
+                );
+              }),
+            ),
           ),
         ),
         // ── Toolbar ─────────────────────────────────────
@@ -466,8 +467,8 @@ class _BoardEditorState extends State<_BoardEditor> {
               width: 80,
               child: Slider(
                 value: _penWidth,
-                min: 2,
-                max: 14,
+                min: 4,
+                max: 24,
                 activeColor: _penColor,
                 inactiveColor: AppColors.surface2,
                 onChanged: (v) => setState(() => _penWidth = v),
@@ -486,28 +487,34 @@ class _StrokePainter extends CustomPainter {
   final _DrawStroke? current;
   const _StrokePainter({required this.strokes, this.current});
 
-  void _paint(Canvas canvas, _DrawStroke s) {
+  // Points are fractions of the board; width is ‰ of the board width.
+  void _paint(Canvas canvas, Size size, _DrawStroke s) {
+    Offset at(Offset p) => Offset(p.dx * size.width, p.dy * size.height);
+    final w = s.width / 1000 * size.width;
     if (s.points.length < 2) {
-      // Single dot
-      canvas.drawCircle(s.points.first, s.width / 2,
-          Paint()..color = s.color..style = PaintingStyle.fill);
+      canvas.drawCircle(at(s.points.first), w / 2, Paint()..color = s.color..style = PaintingStyle.fill);
       return;
     }
     final paint = Paint()
       ..color = s.color
-      ..strokeWidth = s.width
+      ..strokeWidth = w
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke;
-    final path = Path()..moveTo(s.points.first.dx, s.points.first.dy);
-    for (final p in s.points.skip(1)) path.lineTo(p.dx, p.dy);
+    final path = Path()..moveTo(at(s.points.first).dx, at(s.points.first).dy);
+    for (final p in s.points.skip(1)) {
+      final q = at(p);
+      path.lineTo(q.dx, q.dy);
+    }
     canvas.drawPath(path, paint);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final s in strokes) _paint(canvas, s);
-    if (current != null) _paint(canvas, current!);
+    for (final s in strokes) {
+      _paint(canvas, size, s);
+    }
+    if (current != null) _paint(canvas, size, current!);
   }
 
   @override

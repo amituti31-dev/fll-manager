@@ -894,50 +894,51 @@
 
       <!-- ═══ STRATEGY BOARD ═══ -->
       <div class="screen" id="screen-strategy">
-        <div class="sb-toolbar">
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <button id="sb-btn-pen"    class="btn btn-primary sb-tool-btn" data-action="sb-set-tool" data-arg="pen">🖊 עט</button>
-            <button id="sb-btn-eraser" class="btn btn-ghost   sb-tool-btn" data-action="sb-set-tool" data-arg="eraser">○ מחק</button>
-            <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
-            <div class="sb-colors" id="sb-colors">
-              <div class="sb-color" style="background:#ff4d6d" data-action="sb-set-color" data-arg="#ff4d6d"></div>
-              <div class="sb-color" style="background:#3d7fff" data-action="sb-set-color" data-arg="#3d7fff"></div>
-              <div class="sb-color" style="background:#00d4a0" data-action="sb-set-color" data-arg="#00d4a0"></div>
-              <div class="sb-color" style="background:#f5c842" data-action="sb-set-color" data-arg="#f5c842"></div>
-              <div class="sb-color" style="background:#fff;border-color:rgba(0,0,0,0.2)" data-action="sb-set-color" data-arg="#ffffff"></div>
-              <div class="sb-color" style="background:#111" data-action="sb-set-color" data-arg="#111111"></div>
-            </div>
-            <input type="color" id="sb-custom-color" value="#ff4d6d" data-oninput="sb-set-color-custom" title="צבע מותאם" style="width:28px;height:28px;border:none;cursor:pointer;border-radius:4px;padding:1px;background:none;flex-shrink:0">
-            <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
-            <button class="btn btn-ghost sb-width-btn active" data-w="3"  data-action="sb-set-width" data-arg="3"  title="קו דק">—</button>
-            <button class="btn btn-ghost sb-width-btn"        data-w="6"  data-action="sb-set-width" data-arg="6"  title="קו בינוני">━</button>
-            <button class="btn btn-ghost sb-width-btn"        data-w="14" data-action="sb-set-width" data-arg="14" title="קו עבה" style="line-height:1">█</button>
+        <!-- Board list -->
+        <div id="sb-list-view">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+            <span style="color:var(--text2);font-size:13px;flex:1">לוחות אסטרטגיה משותפים לכל הקבוצה — אותם לוחות בכל המכשירים.</span>
+            <button class="btn btn-primary" data-action="sb-new-board">➕ לוח חדש</button>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <button class="btn btn-ghost" data-action="sb-undo" title="בטל פעולה">↩ בטל</button>
-            <button class="btn btn-ghost" data-action="sb-clear-drawing" title="מחק ציור">🗑 נקה</button>
-            <label class="btn btn-ghost admin-only" style="cursor:pointer" title="העלה תמונת רקע">
-              📸 רקע
-              <input type="file" accept="image/*" style="display:none" data-onchange="sb-upload-background">
-            </label>
-            <button class="btn btn-ghost admin-only" data-action="sb-clear-background" style="color:var(--red);font-size:12px">✕ הסר</button>
-            <button class="btn btn-success" id="sb-save-btn" data-action="sb-save-image">💾 שמור</button>
-          </div>
+          <div id="sb-board-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px"></div>
         </div>
-        <div class="sb-canvas-wrap" id="sb-canvas-wrap">
-          <canvas id="strategy-bg-canvas"></canvas>
-          <canvas id="strategy-canvas"></canvas>
-          <div id="sb-placeholder" class="sb-placeholder">
-            <div style="font-size:40px;margin-bottom:12px">🗺️</div>
-            <div style="font-size:15px;margin-bottom:8px">לוח אסטרטגיה</div>
-            <div class="admin-only">
-              <label class="btn btn-primary" style="cursor:pointer;font-size:14px;padding:10px 22px;display:inline-flex;align-items:center;gap:8px">
-                📸 בחר תמונה
+
+        <!-- Board editor -->
+        <div id="sb-editor-view" style="display:none">
+          <div class="sb-toolbar">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-ghost" data-action="sb-close-board" title="חזרה לרשימה">→ לוחות</button>
+              <b id="sb-editor-title" style="font-size:14px;margin:0 6px"></b>
+              <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
+              <div class="sb-colors" id="sb-colors">
+                <div class="sb-color" style="background:#ff4d6d" data-action="sb-set-color" data-arg="#ff4d6d"></div>
+                <div class="sb-color" style="background:#3d7fff" data-action="sb-set-color" data-arg="#3d7fff"></div>
+                <div class="sb-color" style="background:#00d4a0" data-action="sb-set-color" data-arg="#00d4a0"></div>
+                <div class="sb-color" style="background:#f5c842" data-action="sb-set-color" data-arg="#f5c842"></div>
+                <div class="sb-color" style="background:#fff;border-color:rgba(0,0,0,0.2)" data-action="sb-set-color" data-arg="#ffffff"></div>
+                <div class="sb-color" style="background:#111" data-action="sb-set-color" data-arg="#111111"></div>
+              </div>
+              <input type="color" id="sb-custom-color" value="#ff4d6d" data-oninput="sb-set-color-custom" title="צבע מותאם" style="width:28px;height:28px;border:none;cursor:pointer;border-radius:4px;padding:1px;background:none;flex-shrink:0">
+              <span style="width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0"></span>
+              <button class="btn btn-ghost sb-width-btn" data-w="4"  data-action="sb-set-width" data-arg="4"  title="קו דק">—</button>
+              <button class="btn btn-ghost sb-width-btn" data-w="8"  data-action="sb-set-width" data-arg="8"  title="קו בינוני">━</button>
+              <button class="btn btn-ghost sb-width-btn" data-w="18" data-action="sb-set-width" data-arg="18" title="קו עבה" style="line-height:1">█</button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-ghost" data-action="sb-undo" title="בטל קו אחרון">↩ בטל</button>
+              <button class="btn btn-ghost" data-action="sb-clear-drawing" title="מחק את כל הציור">🗑 נקה</button>
+              <label class="btn btn-ghost admin-only" style="cursor:pointer" title="תמונת רקע">
+                📸 רקע
                 <input type="file" accept="image/*" style="display:none" data-onchange="sb-upload-background">
               </label>
-              <div style="font-size:12px;margin-top:10px;color:var(--text3)">ניתן לסרטט בחופשיות על גבי התמונה</div>
+              <button class="btn btn-ghost admin-only" data-action="sb-clear-background" style="color:var(--red);font-size:12px">✕ רקע</button>
+              <button class="btn btn-ghost" data-action="sb-download" title="הורד כתמונה">⬇️ PNG</button>
+              <button class="btn btn-ghost" id="sb-delete-board" data-action="sb-delete-board" style="color:var(--red)">מחק לוח</button>
+              <button class="btn btn-success" id="sb-save-btn" data-action="sb-save-board">💾 שמור</button>
             </div>
-            <div class="student-only" style="font-size:13px;color:var(--text3);margin-top:8px">המנטור טרם העלה תמונת לוח</div>
+          </div>
+          <div class="sb-canvas-wrap" id="sb-canvas-wrap">
+            <canvas id="strategy-canvas"></canvas>
           </div>
         </div>
       </div>
@@ -1282,6 +1283,25 @@
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-restore">ביטול</button>
       <button class="btn btn-danger" data-action="confirm-restore">♻️ שחזר</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Strategy Board Modal -->
+<div class="modal-overlay" id="modal-sb-new">
+  <div class="modal">
+    <div class="modal-title">🗺️ לוח אסטרטגיה חדש</div>
+    <div class="form-group">
+      <label class="form-label">שם הלוח *</label>
+      <input type="text" class="form-input" id="sb-new-title" placeholder="למשל: ריצה 1 — מסלול M03">
+    </div>
+    <div class="form-group admin-only">
+      <label class="form-label">תמונת רקע (אופציונלי — למשל צילום של שולחן המשימות)</label>
+      <input type="file" class="form-input" id="sb-new-bg" accept="image/*">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-sb-new">ביטול</button>
+      <button class="btn btn-primary" data-action="sb-create-board">➕ צור</button>
     </div>
   </div>
 </div>

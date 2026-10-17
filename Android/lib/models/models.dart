@@ -719,8 +719,8 @@ class DrawnStroke {
     points: (m['pts'] as List)
         .map((p) => StrokePoint.fromMap(Map<String, dynamic>.from(p as Map)))
         .toList(),
-    colorValue: m['color'] as int,
-    width: (m['width'] as num).toDouble(),
+    colorValue: (m['color'] as num).toInt(),
+    width: (m['width'] as num? ?? 6).toDouble(),
   );
   Map<String, dynamic> toMap() => {
     'pts': points.map((p) => p.toMap()).toList(),
@@ -728,6 +728,12 @@ class DrawnStroke {
     'width': width,
   };
 }
+
+/// Strategy board (shared with web, v2): points are fractions (0..1) of a fixed
+/// 2:1 board ([strategyBoardAspect]) and stroke width is ‰ of the board width,
+/// so a drawing looks the same on every screen. Boards saved by older Android
+/// versions (no 'v') stored raw phone pixels — fromMap fits them into the board.
+const double strategyBoardAspect = 2.0;
 
 class StrategyBoard {
   final int id;
@@ -746,16 +752,32 @@ class StrategyBoard {
     required this.author,
   });
 
-  factory StrategyBoard.fromMap(Map<String, dynamic> m) => StrategyBoard(
-    id: m['id'] as int,
-    title: m['title'] as String? ?? '',
-    backgroundBase64: m['bg'] as String?,
-    strokes: (m['strokes'] as List? ?? [])
+  factory StrategyBoard.fromMap(Map<String, dynamic> m) {
+    var strokes = (m['strokes'] as List? ?? [])
         .map((s) => DrawnStroke.fromMap(Map<String, dynamic>.from(s as Map)))
-        .toList(),
-    date: m['date'] as String? ?? '',
-    author: m['author'] as String? ?? '',
-  );
+        .toList();
+    if (m['v'] != 2) {
+      // Legacy pixel coordinates → fit their extent into the 2:1 board.
+      final pts = strokes.expand((s) => s.points);
+      final maxX = pts.fold<double>(1, (a, p) => p.x > a ? p.x : a);
+      final maxY = pts.fold<double>(1, (a, p) => p.y > a ? p.y : a);
+      final w = (maxX > maxY * strategyBoardAspect ? maxX : maxY * strategyBoardAspect) * 1.02;
+      final h = w / strategyBoardAspect;
+      strokes = strokes.map((s) => DrawnStroke(
+        points: s.points.map((p) => StrokePoint(p.x / w, p.y / h)).toList(),
+        colorValue: s.colorValue,
+        width: s.width / w * 1000,
+      )).toList();
+    }
+    return StrategyBoard(
+      id: (m['id'] as num).toInt(),
+      title: m['title'] as String? ?? '',
+      backgroundBase64: m['bg'] as String?,
+      strokes: strokes,
+      date: m['date'] as String? ?? '',
+      author: m['author'] as String? ?? '',
+    );
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -764,6 +786,7 @@ class StrategyBoard {
     'strokes': strokes.map((s) => s.toMap()).toList(),
     'date': date,
     'author': author,
+    'v': 2,
   };
 }
 

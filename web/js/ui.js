@@ -129,9 +129,7 @@ function showAddModal() {
   else if (id === 'team') showAddMemberModal();
   else if (id === 'judging') addJudgingQuestion();
   else if (id === 'links') showAddLinkModal();
-  else if (id === 'strategy') {
-    document.querySelector('#screen-strategy label input[type="file"]')?.click();
-  }
+  else if (id === 'strategy') showNewStrategyBoardModal();
   else showAddLogModal();
 }
 

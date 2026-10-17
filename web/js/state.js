@@ -38,7 +38,7 @@ function defaultState() {
     milestones: [],            // [{id, title, targetDate, done}]
     meetingPlans: [],          // [{id, date, title, plan, summary}] — see calendar.js
     seasonStory: null,         // {text, createdAt, model} — AI season story (story.js)
-    strategyBoardImage: null, // base64 background image (localStorage only, not Firestore)
+    strategyBoardImage: null, // OLD local-only board background — migrated into a shared board (strategy.js)
     competitionDate: null,    // 'YYYY-MM-DD'
     judgingQs: null,          // null = use defaults (populated on first load)
     officialRubric: { marks: { innovation: {}, robot: {} }, notes: { innovation: {}, robot: {} }, feedback: {} }, // judging-room rubric marks (see rubrics.js)
