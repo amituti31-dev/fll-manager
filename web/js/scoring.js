@@ -11,18 +11,6 @@ function switchScoringTab(tab) {
   if (tab === 'judging') renderScoringJudgingDoc();
 }
 
-function toggleRubricSection(cat) {
-  const section = document.getElementById('rubric-section-' + cat);
-  const chevron = document.getElementById('rubric-chevron-' + cat);
-  if (!section) return;
-  const collapsed = section.style.display === 'none';
-  section.style.display = collapsed ? '' : 'none';
-  if (chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
-}
-
-function importAllOfficialRubrics() {
-  ['innovation', 'values', 'robot'].forEach(cat => importOfficialRubric(cat));
-}
 
 // ── Scoring ──
 function renderScoring() {

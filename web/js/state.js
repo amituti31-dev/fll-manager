@@ -38,6 +38,7 @@ function defaultState() {
     strategyBoardImage: null, // base64 background image (localStorage only, not Firestore)
     competitionDate: null,    // 'YYYY-MM-DD'
     judgingQs: null,          // null = use defaults (populated on first load)
+    officialRubric: { marks: { innovation: {}, robot: {} }, feedback: {} }, // judging-room rubric marks (see rubrics.js)
     judgingDoc: null,         // { name, url, uploadedBy, date } — stored in Firebase Storage + Firestore
   };
 }
@@ -87,8 +88,9 @@ async function saveState() {
     const members = (state.members || []).map(({ pin, ...rest }) => rest);
     const customMissions = state.customMissions || [];
     const judgingDoc = state.judgingDoc || null;
+    const officialRubric = state.officialRubric || null;
     await window.db.collection(window.FB_PROJECT).doc("admin-data").set({
-      members, scores, rubrics, checklist, seasons, customMissions, judgingDoc,
+      members, scores, rubrics, checklist, seasons, customMissions, judgingDoc, officialRubric,
       // Clean up the copies written by v1.0.8, before these moved to "data".
       missionChecks: firebase.firestore.FieldValue.delete(),
       links: firebase.firestore.FieldValue.delete(),

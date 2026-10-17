@@ -1,86 +1,115 @@
 // ═══════════════════════════════════════════════════════
-// § 11 · RUBRICS
+// § 11 · RUBRICS — official judging grid (judging room)
 // ═══════════════════════════════════════════════════════
-function renderRubrics(cat) {
-  const rubrics = state.rubrics[cat] || [];
-  const html = rubrics.map(r => `
-    <div class="rubric-item">
-      <div class="rubric-q">${sanitize(r.q)}</div>
-      <div class="score-group">
-        ${[1,2,3,4].map(s => `<button class="score-btn ${r.score === s ? 'active' : ''}" data-action="set-score" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" data-score="${s}">${s}<br><small style="font-weight:400">${scoreLabel(s)}</small></button>`).join('')}
-      </div>
-      <div class="rubric-notes">
-        <textarea class="form-input" rows="2" placeholder="הערות..." data-onchange="set-notes" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" style="font-size:12px">${sanitize(r.notes)}</textarea>
-      </div>
-      ${state.isAdmin ? `<button data-action="delete-rubric" data-category="${sanitize(cat)}" data-id="${Number(r.id)}" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;margin-top:4px">🗑️ מחק</button>` : ''}
-    </div>
-  `).join('') || '<div style="color:var(--text3);padding:20px;text-align:center">אין שאלות עדיין. הוסף שאלות או ייבא מחוון רשמי.</div>';
+// Marks live in state.officialRubric = { marks: { innovation: {fieldId: 1-4}, robot: {...} },
+// feedback: { innovation|robot|values: { greatJob, thinkAbout } } } (admin-data, mentor-only).
+let _rubricTab = 'innovation';
+const _RUBRIC_TABS = [
+  ['innovation', '💡 פרויקט החדשנות'],
+  ['robot', '🤖 תכנון הרובוט'],
+  ['values', '⭐ ערכי הליבה'],
+];
 
-  // All rubrics live in one place — the judging room (scoring screen).
-  const scoringEl = document.getElementById(`scoring-${cat}-rubrics`);
-  if (scoringEl) scoringEl.innerHTML = html;
+function _officialRubric() {
+  if (!state.officialRubric) state.officialRubric = {};
+  const r = state.officialRubric;
+  if (!r.marks) r.marks = {};
+  if (!r.marks.innovation) r.marks.innovation = {};
+  if (!r.marks.robot) r.marks.robot = {};
+  if (!r.feedback) r.feedback = {};
+  return r;
 }
 
-function scoreLabel(s) { return ['','מתחילה','מתפתחת','מיומנת','מצטיינת'][s]; }
-
-function setScore(cat, id, score) {
-  const r = state.rubrics[cat]?.find(r => r.id === id);
-  if (r) { r.score = score; saveState(); renderRubrics(cat); }
-}
-function setNotes(cat, id, notes) {
-  const r = state.rubrics[cat]?.find(r => r.id === id);
-  if (r) { r.notes = notes; saveState(); }
-}
-function deleteRubric(cat, id) {
-  state.rubrics[cat] = state.rubrics[cat].filter(r => r.id !== id);
-  saveState(); renderRubrics(cat);
+// [{cat, section, field}] — every criterion shown on a tab. The core-values
+// tab is the flagged criteria of the other two, so a mark there is the same mark.
+function _rubricRows(tab) {
+  const rows = [];
+  const cats = tab === 'values' ? ['innovation', 'robot'] : [tab];
+  cats.forEach(cat => RUBRIC_GRID[cat].sections.forEach(section => section.fields.forEach(field => {
+    if (tab !== 'values' || field.coreValues) rows.push({ cat, section, field });
+  })));
+  return rows;
 }
 
-// Returns {added, removed}; caller saves/renders/notifies.
-function _mergeOfficialRubric(cat) {
-  // Drop the old made-up default criteria (kept if the team wrote notes on them).
-  const legacy = new Set(LEGACY_RUBRIC_TEXTS);
-  const before = state.rubrics[cat].length;
-  state.rubrics[cat] = state.rubrics[cat].filter(r => !legacy.has(r.q) || (r.notes || '').trim());
-  const removed = before - state.rubrics[cat].length;
-  const existing = new Set(state.rubrics[cat].map(r => r.q));
-  let added = 0;
-  OFFICIAL_RUBRICS[cat].forEach(q => {
-    if (!existing.has(q)) { state.rubrics[cat].push({ id: Date.now() + Math.random(), q, score: 0, notes: '' }); added++; }
-  });
-  return { added, removed };
+// 0..1 — average marked level out of 4 (unmarked criteria count as 0).
+function rubricRatio(tab) {
+  const rows = _rubricRows(tab);
+  const marks = _officialRubric().marks;
+  const sum = rows.reduce((a, r) => a + (marks[r.cat][r.field.id] || 0), 0);
+  return rows.length ? sum / (rows.length * 4) : 0;
 }
 
-function _notifyRubricImport(added, removed) {
-  notify(added || removed
-    ? `✅ נוספו ${added} קריטריונים רשמיים${removed ? ` (הוסרו ${removed} ישנים)` : ''}`
-    : 'כל הקריטריונים כבר קיימים', 'success');
+function switchRubricTab(tab) {
+  _rubricTab = tab;
+  renderRubricGrid();
 }
 
-function importOfficialRubric(cat) {
-  const { added, removed } = _mergeOfficialRubric(cat);
-  saveState(); renderRubrics(cat);
-  _notifyRubricImport(added, removed);
+function setRubricMark(cat, fieldId, level) {
+  if (!state.isAdmin) { notify('רק מנטור יכול לסמן במחוון', 'error'); return; }
+  const marks = _officialRubric().marks[cat];
+  if (!marks) return;
+  // Clicking the selected level again clears it.
+  if (marks[fieldId] === level) delete marks[fieldId]; else marks[fieldId] = level;
+  saveState(); renderRubricGrid();
 }
 
-function importAllOfficialRubrics() {
-  let added = 0, removed = 0;
-  ['innovation', 'robot', 'values'].forEach(cat => {
-    const r = _mergeOfficialRubric(cat);
-    added += r.added; removed += r.removed;
-    renderRubrics(cat);
-  });
+function setRubricFeedback(tab, key, value) {
+  if (!state.isAdmin) return;
+  const fb = _officialRubric().feedback;
+  if (!fb[tab]) fb[tab] = { greatJob: '', thinkAbout: '' };
+  fb[tab][key] = String(value).slice(0, 2000);
   saveState();
-  _notifyRubricImport(added, removed);
 }
 
-function addCustomRubric(cat) { state.pendingRubricCategory = cat; openModal('modal-rubric'); }
-function saveRubric() {
-  const q = document.getElementById('rubric-question').value.trim().slice(0, 500);
-  if (!q) { notify('נדרשת שאלה', 'error'); return; }
-  const cat = state.pendingRubricCategory;
-  state.rubrics[cat].push({ id: Date.now(), q, score: 0, notes: '' });
-  saveState(); closeModal('modal-rubric'); renderRubrics(cat);
-  document.getElementById('rubric-question').value = '';
-  notify('✅ שאלה נוספה', 'success');
+function renderRubricGrid() {
+  const tabsEl = document.getElementById('rubric-tabs');
+  const gridEl = document.getElementById('rubric-grid');
+  if (!tabsEl || !gridEl) return;
+  const tab = _rubricTab;
+  const colors = RUBRIC_COLORS[tab];
+  const { marks, feedback } = _officialRubric();
+  const rows = _rubricRows(tab);
+  const marked = rows.filter(r => marks[r.cat][r.field.id]).length;
+
+  tabsEl.innerHTML = _RUBRIC_TABS.map(([key, label]) =>
+    `<button class="btn ${key === tab ? 'btn-primary' : 'btn-ghost'}" style="flex:1;font-size:13px" data-action="switch-rubric-tab" data-arg="${key}">${label}</button>`
+  ).join('');
+
+  let html = `<div class="rg-summary">סומנו ${marked} מתוך ${rows.length} קריטריונים${state.isAdmin ? '' : ' · רק מנטור יכול לסמן'}</div>`;
+  if (tab === 'values') {
+    html += `<div class="rg-note">ערכי הליבה נשפטים דרך הקריטריונים המסומנים בעיגול מקווקו בשני המחוונים האחרים (25% מהניקוד). סימון כאן הוא אותו סימון כמו שם.</div>`;
+  }
+  html += `<div class="rg-scroll"><div class="rg-table">`;
+  html += `<div class="rg-row rg-head">${RUBRIC_LEVELS.map((l, i) =>
+    `<div class="rg-cell" style="background:${colors[i]}">${l}</div>`).join('')}</div>`;
+
+  let lastSection = null;
+  rows.forEach(({ cat, section, field }) => {
+    const sectionKey = cat + '.' + section.id;
+    if (sectionKey !== lastSection) {
+      lastSection = sectionKey;
+      const prefix = tab === 'values' ? `${RUBRIC_GRID[cat].title} · ` : '';
+      html += `<div class="rg-section" style="background:${colors[0]}"><b>${prefix}${section.title}</b> - ${section.description}</div>`;
+    }
+    const current = marks[cat][field.id] || 0;
+    html += `<div class="rg-row">${[1, 2, 3, 4].map(level => {
+      const on = current === level;
+      const text = field.levels[level - 1] || '';
+      return `<div class="rg-cell rg-option${on ? ' on' : ''}" style="${on ? `background:${colors[level - 1]};color:#1a1f36` : ''}"
+        data-action="set-rubric-mark" data-category="${cat}" data-field="${field.id}" data-score="${level}">
+        <span class="rg-radio${field.coreValues ? ' cv' : ''}">${on ? '●' : ''}</span><span>${text}</span></div>`;
+    }).join('')}</div>`;
+  });
+  html += `</div></div>`;
+
+  const fb = feedback[tab] || {};
+  const ro = state.isAdmin ? '' : ' readonly';
+  html += `
+    <div class="rg-feedback">
+      <label class="form-label">עבודה מצוינת...</label>
+      <textarea class="form-input" rows="2" data-onchange="set-rubric-feedback" data-category="${tab}" data-field="greatJob"${ro}>${sanitize(fb.greatJob || '')}</textarea>
+      <label class="form-label" style="margin-top:8px">חשבו על...</label>
+      <textarea class="form-input" rows="2" data-onchange="set-rubric-feedback" data-category="${tab}" data-field="thinkAbout"${ro}>${sanitize(fb.thinkAbout || '')}</textarea>
+    </div>`;
+  gridEl.innerHTML = html;
 }

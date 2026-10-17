@@ -188,10 +188,7 @@ function initCharts() {
   ) / 4 * 100);
 
   // פרויקט חדשנות: ממוצע של 4 מדדים
-  const innRubrics    = state.rubrics?.innovation || [];
-  const innRubricRatio = innRubrics.length
-    ? innRubrics.reduce((s, r) => s + (r.score || 0), 0) / (innRubrics.length * 4)
-    : 0;
+  const innRubricRatio = rubricRatio('innovation');
   const innovLogs = (state.logs || []).filter(l => l.topic === 'innovation').length;
   const innPct = Math.round((
     (state.innovSteps?.problem  ? 1 : 0) +

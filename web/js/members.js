@@ -161,6 +161,7 @@ async function resetTeamData() {
   state.findings = [];
   state.interviews = [];
   state.rubrics = { values: [], robot: [], innovation: [] };
+  state.officialRubric = { marks: { innovation: {}, robot: {} }, feedback: {} };
   state.scores = [];
   state.missionChecks = {};
   state.stickies = [];

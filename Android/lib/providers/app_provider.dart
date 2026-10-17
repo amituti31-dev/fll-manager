@@ -35,6 +35,9 @@ class AppProvider extends ChangeNotifier {
   Map<int, bool> missionChecks = {};
   Map<int, MissionExtra> missionExtra = {};
   Map<String, List<RubricItem>> rubrics = {'values': [], 'robot': [], 'innovation': []};
+  // Official judging grid (judging room): marks[cat][fieldId] = 1-4, feedback[tab][greatJob|thinkAbout].
+  Map<String, Map<String, int>> rubricMarks = {'innovation': {}, 'robot': {}};
+  Map<String, Map<String, String>> rubricFeedback = {};
   List<StickyNote> stickies = [];
   List<MemberTask> memberTasks = [];
   List<ChecklistItem> checklist = _defaultChecklist();
@@ -95,6 +98,8 @@ class AppProvider extends ChangeNotifier {
     missionChecks = {};
     missionExtra = {};
     rubrics = {'values': [], 'robot': [], 'innovation': []};
+    rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricFeedback = {};
     stickies = [];
     memberTasks = [];
     checklist = _defaultChecklist();
@@ -237,6 +242,27 @@ class AppProvider extends ChangeNotifier {
           'innovation': _parseList(raw['innovation'], RubricItem.fromMap),
         };
       }
+      final official = adminData['officialRubric'];
+      if (official is Map) {
+        final marks = official['marks'];
+        final feedback = official['feedback'];
+        rubricMarks = {
+          for (final cat in ['innovation', 'robot'])
+            cat: {
+              if (marks is Map && marks[cat] is Map)
+                for (final e in (marks[cat] as Map).entries)
+                  if (e.value is num) e.key.toString(): (e.value as num).toInt(),
+            },
+        };
+        rubricFeedback = {
+          if (feedback is Map)
+            for (final e in feedback.entries)
+              if (e.value is Map)
+                e.key.toString(): {
+                  for (final f in (e.value as Map).entries) f.key.toString(): f.value?.toString() ?? '',
+                },
+        };
+      }
       if (adminData['judgingQuestions'] != null) {
         judgingQuestions = _parseList(adminData['judgingQuestions'], JudgingQuestion.fromMap);
       }
@@ -351,6 +377,7 @@ class AppProvider extends ChangeNotifier {
           'robot': rubrics['robot']!.map((r) => r.toMap()).toList(),
           'innovation': rubrics['innovation']!.map((r) => r.toMap()).toList(),
         },
+        'officialRubric': {'marks': rubricMarks, 'feedback': rubricFeedback},
         'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
       });
     } catch (_) {}
@@ -675,49 +702,33 @@ class AppProvider extends ChangeNotifier {
     if (teamId != null) await FirebaseService.deleteImprovementPhoto(teamId!, id);
   }
 
-  // ─── Rubrics ──────────────────────────────────────
+  // ─── Rubrics (official judging grid) ─────────────
 
-  Future<void> addCustomRubric(String category, String question) async {
-    rubrics[category]!.add(RubricItem(id: DateTime.now().microsecondsSinceEpoch, question: question));
-    notifyListeners();
-    await _saveData();
-  }
-
-  Future<void> setRubricScoreAtIndex(String category, int index, int score) async {
-    final list = rubrics[category]!;
-    if (index < 0 || index >= list.length) return;
-    list[index].score = score;
-    notifyListeners();
-    await _saveData();
-  }
-
-  /// Adds the official criteria missing from [category] and drops the old
-  /// made-up defaults (unless they have notes). Returns (added, removed).
-  Future<(int, int)> importOfficialRubric(String category) async {
-    final list = rubrics[category]!;
-    final before = list.length;
-    list.removeWhere((r) => legacyRubricTexts.contains(r.question) && r.notes.trim().isEmpty);
-    final removed = before - list.length;
-    final existing = list.map((r) => r.question).toSet();
-    var added = 0;
-    var id = DateTime.now().microsecondsSinceEpoch;
-    for (final q in officialRubrics[category] ?? const <String>[]) {
-      if (existing.add(q)) {
-        list.add(RubricItem(id: id++, question: q));
-        added++;
-      }
+  /// Marks [level] (1-4) for a criterion; marking the same level again clears it.
+  Future<void> setRubricMark(String cat, String fieldId, int level) async {
+    final marks = rubricMarks.putIfAbsent(cat, () => {});
+    if (marks[fieldId] == level) {
+      marks.remove(fieldId);
+    } else {
+      marks[fieldId] = level;
     }
     notifyListeners();
     await _saveData();
-    return (added, removed);
   }
 
-  Future<void> deleteRubricAtIndex(String category, int index) async {
-    final list = rubrics[category]!;
-    if (index < 0 || index >= list.length) return;
-    list.removeAt(index);
-    notifyListeners();
+  Future<void> setRubricFeedback(String tab, String field, String value) async {
+    final fb = rubricFeedback.putIfAbsent(tab, () => {});
+    if ((fb[field] ?? '') == value) return;
+    fb[field] = value;
     await _saveData();
+  }
+
+  /// 0..1 — average marked level out of 4 (unmarked criteria count as 0).
+  double rubricRatio(String tab) {
+    final rows = rubricRows(tab);
+    if (rows.isEmpty) return 0;
+    final sum = rows.fold<int>(0, (a, r) => a + (rubricMarks[r.cat]?[r.field.id] ?? 0));
+    return sum / (rows.length * 4);
   }
 
   // ─── Stickies ─────────────────────────────────────
@@ -838,6 +849,8 @@ class AppProvider extends ChangeNotifier {
     scores = [];
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
+    rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricFeedback = {};
     notifyListeners();
     await _saveData();
   }
@@ -851,6 +864,8 @@ class AppProvider extends ChangeNotifier {
     missionExtra = {};
     missions = missions2026.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};
+    rubricMarks = {'innovation': {}, 'robot': {}};
+    rubricFeedback = {};
     stickies = [];
     memberTasks = [];
     checklist = _defaultChecklist();

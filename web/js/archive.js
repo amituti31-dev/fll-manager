@@ -42,6 +42,7 @@ async function createNewSeason() {
     findings:    JSON.parse(JSON.stringify(state.findings)),
     scores:      JSON.parse(JSON.stringify(state.scores)),
     rubrics:     JSON.parse(JSON.stringify(state.rubrics)),
+    officialRubric: JSON.parse(JSON.stringify(state.officialRubric || {})),
     missionChecks: JSON.parse(JSON.stringify(state.missionChecks)),
     checklist:   JSON.parse(JSON.stringify(state.checklist)),
     stickies:    JSON.parse(JSON.stringify(state.stickies || [])),
@@ -74,6 +75,7 @@ async function createNewSeason() {
   state.scores = [];
   state.missionChecks = {};
   state.rubrics = { values: [], robot: [], innovation: [] };
+  state.officialRubric = { marks: { innovation: {}, robot: {} }, feedback: {} };
   state.stickies = [];
 
   state.seasons.push({ name, year: new Date().getFullYear(), archived: false, topScore: 0 });
@@ -217,6 +219,7 @@ function exportData(type) {
     members: state.members, scores: state.scores,
     checklist: state.checklist, seasons: state.seasons,
     customMissions: state.customMissions, judgingDoc: state.judgingDoc,
+    officialRubric: state.officialRubric,
     logs: state.logs, findings: state.findings, stickies: state.stickies,
     memberTasks: state.memberTasks, missionChecks: state.missionChecks,
     links: state.links, interviews: state.interviews, missionExtra: state.missionExtra,

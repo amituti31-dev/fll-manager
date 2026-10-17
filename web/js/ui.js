@@ -28,10 +28,8 @@ function populateAll() {
   try { renderTimeline(); } catch(e) { console.warn('renderTimeline:', e); }
   try { renderMembers(); } catch(e) { console.warn('renderMembers:', e); }
   try { renderMissions(); } catch(e) { console.warn('renderMissions:', e); }
-  try { renderRubrics('values'); } catch(e) { console.warn('renderRubrics values:', e); }
+  try { renderRubricGrid(); } catch(e) { console.warn('renderRubricGrid:', e); }
   try { renderStickyBoard(); } catch(e) { console.warn('renderStickyBoard:', e); }
-  try { renderRubrics('robot'); } catch(e) { console.warn('renderRubrics robot:', e); }
-  try { renderRubrics('innovation'); } catch(e) { console.warn('renderRubrics innov:', e); }
   try { renderInnovProject(); } catch(e) { console.warn('renderInnovProject:', e); }
   try { renderResearchHub(); } catch(e) { console.warn('renderResearchHub:', e); }
   try { renderScoring(); } catch(e) { console.warn('renderScoring:', e); }

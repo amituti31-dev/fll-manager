@@ -2,7 +2,7 @@
 //  FLL MANAGER — JavaScript Index
 //  ───────────────────────────────────────────────────────────────
 //  §01  UTILITIES .............. sanitize, sanitizeUrl, getMissions, getMissionsScoreTotal, notify
-//  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, OFFICIAL_RUBRICS
+//  §01B FIXED REFERENCE DATA .... DEFAULT_CHECKLIST, MISSIONS_2026, RUBRIC_GRID
 //  §02  CONSTANTS & STATE ....... state
 //  §03  STATE PERSISTENCE ....... saveState, loadState, findTeamForUser
 //  §05  TEAM SETUP .............. loginGoTo, create team, join team
@@ -11,7 +11,7 @@
 //  §08  DAILY LOGS .............. saveLog, renderTimeline, deleteLog
 //  §09  MEMBERS ................. renderMembers, saveMember, leaveTeam
 //  §10  MISSIONS ................ renderMissions, filterMissions
-//  §11  RUBRICS ................. renderRubrics, setScore, importOfficialRubric, importAllOfficialRubrics
+//  §11  RUBRICS ................. renderRubricGrid, setRubricMark, rubricRatio
 //  §12  GALLERY & IMPROVEMENTS .. saveImprovement, renderGallery, makeTimelapse
 //  §13  INNOVATION PROJECT ...... INNOV_STEPS, renderInnovProject, switchInnovTab
 //  §14  RESEARCH & INTERVIEWS ... saveFinding, saveInterview, renderResearchHub

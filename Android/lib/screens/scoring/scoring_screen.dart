@@ -9,10 +9,10 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/app_provider.dart';
-import '../../models/models.dart';
 import '../../services/firebase_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/score_history_chart.dart';
+import '../../widgets/rubric_grid.dart';
 
 class ScoringScreen extends StatefulWidget {
   const ScoringScreen({super.key});
@@ -407,21 +407,6 @@ class _ScoringScreenState extends State<ScoringScreen>
     ]);
   }
 
-  Future<void> _importAllRubrics(AppProvider prov) async {
-    final messenger = ScaffoldMessenger.of(context);
-    var added = 0, removed = 0;
-    for (final cat in ['innovation', 'robot', 'values']) {
-      final (a, r) = await prov.importOfficialRubric(cat);
-      added += a;
-      removed += r;
-    }
-    messenger.showSnackBar(SnackBar(content: Text(
-      added > 0 || removed > 0
-          ? '✅ נוספו $added קריטריונים רשמיים${removed > 0 ? ' (הוסרו $removed ישנים)' : ''}'
-          : 'כל הקריטריונים כבר קיימים',
-    )));
-  }
-
   // ── Tab 2: Judging Room ────────────────────────────
   Widget _buildJudgingTab(AppProvider prov) {
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -508,33 +493,10 @@ class _ScoringScreenState extends State<ScoringScreen>
           minimumSize: const Size(double.infinity, 48),
         ),
       ),
-      if (prov.isAdmin) ...[
-        SizedBox(height: 10),
-        ElevatedButton.icon(
-          onPressed: () => _importAllRubrics(prov),
-          icon: Text('📥'),
-          label: Text('ייבא את כל המחוונים הרשמיים', style: TextStyle(fontSize: 13)),
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)),
-        ),
-      ],
       SizedBox(height: 16),
 
-      // All three rubrics in one place, in the official order
-      _RubricSection(
-        icon: '💡', title: 'פרויקט החדשנות', category: 'innovation',
-        color: AppColors.accent2, prov: prov,
-      ),
-      SizedBox(height: 12),
-      _RubricSection(
-        icon: '🤖', title: 'תכנון הרובוט', category: 'robot',
-        color: AppColors.accent, prov: prov,
-      ),
-      SizedBox(height: 12),
-      _RubricSection(
-        icon: '⭐', title: 'ערכי הליבה', category: 'values',
-        color: AppColors.gold, prov: prov,
-        subtitle: 'הקריטריונים משני המחוונים שנספרים גם לערכי הליבה (25% מהניקוד)',
-      ),
+      // All three official rubrics in one place — just mark a level per criterion
+      const RubricGrid(),
       SizedBox(height: 12),
 
       // Judging PDF
@@ -571,229 +533,6 @@ class _StatusChip extends StatelessWidget {
     )),
     Text(label, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
   ]);
-}
-
-// ─── Rubric Section ───────────────────────────────────
-
-class _RubricSection extends StatelessWidget {
-  final String icon;
-  final String title;
-  final String category;
-  final Color color;
-  final AppProvider prov;
-  final String? subtitle;
-  const _RubricSection({
-    required this.icon, required this.title,
-    required this.category, required this.color, required this.prov,
-    this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final items = prov.rubrics[category] ?? [];
-    final avg = items.isEmpty
-        ? 0.0
-        : items.map((r) => r.score).reduce((a, b) => a + b) / items.length;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            border: Border(bottom: BorderSide(color: AppColors.border)),
-          ),
-          child: Row(children: [
-            Text(icon, style: TextStyle(fontSize: 18)),
-            SizedBox(width: 8),
-            Expanded(child: Text(title, style: TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary))),
-            if (items.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(30),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text('ממוצע ${avg.toStringAsFixed(1)}',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-              ),
-            if (prov.isAdmin) ...[
-              SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _importOfficial(context),
-                child: Text('📥', style: TextStyle(fontSize: 18)),
-              ),
-              SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _addQuestion(context),
-                child: Icon(Icons.add_circle_outline, size: 20, color: color),
-              ),
-            ],
-          ]),
-        ),
-
-        if (subtitle != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-            child: Text(subtitle!, style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-          ),
-
-        if (items.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              Text('אין שאלות מותאמות', style: TextStyle(
-                  color: AppColors.textTertiary, fontSize: 13)),
-              SizedBox(height: 4),
-              if (prov.isAdmin)
-                Text('לחץ 📥 לייבוא המחוון הרשמי או + להוספת שאלה',
-                    style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
-            ]),
-          )
-        else
-          ...items.asMap().entries.map((e) => _RubricRow(
-            key: ValueKey('$category-${e.key}'),
-            item: e.value,
-            itemIndex: e.key,
-            category: category,
-            color: color,
-            prov: prov,
-          )),
-      ]),
-    );
-  }
-
-  void _addQuestion(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => _AddRubricDialog(title: title, category: category),
-    );
-  }
-
-  Future<void> _importOfficial(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final (added, removed) = await context.read<AppProvider>().importOfficialRubric(category);
-    messenger.showSnackBar(SnackBar(content: Text(
-      added > 0 || removed > 0
-          ? '✅ נוספו $added קריטריונים רשמיים${removed > 0 ? ' (הוסרו $removed ישנים)' : ''}'
-          : 'כל הקריטריונים כבר קיימים',
-    )));
-  }
-}
-
-class _RubricRow extends StatelessWidget {
-  final RubricItem item;
-  final int itemIndex;
-  final String category;
-  final Color color;
-  final AppProvider prov;
-  const _RubricRow({
-    super.key,
-    required this.item, required this.itemIndex,
-    required this.category, required this.color, required this.prov,
-  });
-
-  static const _labels = ['לא הוצג', 'מתחילה', 'מתפתחת', 'מיומנת', 'מצטיינת'];
-  static const _colors = [
-    AppColors.red, AppColors.accent3, AppColors.gold, AppColors.accent2, AppColors.accent
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border.withAlpha(80))),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: Text(item.question,
-              style: TextStyle(fontSize: 13, color: AppColors.textPrimary))),
-          if (prov.isAdmin)
-            GestureDetector(
-              onTap: () => context.read<AppProvider>().deleteRubricAtIndex(category, itemIndex),
-              child: Text('🗑️', style: TextStyle(fontSize: 13)),
-            ),
-        ]),
-        SizedBox(height: 8),
-        Row(children: [
-          for (int i = 0; i <= 4; i++)
-            Expanded(child: GestureDetector(
-              onTap: prov.isAdmin ? () => context.read<AppProvider>().setRubricScoreAtIndex(category, itemIndex, i) : null,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  color: item.score == i ? _colors[i] : AppColors.surface2,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                      color: item.score == i ? _colors[i] : AppColors.border),
-                ),
-                child: Text('$i', textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                        color: item.score == i ? Colors.white : AppColors.textTertiary)),
-              ),
-            )),
-        ]),
-        SizedBox(height: 4),
-        Text(_labels[item.score],
-            style: TextStyle(fontSize: 11, color: _colors[item.score],
-                fontWeight: FontWeight.w600)),
-      ]),
-    );
-  }
-}
-
-class _AddRubricDialog extends StatefulWidget {
-  final String title;
-  final String category;
-  const _AddRubricDialog({required this.title, required this.category});
-
-  @override
-  State<_AddRubricDialog> createState() => _AddRubricDialogState();
-}
-
-class _AddRubricDialogState extends State<_AddRubricDialog> {
-  final _ctrl = TextEditingController();
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.surface,
-      title: Text('+ ${widget.title}', style: TextStyle(color: AppColors.textPrimary)),
-      content: TextField(
-        controller: _ctrl,
-        autofocus: true,
-        style: TextStyle(color: AppColors.textPrimary),
-        decoration: InputDecoration(hintText: 'תוכן השאלה'),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text('ביטול')),
-        ElevatedButton(
-          onPressed: () {
-            if (_ctrl.text.trim().isEmpty) return;
-            context.read<AppProvider>().addCustomRubric(widget.category, _ctrl.text.trim());
-            Navigator.pop(context);
-          },
-          child: Text('הוסף'),
-        ),
-      ],
-    );
-  }
 }
 
 // ─── Judging PDF Card ─────────────────────────────────

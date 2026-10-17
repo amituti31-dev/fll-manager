@@ -50,15 +50,12 @@ const ACTIONS = {
   'save-edited-log': (el) => saveEditedLog(el, Number(el.dataset.id)),
 
   // Values
-  'import-official-rubric': (el) => importOfficialRubric(el.dataset.arg),
-  'import-all-official-rubrics': () => importAllOfficialRubrics(),
-  'add-custom-rubric': (el) => addCustomRubric(el.dataset.arg),
   'show-add-sticky-modal': () => showAddStickyModal(),
 
   // Rubrics (shared: values / robot / innovation / scoring tabs)
-  'set-score': (el) => setScore(el.dataset.category, Number(el.dataset.id), Number(el.dataset.score)),
-  'set-notes': (el) => setNotes(el.dataset.category, Number(el.dataset.id), el.value),
-  'delete-rubric': (el) => deleteRubric(el.dataset.category, Number(el.dataset.id)),
+  'switch-rubric-tab': (el) => switchRubricTab(el.dataset.arg),
+  'set-rubric-mark': (el) => setRubricMark(el.dataset.category, el.dataset.field, Number(el.dataset.score)),
+  'set-rubric-feedback': (el) => setRubricFeedback(el.dataset.category, el.dataset.field, el.value),
 
   // Robot
   'open-add-improvement': () => openAddImprovement(),
@@ -91,7 +88,6 @@ const ACTIONS = {
   'reset-judging-timer': () => resetJudgingTimer(),
   'next-judging-phase': () => nextJudgingPhase(),
   'open-official-rubrics-site': () => window.open('https://fll-events.firstisrael.org.il/tools/rubrics', '_blank'),
-  'toggle-rubric-section': (el) => toggleRubricSection(el.dataset.arg),
   'save-run-score': () => saveRunScore(),
   'start-timer': (el) => startTimer(el.dataset.arg),
   'reset-timer': (el) => resetTimer(el.dataset.arg),
@@ -191,7 +187,6 @@ const ACTIONS = {
   'save-interview': () => saveInterview(),
   'save-finding': () => saveFinding(),
   'save-sticky': () => saveSticky(),
-  'save-rubric': () => saveRubric(),
   'create-new-season': () => createNewSeason(),
   'save-member-task': () => saveMemberTask(),
   'toggle-select-all': () => toggleSelectAll(),
