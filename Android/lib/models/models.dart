@@ -201,6 +201,9 @@ final List<Mission> officialMissions = [
   Mission(id: 16, name: 'ביקורת ציוד', pts: 20),
   Mission(id: 17, name: 'אסימוני דיוק', pts: 50),
 ];
+// Scored but not robot-game missions: equipment inspection (16) and precision tokens (17).
+const officialNonMissionIds = {16, 17};
+
 // mission id → (bonus pts, official bonus text); pre-filled into missionExtra.
 const Map<int, (int, String)> officialBonuses = {
   1: (10, 'מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר'),

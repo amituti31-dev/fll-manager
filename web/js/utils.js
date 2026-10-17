@@ -66,6 +66,21 @@ function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }
 
+// The 15 robot-game missions — everything in the list except the official
+// equipment-inspection / precision-tokens entries (scored, but not missions).
+function isRealMission(m) {
+  if (!OFFICIAL_NON_MISSION_IDS.includes(m.id)) return true;
+  const official = OFFICIAL_MISSIONS.find(o => o.id === m.id);
+  return !official || official.name !== m.name;
+}
+function getRealMissions() { return getMissions().filter(isRealMission); }
+
+// Highest possible robot-game score: every item's points plus its bonus (530 for BIOGLOW™).
+function getMaxScore() {
+  const extras = state.missionExtra || {};
+  return getMissions().reduce((a, m) => a + m.pts + ((extras[m.id] || {}).bonusPts || 0), 0);
+}
+
 // Pre-fills the official bonus (text + points) for missions that are still the
 // official ones (same id and name), unless the team already set a bonus there.
 // Also splits a bonus out of a mission's pts if an older version saved the

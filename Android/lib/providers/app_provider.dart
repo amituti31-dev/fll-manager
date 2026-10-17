@@ -714,7 +714,20 @@ class AppProvider extends ChangeNotifier {
     if (season != null && season.isNotEmpty) await _saveSettings();
   }
 
-  int get doneMissions => missionChecks.values.where((v) => v).length;
+  /// The 15 robot-game missions — everything except the official equipment-
+  /// inspection / precision-tokens entries (scored, but not missions).
+  bool isRealMission(Mission m) {
+    if (!officialNonMissionIds.contains(m.id)) return true;
+    final official = officialMissions.where((o) => o.id == m.id).firstOrNull;
+    return official == null || official.name != m.name;
+  }
+
+  List<Mission> get realMissions => missions.where(isRealMission).toList();
+
+  int get doneMissions => realMissions.where((m) => missionChecks[m.id] == true).length;
+
+  /// Highest possible robot-game score: every item's points plus its bonus (530 for BIOGLOW™).
+  int get maxScore => missions.fold(0, (a, m) => a + m.pts + (missionExtra[m.id]?.bonusPts ?? 0));
 
   // ─── Scores ───────────────────────────────────────
 

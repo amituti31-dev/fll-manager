@@ -117,7 +117,7 @@ function setupBiometric() {
 // ═══════════════════════════════════════════════════════
 function updateStats() {
   // משימות
-  const missionsForStats = getMissions();
+  const missionsForStats = getRealMissions();
   const done = missionsForStats.filter(m => state.missionChecks[m.id]).length;
   document.getElementById('stat-missions').textContent = `${done}/${missionsForStats.length}`;
   const bar = document.getElementById('stat-missions-bar');
@@ -151,15 +151,15 @@ function initCharts() {
   // ── גרף התקדמות — מחושב מהנתונים האמיתיים ──
 
   // תכנון רובוט: ממוצע של 4 מדדים
-  const missionsForChart = getMissions();
+  const missionsForChart = getRealMissions();
   const doneMissions  = missionsForChart.filter(m => state.missionChecks[m.id]).length;
-  const maxPts        = missionsForChart.reduce((a, m) => a + m.pts, 0) || 1;
+  const maxPts        = getMaxScore() || 1;
   const bestScore     = (state.scores?.length) ? Math.max(...state.scores.map(s => s.score)) : 0;
   const imprCount     = (state.improvements || []).length;
   const runsCount     = (state.scores || []).length;
   const robotPct = Math.round((
     (doneMissions / (missionsForChart.length || 1)) +
-    (bestScore / maxPts) +
+    Math.min(bestScore / maxPts, 1) +
     Math.min(imprCount / 15, 1) +
     Math.min(runsCount / 10, 1)
   ) / 4 * 100);

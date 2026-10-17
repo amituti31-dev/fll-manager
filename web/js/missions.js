@@ -41,14 +41,15 @@ function renderMissions() {
     `;
   }).join('') || `<div style="color:var(--text3);padding:20px;text-align:center;grid-column:1/-1">אין משימות בקטגוריה זו</div>`;
 
-  const done = missions.filter(m => state.missionChecks[m.id]).length;
-  document.getElementById('stat-missions').textContent = `${done}/${missions.length}`;
+  const realMissions = getRealMissions();
+  const done = realMissions.filter(m => state.missionChecks[m.id]).length;
+  document.getElementById('stat-missions').textContent = `${done}/${realMissions.length}`;
 
   const seasonLabel = state.currentSeason || OFFICIAL_SEASON_NAME;
   const headerCount = document.getElementById('robot-header-mission-count');
-  if (headerCount) headerCount.textContent = `${seasonLabel} – ${missions.length} משימות`;
+  if (headerCount) headerCount.textContent = `${seasonLabel} – ${realMissions.length} משימות · עד ${getMaxScore()} נקודות`;
   const cardTitle = document.getElementById('missions-card-title');
-  if (cardTitle) cardTitle.textContent = `${missions.length} משימות – ${seasonLabel}`;
+  if (cardTitle) cardTitle.textContent = `${realMissions.length} משימות – ${seasonLabel}`;
   const customBadge = document.getElementById('missions-custom-badge');
   if (customBadge) customBadge.style.display = (state.customMissions && state.customMissions.length) ? '' : 'none';
   // Every other place the season name is shown (kept in sync here so a

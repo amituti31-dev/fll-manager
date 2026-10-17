@@ -41,7 +41,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     final lastScore = prov.scores.isEmpty ? 0 : prov.scores.last.score;
-    final total     = prov.missions.length;
+    final total     = prov.realMissions.length;
     final teamTasks = prov.memberTasks.where((t) => t.memberId == 'all' && !t.done).toList();
 
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -285,9 +285,9 @@ class _CategoryProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Robot: missions completed + score vs max + improvements + runs
-    final missionsPct = prov.missions.isEmpty ? 0.0
-        : prov.doneMissions / prov.missions.length;
-    final maxPts   = prov.missions.fold(0, (s, m) => s + m.pts);
+    final missionsPct = prov.realMissions.isEmpty ? 0.0
+        : prov.doneMissions / prov.realMissions.length;
+    final maxPts   = prov.maxScore;
     final scorePct = maxPts == 0 ? 0.0
         : math.min(prov.bestScore / maxPts, 1.0);
     final improvPct = math.min(prov.improvements.length / 15.0, 1.0);

@@ -122,7 +122,7 @@ class _RobotScreenState extends State<RobotScreen> {
   Widget build(BuildContext context) {
     final prov = context.watch<AppProvider>();
     final done = prov.doneMissions;
-    final total = prov.missions.length;
+    final total = prov.realMissions.length;
     final imagesOnly = prov.improvements.where((i) => i.imageBase64 != null).toList();
 
     final filtered = _filter == 'הושלמו'

@@ -40,6 +40,9 @@ const OFFICIAL_MISSIONS = [
   { id: 16, name: "ביקורת ציוד", pts: 20 },
   { id: 17, name: "אסימוני דיוק", pts: 50 },
 ];
+// Scored but not robot-game missions: equipment inspection (16) and precision tokens (17).
+const OFFICIAL_NON_MISSION_IDS = [16, 17];
+
 // mission id → official bonus (pre-filled into missionExtra; see applyOfficialBonuses()).
 const OFFICIAL_BONUSES = {
   1: { bonusPts: 10, bonus: "מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר" },
