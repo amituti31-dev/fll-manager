@@ -20,6 +20,7 @@ function updateAdminUI() {
   document.querySelectorAll('.student-only').forEach(el => {
     el.style.display = state.isAdmin ? 'none' : '';
   });
+  try { renderBackupReminder(); } catch(e) {}
   document.getElementById('role-pill').textContent = state.isAdmin ? 'מנטור' : 'תלמיד';
   document.getElementById('role-label').textContent = state.isAdmin ? 'מצב אדמין' : 'מצב תלמיד';
 }
@@ -45,6 +46,7 @@ function populateAll() {
   try { renderLinks(); } catch(e) { console.warn('renderLinks:', e); }
   try { renderCompetitionCountdown(); } catch(e) { console.warn('renderCompetitionCountdown:', e); }
   try { renderCalendar(); } catch(e) { console.warn('renderCalendar:', e); }
+  try { renderBackupReminder(); } catch(e) { console.warn('renderBackupReminder:', e); }
 }
 
 // ── Navigation ──

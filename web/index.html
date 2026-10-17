@@ -319,6 +319,14 @@
         </div>
 
         <!-- This month's calendar (always the current month; full calendar in its own screen) -->
+        <div class="card" id="dashboard-backup-reminder" style="display:none;margin-bottom:16px;border-color:rgba(245,200,66,0.5)">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:20px">🛟</span>
+            <span style="flex:1;font-size:13px"><b>כדאי לגבות את הנתונים.</b> <span id="dashboard-backup-reminder-text"></span></span>
+            <button class="btn btn-primary" style="font-size:12px" data-action="create-full-backup">💾 גיבוי עכשיו</button>
+          </div>
+        </div>
+
         <div class="card" id="dashboard-meeting-reminder" style="display:none;margin-bottom:16px;border-color:rgba(255,107,53,0.5)">
           <div class="card-header">
             <span class="card-icon">✍️</span>
@@ -712,7 +720,17 @@
             <div class="export-row">
               <button class="btn btn-ghost" data-action="export-data" data-arg="pdf">📄 ייצוא PDF</button>
               <button class="btn btn-ghost" data-action="export-data" data-arg="excel">📊 ייצוא Excel (CSV)</button>
-              <button class="btn btn-ghost" data-action="export-data" data-arg="json">💾 גיבוי מלא (JSON)</button>
+            </div>
+          </div>
+          <div class="card admin-only" id="backup-card" style="margin-top:16px">
+            <div class="card-header"><span class="card-icon">🛟</span><span class="card-title">גיבוי ושחזור</span></div>
+            <p style="color:var(--text2);font-size:12px;margin-bottom:12px">
+              גיבוי מלא של כל נתוני הקבוצה בענן (כולל תמונות) לקובץ במחשב. שחזור מחליף את כל הנתונים הנוכחיים בתוכן הקובץ.
+            </p>
+            <div class="export-row">
+              <button class="btn btn-primary" data-action="create-full-backup">💾 גיבוי מלא</button>
+              <button class="btn btn-ghost" data-action="pick-restore-file">♻️ שחזור מגיבוי</button>
+              <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none" data-onchange="restore-file-chosen">
             </div>
           </div>
         </div>
@@ -1212,6 +1230,25 @@
   </div>
 </div>
 
+<!-- Restore From Backup Modal -->
+<div class="modal-overlay" id="modal-restore">
+  <div class="modal">
+    <div class="modal-title">♻️ שחזור מגיבוי</div>
+    <div id="restore-summary" style="font-size:13px;line-height:1.8;margin-bottom:12px"></div>
+    <div style="background:rgba(255,77,109,0.1);border:1px solid var(--red);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px">
+      ⚠️ כל הנתונים הנוכחיים של הקבוצה יוחלפו בתוכן הגיבוי (תיעודים, ריצות, פתקים, תמונות…). קודי ההצטרפות הנוכחיים נשמרים. לא ניתן לבטל — כדאי לגבות קודם את המצב הנוכחי.
+    </div>
+    <div class="form-group">
+      <label class="form-label">כדי לאשר, הקלידו: שחזר</label>
+      <input type="text" class="form-input" id="restore-confirm-text" autocomplete="off">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-restore">ביטול</button>
+      <button class="btn btn-danger" data-action="confirm-restore">♻️ שחזר</button>
+    </div>
+  </div>
+</div>
+
 <!-- Meeting Plan Modal -->
 <div class="modal-overlay" id="modal-meeting-plan">
   <div class="modal">
@@ -1462,6 +1499,7 @@
   <script src="js/scoring.js"></script>
   <script src="js/checklist.js"></script>
   <script src="js/archive.js"></script>
+  <script src="js/backup.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/judging.js"></script>
   <script src="js/links.js"></script>

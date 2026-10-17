@@ -88,6 +88,21 @@ class DashboardScreen extends StatelessWidget {
       ),
       SizedBox(height: 16),
 
+      // ── Backup reminder (mentors) ──────────────────────
+      if (prov.backupOverdue) ...[
+        _SectionCard(
+          icon: '🛟',
+          title: 'כדאי לגבות את הנתונים',
+          child: Text(
+            prov.lastBackupAt == null
+                ? 'עוד לא נעשה גיבוי לנתוני הקבוצה. הגדרות ← גיבוי נתונים ← ייצוא גיבוי מלא.'
+                : 'הגיבוי האחרון נעשה לפני ${DateTime.now().difference(DateTime.parse(prov.lastBackupAt!)).inDays} ימים. הגדרות ← גיבוי נתונים.',
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+        ),
+        SizedBox(height: 12),
+      ],
+
       // ── Meetings waiting for a summary ─────────────────
       if (prov.meetingsAwaitingSummary.isNotEmpty) ...[
         _SectionCard(

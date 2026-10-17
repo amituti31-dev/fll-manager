@@ -137,6 +137,10 @@ const ACTIONS = {
   // Archive
   'open-new-season-modal': () => openNewSeasonModal(),
   'export-data': (el) => exportData(el.dataset.arg),
+  'create-full-backup': () => createFullBackup(),
+  'pick-restore-file': () => pickRestoreFile(),
+  'restore-file-chosen': (el) => onRestoreFileChosen(el),
+  'confirm-restore': () => confirmRestore(),
   'close-archive-view': () => closeArchiveView(),
   'export-archived-season': () => exportArchivedSeason(),
   'view-archived-season': (el) => viewArchivedSeason(Number(el.dataset.index)),

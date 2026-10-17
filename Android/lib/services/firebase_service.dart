@@ -280,6 +280,60 @@ class FirebaseService {
   // be a field embedded in the "data" doc (migrated from AppProvider, since
   // that's where "data" is already loaded).
 
+  // ─── Full backup (same format as web's backup.js) ─────────────────
+  //   { format: 'fll-manager-backup', version: 1, createdAt, teamId, teamName,
+  //     docs: { <docId>: {...} }, photos: { gallery: [...], improvements: [...] } }
+  // The team's Firestore documents verbatim, Timestamps as { __ts: millis }.
+  // Restoring is done from web/desktop.
+
+  static Object? _encFs(Object? v) {
+    if (v is Timestamp) return {'__ts': v.millisecondsSinceEpoch};
+    if (v is List) return v.map(_encFs).toList();
+    if (v is Map) return v.map((k, val) => MapEntry(k.toString(), _encFs(val)));
+    return v;
+  }
+
+  static Future<Map<String, dynamic>> exportRawBackup(String teamId, String teamName) async {
+    final team = _db.collection(teamId);
+    final ids = <String>{
+      'settings', 'data', 'admin-data', 'archives', 'gallery', 'improvements',
+      'links', 'strategy', 'chats', 'judging_pdf',
+    };
+    final docs = <String, dynamic>{};
+    Future<void> grab(String id) async {
+      try {
+        final snap = await team.doc(id).get();
+        if (snap.exists) docs[id] = _encFs(snap.data());
+      } catch (_) {
+        // e.g. 'chats' is mentor-only — skip what this user can't read.
+      }
+    }
+    await Future.wait(ids.map(grab));
+    // One archive_<season> doc per archived season (written by web's "new season").
+    final seasons = (docs['admin-data'] as Map?)?['seasons'];
+    if (seasons is List) {
+      await Future.wait(seasons
+          .whereType<Map>()
+          .map((s) => s['name']?.toString() ?? '')
+          .where((n) => n.isNotEmpty)
+          .map((n) => grab('archive_${n.replaceAll(RegExp(r'\s+'), '-')}')));
+    }
+    final photos = <String, dynamic>{};
+    for (final anchor in ['gallery', 'improvements']) {
+      final snap = await team.doc(anchor).collection('photos').get();
+      photos[anchor] = snap.docs.map((d) => {'id': d.id, 'data': _encFs(d.data())}).toList();
+    }
+    return {
+      'format': 'fll-manager-backup',
+      'version': 1,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+      'teamId': teamId,
+      'teamName': teamName,
+      'docs': docs,
+      'photos': photos,
+    };
+  }
+
   static CollectionReference<Map<String, dynamic>> _galleryPhotosRef(String teamId) =>
       _db.collection(teamId).doc('gallery').collection('photos');
 

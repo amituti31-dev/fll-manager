@@ -53,6 +53,7 @@ let state = defaultState();
 let _lastSave = 0;
 let _saveTimer = null;
 async function saveState() {
+  if (window._restoreInProgress) return; // a restore is rewriting the cloud copy — don't race it
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e) {}
   if (!window.db) return;
   // Debounce: wait 1s before writing to Firestore to batch rapid changes
@@ -97,8 +98,9 @@ async function saveState() {
     const customMissions = state.customMissions || [];
     const judgingDoc = state.judgingDoc || null;
     const officialRubric = state.officialRubric || null;
+    const lastBackupAt = state.lastBackupAt || null;
     await window.db.collection(window.FB_PROJECT).doc("admin-data").set({
-      members, scores, rubrics, checklist, seasons, customMissions, judgingDoc, officialRubric,
+      members, scores, rubrics, checklist, seasons, customMissions, judgingDoc, officialRubric, lastBackupAt,
       // Old Android-only copy of the mission list — both clients now share customMissions.
       missions: firebase.firestore.FieldValue.delete(),
       // Clean up the copies written by v1.0.8, before these moved to "data".

@@ -50,11 +50,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _exportBackup(BuildContext context, AppProvider prov) async {
     try {
-      final json = const JsonEncoder.withIndent('  ').convert(prov.exportBackupData());
+      final json = jsonEncode(await prov.exportFullBackup());
       final dir = await getTemporaryDirectory();
       final safeTeamName = prov.teamName.replaceAll(RegExp(r'[^\w֐-׿-]+'), '_');
       final date = DateTime.now().toIso8601String().split('T')[0];
-      final file = File('${dir.path}/FLL_${safeTeamName}_$date.json');
+      final file = File('${dir.path}/FLL_backup_${safeTeamName}_$date.json');
       await file.writeAsString(json);
       await Share.shareXFiles([XFile(file.path)], text: 'גיבוי נתוני קבוצה');
     } catch (e) {
@@ -590,7 +590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _Card(children: [
           _CardHeader('💾', 'גיבוי נתונים'),
           SizedBox(height: 8),
-          Text('ייצוא כל נתוני הקבוצה לקובץ JSON — חברים, יומן, ניקוד, פתקים, משימות ועוד.',
+          Text('גיבוי מלא של כל נתוני הקבוצה בענן, כולל תמונות, לקובץ. שחזור מהקובץ נעשה מהאתר או מאפליקציית המחשב (ארכיון ← גיבוי ושחזור).',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5)),
           SizedBox(height: 12),
           SizedBox(

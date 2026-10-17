@@ -23,6 +23,7 @@ class AppProvider extends ChangeNotifier {
   String innovationProblem = '';
   String innovationSolution = '';
   String? competitionDate;
+  String? lastBackupAt; // ISO time of the last full backup (admin-data, shared with web)
   String? judgingPdfName;
 
   List<Member> members = [];
@@ -288,6 +289,7 @@ class AppProvider extends ChangeNotifier {
                 },
         };
       }
+      lastBackupAt = adminData['lastBackupAt'] as String?;
       if (adminData['judgingQuestions'] != null) {
         judgingQuestions = _parseList(adminData['judgingQuestions'], JudgingQuestion.fromMap);
       }
@@ -421,6 +423,24 @@ class AppProvider extends ChangeNotifier {
   // tiers (gallery/improvements are per-photo subcollections there), but
   // this snapshot is about capturing current state for backup, not mirroring
   // how it's synced.
+  /// Full backup in the shared format; records the time so the reminder resets.
+  Future<Map<String, dynamic>> exportFullBackup() async {
+    final backup = await FirebaseService.exportRawBackup(teamId!, teamName);
+    lastBackupAt = DateTime.now().toUtc().toIso8601String();
+    notifyListeners();
+    if (isAdmin) {
+      try { await FirebaseService.saveAdminData(teamId!, {'lastBackupAt': lastBackupAt}); } catch (_) {}
+    }
+    return backup;
+  }
+
+  /// Mentors: no backup yet, or the last one is 14+ days old.
+  bool get backupOverdue {
+    if (!isAdmin) return false;
+    final last = lastBackupAt == null ? null : DateTime.tryParse(lastBackupAt!);
+    return last == null || DateTime.now().difference(last).inDays >= 14;
+  }
+
   Map<String, dynamic> exportBackupData() => {
     'teamName': teamName,
     'currentSeason': currentSeason,
