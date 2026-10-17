@@ -148,10 +148,31 @@ class AppProvider extends ChangeNotifier {
     _resetToDefaults();
     teamId = tid;
     await loadTeamData();
-    final member = members.firstWhere(
+    var member = members.firstWhere(
       (m) => m.email == email,
       orElse: () => Member(id: '', name: '', email: email, role: 'student', color: AppColors.avatarColors[0]),
     );
+    if (member.id.isEmpty) {
+      // Registered to this team but missing from the member list (students who
+      // joined before self-join was allowed weren't saved) — add them now.
+      final role = await FirebaseService.getOwnRegistryRole(email, tid);
+      final fbUser = FirebaseService.currentUser;
+      if (role != null && fbUser != null) {
+        final healed = Member(
+          id: fbUser.uid,
+          name: (fbUser.displayName?.isNotEmpty ?? false) ? fbUser.displayName! : email.split('@').first,
+          email: email,
+          role: role,
+          color: AppColors.avatarColors[members.length % AppColors.avatarColors.length],
+        );
+        final ok = role == 'student' ? await FirebaseService.addSelfToMembers(tid, healed.toMap()) : true;
+        if (ok) {
+          members.add(healed);
+          member = healed;
+          if (role != 'student') { try { await _saveData(); } catch (_) {} }
+        }
+      }
+    }
     currentUser = member;
     isAdmin = member.isAdmin;
     // Self-heal: keep the registry's role in sync on every login, so a role
@@ -646,7 +667,12 @@ class AppProvider extends ChangeNotifier {
       members.add(newMember);
       currentUser = newMember;
       isAdmin = newMember.isAdmin;
-      await step('שמירת החבר החדש', () => _saveData());
+      if (newMember.isAdmin) {
+        await step('שמירת החבר החדש', () => _saveData());
+      } else {
+        // Students can only append themselves to the member list (rules: isSelfJoin).
+        await step('הוספה לרשימת החברים', () => FirebaseService.addSelfToMembers(tid, newMember.toMap()));
+      }
     }
     status = AppStatus.ready;
     notifyListeners();

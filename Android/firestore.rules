@@ -55,6 +55,23 @@ service cloud.firestore {
       return document == 'chats' || document == 'ai-config';
     }
 
+    // A registered member may append exactly ONE entry to admin-data.members
+    // — themselves, as a student — and change nothing else. This is how a
+    // student who joins with a student code gets onto the team list, since
+    // admin-data is otherwise mentor-only. Clients do it in a transaction
+    // that writes only the 'members' field (addSelfToMembers on both).
+    function isSelfJoin(teamId, document) {
+      let before = resource.data.get('members', []);
+      let after = request.resource.data.get('members', []);
+      return document == 'admin-data'
+        && isMember(teamId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+        && after.size() == before.size() + 1
+        && after[0:before.size()] == before
+        && after[before.size()].email == request.auth.token.email
+        && after[before.size()].role == 'student';
+    }
+
     function isProtectedDoc(document) {
       return document == 'settings' || document == 'admin-data'
         || document == 'archives';
@@ -110,6 +127,7 @@ service cloud.firestore {
       allow read: if isMentor(teamId) && isMentorOnlyDoc(document);
       allow write: if isMember(teamId) && !isProtectedDoc(document) && !isMentorOnlyDoc(document);
       allow write: if isMentor(teamId) && (isProtectedDoc(document) || isMentorOnlyDoc(document));
+      allow update: if isSelfJoin(teamId, document);
       allow create: if isAuth() && !teamCreated(teamId);
     }
 

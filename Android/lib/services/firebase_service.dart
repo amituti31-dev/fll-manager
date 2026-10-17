@@ -99,6 +99,25 @@ class FirebaseService {
     await _db.collection(_registry).doc(key).set({'teamId': teamId, 'email': email, 'role': role});
   }
 
+  /// Students can't write admin-data, but firestore.rules (isSelfJoin) let a
+  /// registered member append exactly one entry — themselves, as a student —
+  /// to admin-data.members. The transaction keeps the existing list identical
+  /// and writes only that field, which is what the rule checks.
+  static Future<bool> addSelfToMembers(String teamId, Map<String, dynamic> member) async {
+    final ref = _db.collection(teamId).doc('admin-data');
+    try {
+      await _db.runTransaction((tx) async {
+        final snap = await tx.get(ref);
+        final members = List<dynamic>.from((snap.data()?['members'] as List?) ?? const []);
+        if (members.any((m) => m is Map && m['email'] == member['email'])) return;
+        tx.set(ref, {'members': [...members, member]}, SetOptions(merge: true));
+      });
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// The role recorded in this user's own registry entry, if it points at [teamId].
   static Future<String?> getOwnRegistryRole(String email, String teamId) async {
     final key = email.replaceAll(RegExp(r'[.@]'), '_');

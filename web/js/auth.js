@@ -114,7 +114,13 @@ async function joinWithCode() {
       return;
     }
 
-    // שלב 3: טען נתוני קבוצה
+    // שלב 3: רישום לפני טעינה — חוקי Firestore מאפשרים לקרוא את נתוני הקבוצה
+    // רק לחבר רשום. אם כבר רשום לקבוצה הזו, שומרים את התפקיד הקיים.
+    errEl.textContent = '⏳ נרשם לקבוצה...';
+    const registeredRole = await getOwnRegistryRole(fbUser.email, teamId);
+    if (registeredRole) role = registeredRole;
+    else await registerUserToTeam(fbUser.email, teamId, role);
+
     errEl.textContent = '⏳ טוען נתונים...';
     window.FB_PROJECT = teamId;
     await loadState();
@@ -124,7 +130,6 @@ async function joinWithCode() {
     if (existing) {
       state.currentUser = existing;
       state.isAdmin = existing.role === 'admin';
-      await registerUserToTeam(fbUser.email, teamId, existing.role);
       try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
       window._joiningInProgress = false;
       document.getElementById('pin-screen').style.display = 'none';
@@ -139,11 +144,10 @@ async function joinWithCode() {
       id: fbUser.uid, name: fullName, role, email: fbUser.email,
       color: colors[state.members.length % colors.length],
     };
-    state.members.push(newMember);
     state.currentUser = newMember;
     state.isAdmin = (role === 'admin');
-    await saveState();
-    await registerUserToTeam(fbUser.email, teamId, role);
+    if (role === 'admin') { state.members.push(newMember); await saveState(); }
+    else { await addSelfToMembers(newMember); state.members.push(newMember); }
     try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
     window._joiningInProgress = false;
     document.getElementById('pin-screen').style.display = 'none';
@@ -346,6 +350,11 @@ async function joinTeam() {
     // טען את נתוני הקבוצה — מתחילים מסלייט נקי כדי שאף שדה מהקבוצה
     // הקודמת (אם הייתה כזו באותו טעינת עמוד) לא יישאר אם לקבוצה החדשה
     // אין עדיין ערך משלה לאותו שדה
+    // רישום לפני טעינה (ראו joinWithCode) — שומרים תפקיד קיים לאותה קבוצה
+    const registeredRole = await getOwnRegistryRole(fbUser.email, teamId);
+    if (registeredRole) joinRole = registeredRole;
+    else await registerUserToTeam(fbUser.email, teamId, joinRole);
+
     window.FB_PROJECT = teamId;
     state = defaultState();
     await loadState();
@@ -356,7 +365,6 @@ async function joinTeam() {
       // כבר חבר — פשוט היכנס
       state.currentUser = existing;
       state.isAdmin = existing.role === 'admin';
-      await registerUserToTeam(fbUser.email, teamId, existing.role);
       try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
       document.getElementById('setup-screen').style.display = 'none';
       initApp();
@@ -372,12 +380,10 @@ async function joinTeam() {
       color: colors[state.members.length % colors.length],
     };
 
-    state.members.push(newMember);
     state.currentUser = newMember;
     state.isAdmin = (joinRole === 'admin');
-
-    await saveState();
-    await registerUserToTeam(fbUser.email, teamId, joinRole);
+    if (joinRole === 'admin') { state.members.push(newMember); await saveState(); }
+    else { await addSelfToMembers(newMember); state.members.push(newMember); }
     try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
 
     document.getElementById('setup-screen').style.display = 'none';
@@ -596,7 +602,22 @@ async function boot() {
         await loadState();
         try { localStorage.setItem('fll_team_id', teamId); } catch(e) {}
 
-        const member = state.members.find(m => m.email === fbUser.email);
+        let member = state.members.find(m => m.email === fbUser.email);
+        if (!member) {
+          // Registered to this team but missing from the member list (students
+          // who joined before self-join was allowed weren't saved) — add them now.
+          const role = await getOwnRegistryRole(fbUser.email, teamId);
+          if (role) {
+            const colors = ['#3d7fff','#00d4a0','#ff6b35','#f5c842','#ff4d6d','#9c6fe4'];
+            const healed = {
+              id: fbUser.uid, name: fbUser.displayName || fbUser.email.split('@')[0], role,
+              email: fbUser.email, color: colors[state.members.length % colors.length],
+              colorIndex: state.members.length % colors.length,
+            };
+            const ok = role === 'student' ? await addSelfToMembers(healed) : true;
+            if (ok) { state.members.push(healed); member = healed; if (role !== 'student') saveState(); }
+          }
+        }
         if (member) {
           state.currentUser = member;
           state.isAdmin = member.role === 'admin';

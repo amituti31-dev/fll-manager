@@ -243,6 +243,33 @@ async function loadState() {
 }
 
 // מוצא לאיזה קבוצה שייך המשתמש לפי אימייל
+// The role in this user's own registry entry, if it points at teamId.
+async function getOwnRegistryRole(email, teamId) {
+  if (!window.db) return null;
+  try {
+    const snap = await window.db.collection(window.FB_REGISTRY).doc(email.replace(/[.@]/g, '_')).get();
+    return snap.exists && snap.data().teamId === teamId ? (snap.data().role || null) : null;
+  } catch (e) { return null; }
+}
+
+// Students can't write admin-data, but firestore.rules (isSelfJoin) let a
+// registered member append exactly one entry — themselves, as a student — to
+// admin-data.members. The transaction keeps the existing list identical and
+// writes only that field, which is what the rule checks.
+async function addSelfToMembers(member) {
+  if (!window.db) return false;
+  const ref = window.db.collection(window.FB_PROJECT).doc('admin-data');
+  try {
+    await window.db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      const members = (snap.exists && snap.data().members) || [];
+      if (members.some(m => m.email === member.email)) return;
+      tx.set(ref, { members: [...members, member] }, { merge: true });
+    });
+    return true;
+  } catch (e) { console.warn('Self-join failed:', e); return false; }
+}
+
 async function findTeamForUser(email) {
   if (!window.db) return null;
   try {
