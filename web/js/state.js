@@ -37,6 +37,7 @@ function defaultState() {
     links: [],                // [{id, title, url, category, author, date}]
     milestones: [],            // [{id, title, targetDate, done}]
     meetingPlans: [],          // [{id, date, title, plan, summary}] — see calendar.js
+    seasonStory: null,         // {text, createdAt, model} — AI season story (story.js)
     strategyBoardImage: null, // base64 background image (localStorage only, not Firestore)
     competitionDate: null,    // 'YYYY-MM-DD'
     judgingQs: null,          // null = use defaults (populated on first load)
@@ -81,10 +82,11 @@ async function saveState() {
     const missionExtra = state.missionExtra || {};
     const milestones = state.milestones || [];
     const meetingPlans = state.meetingPlans || [];
+    const seasonStory = state.seasonStory || null;
     await window.db.collection(window.FB_PROJECT).doc("data").set({
       logs, findings, stickies, memberTasks, missionChecks, precisionTokens, links, interviews, missionExtra,
       innovationProblem, innovationSolution, innovationSharing,
-      milestones, meetingPlans,
+      milestones, meetingPlans, seasonStory,
       // Clean up the copy written before images moved to their own subcollection.
       improvements: firebase.firestore.FieldValue.delete(),
       // Planned-meetings feature was removed — the calendar now shows value stickies instead.

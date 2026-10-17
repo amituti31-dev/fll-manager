@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ValuesScreen extends StatefulWidget {
   const ValuesScreen({super.key});
@@ -281,11 +282,73 @@ class _BoardTabState extends State<_BoardTab> {
 
   Widget _viewToggle() => Padding(
     padding: const EdgeInsets.only(bottom: 14),
-    child: Wrap(spacing: 8, children: [
+    child: Wrap(spacing: 8, runSpacing: 8, children: [
       ChoiceChip(label: Text('לפי ערך'), selected: !_byMeeting, onSelected: (_) => setState(() => _byMeeting = false)),
       ChoiceChip(label: Text('לפי מפגש'), selected: _byMeeting, onSelected: (_) => setState(() => _byMeeting = true)),
+      ActionChip(label: Text('✨ סיפור העונה'), onPressed: () => _showStory(context)),
+      ActionChip(label: Text('📤 שתף פתקים'), onPressed: _shareStickies),
     ]),
   );
+
+  void _showStory(BuildContext context) {
+    final prov = widget.prov;
+    final text = prov.seasonStoryText;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('✨ סיפור העונה', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+              SizedBox(height: 12),
+              if (text == null || text.isEmpty)
+                Text('עוד לא נוצר סיפור עונה. מנטור יכול ליצור אותו מהאתר או מאפליקציית המחשב (ערכי ליבה ← לוח פתקים ← ✨ סיפור העונה).',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5))
+              else ...[
+                Flexible(child: SingleChildScrollView(
+                  child: Text(text, style: TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.7)),
+                )),
+                SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Share.share(text, subject: 'סיפור העונה'),
+                    icon: Text('📤'),
+                    label: Text('שתף'),
+                  ),
+                ),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// All value notes as text, grouped by date under that day's meeting.
+  void _shareStickies() {
+    final prov = widget.prov;
+    final byDate = <String, List<StickyNote>>{};
+    for (final s in prov.stickies) {
+      byDate.putIfAbsent(s.date, () => []).add(s);
+    }
+    final dates = byDate.keys.toList()..sort();
+    final buf = StringBuffer('📌 פתקי ערכי ליבה — ${prov.teamName}\n');
+    for (final date in dates) {
+      final meeting = prov.meetingForDay(date);
+      buf.writeln('\n${meeting != null ? '📋 ${meeting.displayTitle} · ' : ''}$date');
+      for (final n in byDate[date]!) {
+        final v = _values.firstWhere((v) => v.$3 == n.value, orElse: () => _values.first);
+        buf.writeln('${v.$1} ${v.$2}: ${n.text}');
+      }
+    }
+    Share.share(buf.toString(), subject: 'פתקי ערכי ליבה');
+  }
 
   Widget _byMeetingView(AppProvider prov) {
     final byDate = <String, List<StickyNote>>{};

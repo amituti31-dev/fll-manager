@@ -424,7 +424,10 @@
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
             <button class="btn btn-primary" id="sticky-view-value" data-action="switch-sticky-view" data-arg="value">לפי ערך</button>
             <button class="btn btn-ghost" id="sticky-view-meeting" data-action="switch-sticky-view" data-arg="meeting">לפי מפגש</button>
-            <button class="btn btn-primary" style="margin-right:auto" id="values-sticky-add-btn" data-action="show-add-sticky-modal">＋ הוסף פתק</button>
+            <button class="btn btn-ghost" style="margin-right:auto" data-action="show-season-story">✨ סיפור העונה</button>
+            <button class="btn btn-ghost" data-action="export-stickies-print">📄 ייצוא פתקים</button>
+            <button class="btn btn-ghost" data-action="export-stickies-csv">📊 CSV</button>
+            <button class="btn btn-primary" id="values-sticky-add-btn" data-action="show-add-sticky-modal">＋ הוסף פתק</button>
           </div>
           <div id="values-sticky-board" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
             <!-- populated by JS -->
@@ -759,6 +762,25 @@
                 <button class="theme-btn active" data-action="set-theme" data-arg="dark">🌙 כהה</button>
                 <button class="theme-btn" data-action="set-theme" data-arg="light">☀️ בהיר</button>
               </div>
+            </div>
+          </div>
+
+          <div class="card admin-only" id="settings-ai-card">
+            <div class="card-header"><span class="card-icon">✨</span><span class="card-title">בינה מלאכותית (Gemini)</span></div>
+            <p style="color:var(--text2);font-size:12px;line-height:1.6;margin-bottom:10px">
+              משמש ליצירת "סיפור העונה". צריך מפתח API חינמי של Google:
+              1. היכנסו ל-Google AI Studio עם חשבון Google · 2. לחצו "Create API key" · 3. העתיקו והדביקו כאן.<br>
+              המפתח נשמר <b>רק בדפדפן הזה</b> — לא בענן ולא אצל חברי הקבוצה.
+              שימו לב: בשימוש החינמי Google רשאית להשתמש בטקסט שנשלח לשיפור המוצרים שלה (שמות תלמידים לא נשלחים).
+            </p>
+            <button class="btn btn-ghost" style="margin-bottom:10px" data-action="open-ai-key-page">🔑 קבלת מפתח ב-Google AI Studio ↗</button>
+            <div class="form-group">
+              <input type="password" class="form-input" id="ai-key-input" placeholder="הדביקו כאן את המפתח" autocomplete="off">
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="btn btn-primary" data-action="save-gemini-key">💾 שמור מפתח</button>
+              <button class="btn btn-ghost" data-action="remove-gemini-key">🗑️ הסר</button>
+              <span id="ai-key-status" style="font-size:12px"></span>
             </div>
           </div>
 
@@ -1230,6 +1252,20 @@
   </div>
 </div>
 
+<!-- Season Story Modal -->
+<div class="modal-overlay" id="modal-story">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-title">✨ סיפור העונה</div>
+    <div id="story-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px">
+      <button class="btn btn-ghost" id="story-copy" data-action="copy-season-story">📋 העתק</button>
+      <button class="btn btn-ghost" id="story-download" data-action="download-season-story">⬇️ הורד קובץ</button>
+      <button class="btn btn-primary" id="story-generate" data-action="generate-season-story">✨ צור סיפור</button>
+      <button class="btn btn-ghost" data-action="close-modal" data-arg="modal-story">סגור</button>
+    </div>
+  </div>
+</div>
+
 <!-- Restore From Backup Modal -->
 <div class="modal-overlay" id="modal-restore">
   <div class="modal">
@@ -1500,6 +1536,7 @@
   <script src="js/checklist.js"></script>
   <script src="js/archive.js"></script>
   <script src="js/backup.js"></script>
+  <script src="js/story.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/judging.js"></script>
   <script src="js/links.js"></script>

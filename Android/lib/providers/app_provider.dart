@@ -22,6 +22,10 @@ class AppProvider extends ChangeNotifier {
 
   String innovationProblem = '';
   String innovationSolution = '';
+  /// AI "season story" generated on web/desktop (data.seasonStory) — read-only here,
+  /// never written by Android so a stale copy can't overwrite a newer story.
+  String? seasonStoryText;
+  String? seasonStoryCreatedAt;
   String? competitionDate;
   String? lastBackupAt; // ISO time of the last full backup (admin-data, shared with web)
   String? judgingPdfName;
@@ -212,6 +216,9 @@ class AppProvider extends ChangeNotifier {
       logs = _parseList(data['logs'], LogEntry.fromMap);
       innovationProblem = data['innovationProblem'] as String? ?? '';
       innovationSolution = data['innovationSolution'] as String? ?? '';
+      final story = data['seasonStory'];
+      seasonStoryText = story is Map ? story['text'] as String? : null;
+      seasonStoryCreatedAt = story is Map ? story['createdAt'] as String? : null;
       interviews = _parseList(data['interviews'], Interview.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);

@@ -168,6 +168,7 @@ async function resetTeamData() {
   state.innovationProblem = '';
   state.innovationSolution = '';
   state.innovationSharing = '';
+  state.seasonStory = null;
   state.stickies = [];
   state.memberTasks = [];
   state.checklist = state.checklist.map(c => ({ ...c, done: false }));

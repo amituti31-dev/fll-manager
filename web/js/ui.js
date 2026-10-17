@@ -47,6 +47,7 @@ function populateAll() {
   try { renderCompetitionCountdown(); } catch(e) { console.warn('renderCompetitionCountdown:', e); }
   try { renderCalendar(); } catch(e) { console.warn('renderCalendar:', e); }
   try { renderBackupReminder(); } catch(e) { console.warn('renderBackupReminder:', e); }
+  try { renderAiSettings(); } catch(e) { console.warn('renderAiSettings:', e); }
 }
 
 // ── Navigation ──

@@ -54,6 +54,7 @@ async function createNewSeason() {
     innovationProblem: state.innovationProblem || '',
     innovationSolution: state.innovationSolution || '',
     innovationSharing: state.innovationSharing || '',
+    seasonStory: state.seasonStory || null,
   };
 
   // עדכן את כל העונות הקיימות כ-archived + הוסף archivedData לעונה הפעילה
@@ -86,6 +87,7 @@ async function createNewSeason() {
   state.innovationProblem = '';
   state.innovationSolution = '';
   state.innovationSharing = '';
+  state.seasonStory = null;
   // New season → back to the built-in official missions (ids now mean different missions).
   state.customMissions = [];
   state.missionExtra = {};
