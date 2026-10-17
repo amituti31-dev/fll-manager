@@ -168,8 +168,8 @@ function initCharts() {
   const innRubricRatio = rubricRatio('innovation');
   const innovLogs = (state.logs || []).filter(l => l.topic === 'innovation').length;
   const innPct = Math.round((
-    (state.innovSteps?.problem  ? 1 : 0) +
-    (state.innovSteps?.solution ? 1 : 0) +
+    (getInnovStep('problem')  ? 1 : 0) +
+    (getInnovStep('solution') ? 1 : 0) +
     innRubricRatio +
     Math.min(innovLogs / 5, 1)
   ) / 4 * 100);

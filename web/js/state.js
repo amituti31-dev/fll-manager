@@ -69,6 +69,9 @@ async function saveState() {
     // saveImprovementPhoto below), to keep this document well under 1MB.
     const { logs, findings, missionChecks } = state;
     const precisionTokens = getPrecisionTokens();
+    const innovationProblem = state.innovationProblem || '';
+    const innovationSolution = state.innovationSolution || '';
+    const innovationSharing = state.innovationSharing || '';
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
     const links = state.links || [];
@@ -77,6 +80,7 @@ async function saveState() {
     const milestones = state.milestones || [];
     await window.db.collection(window.FB_PROJECT).doc("data").set({
       logs, findings, stickies, memberTasks, missionChecks, precisionTokens, links, interviews, missionExtra,
+      innovationProblem, innovationSolution, innovationSharing,
       milestones,
       // Clean up the copy written before images moved to their own subcollection.
       improvements: firebase.firestore.FieldValue.delete(),
@@ -191,6 +195,18 @@ async function loadState() {
     if (dataSnap.exists) Object.assign(state, dataSnap.data());
     if (adminDataSnap.exists) Object.assign(state, adminDataSnap.data());
     applyOfficialBonuses();
+
+    // Innovation steps used to be kept only in this browser (state.innovSteps,
+    // localStorage). Move any text there into the synced fields Android uses —
+    // only where the cloud copy is still empty — then drop the local copy.
+    const legacySteps = state.innovSteps || {};
+    let movedSteps = false;
+    Object.entries({ problem: 'innovationProblem', solution: 'innovationSolution', sharing: 'innovationSharing' })
+      .forEach(([key, field]) => {
+        if (legacySteps[key] && !String(state[field] || '').trim()) { state[field] = legacySteps[key]; movedSteps = true; }
+      });
+    delete state.innovSteps;
+    if (movedSteps) saveState();
 
     // teamGallery: legacy source is the "items" field on the gallery anchor
     // doc itself (the pre-split web/Android format).

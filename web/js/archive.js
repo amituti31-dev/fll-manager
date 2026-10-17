@@ -51,6 +51,9 @@ async function createNewSeason() {
     missionChecks: JSON.parse(JSON.stringify(state.missionChecks)),
     checklist:   JSON.parse(JSON.stringify(state.checklist)),
     stickies:    JSON.parse(JSON.stringify(state.stickies || [])),
+    innovationProblem: state.innovationProblem || '',
+    innovationSolution: state.innovationSolution || '',
+    innovationSharing: state.innovationSharing || '',
   };
 
   // עדכן את כל העונות הקיימות כ-archived + הוסף archivedData לעונה הפעילה
@@ -80,6 +83,9 @@ async function createNewSeason() {
   state.scores = [];
   state.missionChecks = {};
   state.precisionTokens = 6;
+  state.innovationProblem = '';
+  state.innovationSolution = '';
+  state.innovationSharing = '';
   // New season → back to the built-in official missions (ids now mean different missions).
   state.customMissions = [];
   state.missionExtra = {};
@@ -235,6 +241,7 @@ function exportData(type) {
     links: state.links, interviews: state.interviews, missionExtra: state.missionExtra,
     improvements: state.improvements, teamGallery: state.teamGallery,
     innovationProblem: state.innovationProblem, innovationSolution: state.innovationSolution,
+    innovationSharing: state.innovationSharing,
   };
   exportSeasonData(state.currentSeason || 'עונה נוכחית', data, type);
 }

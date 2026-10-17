@@ -10,6 +10,12 @@ const INNOV_STEPS = [
   { key: 'sharing',    label: 'שיתוף עם הקהילה', icon: '📢', color: '#ff6b35', question: 'עם מי שיתפתם את הפתרון?',          emptyText: 'אין תיעוד שיתוף עדיין.',                                                        btnLabel: 'הוסף' },
 ];
 
+// Step text lives in synced "data" fields shared with Android (innovationProblem /
+// innovationSolution); "sharing" is web-only but synced too. The old local-only
+// state.innovSteps is migrated into these on load (see loadState()).
+const INNOV_STEP_FIELDS = { problem: 'innovationProblem', solution: 'innovationSolution', sharing: 'innovationSharing' };
+function getInnovStep(key) { return String(state[INNOV_STEP_FIELDS[key]] || '').trim(); }
+
 function switchInnovTab(tab) {
   ['project','research','interviews'].forEach(t => {
     const panel = document.getElementById('innov-panel-' + t);
@@ -27,16 +33,15 @@ function switchInnovTab(tab) {
 }
 
 function renderInnovProject() {
-  const steps = state.innovSteps || {};
   const findings   = state.findings   || [];
   const interviews = state.interviews || [];
 
   const isDone = {
-    problem:    !!(steps.problem),
+    problem:    !!getInnovStep('problem'),
     research:   findings.length > 0,
     interviews: interviews.length > 0,
-    solution:   !!(steps.solution),
-    sharing:    !!(steps.sharing),
+    solution:   !!getInnovStep('solution'),
+    sharing:    !!getInnovStep('sharing'),
   };
   const doneCount = Object.values(isDone).filter(Boolean).length;
 
@@ -64,7 +69,7 @@ function renderInnovProject() {
     let contentText = '';
     if (s.key === 'research')   contentText = findings.length   ? `${findings.length} ממצאים נוספו`   : s.emptyText;
     else if (s.key === 'interviews') contentText = interviews.length ? `${interviews.length} ראיונות נוספו` : s.emptyText;
-    else contentText = steps[s.key] || s.emptyText;
+    else contentText = getInnovStep(s.key) || s.emptyText;
 
     const hasContent = done;
     const btnStyle = `background:${s.color}20;border:1px solid ${s.color};color:${s.color};padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit`;
@@ -95,7 +100,7 @@ function openInnovStepModal(key) {
   document.getElementById('innov-step-modal-title').textContent = '✏️ ' + step.label;
   document.getElementById('innov-step-modal-question').textContent = step.question;
   document.getElementById('innov-step-key').value = key;
-  document.getElementById('innov-step-text').value = (state.innovSteps || {})[key] || '';
+  document.getElementById('innov-step-text').value = getInnovStep(key);
   openModal('modal-innov-step');
 }
 
@@ -103,8 +108,8 @@ function saveInnovStep() {
   const key  = document.getElementById('innov-step-key').value;
   const text = document.getElementById('innov-step-text').value.trim().slice(0, 2000);
   if (!text) { notify('נדרש תוכן', 'error'); return; }
-  if (!state.innovSteps) state.innovSteps = {};
-  state.innovSteps[key] = text;
+  if (!INNOV_STEP_FIELDS[key]) return;
+  state[INNOV_STEP_FIELDS[key]] = text;
   saveState();
   closeModal('modal-innov-step');
   renderInnovProject();

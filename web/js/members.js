@@ -154,6 +154,9 @@ async function resetTeamData() {
   state.scores = [];
   state.missionChecks = {};
   state.precisionTokens = 6;
+  state.innovationProblem = '';
+  state.innovationSolution = '';
+  state.innovationSharing = '';
   state.stickies = [];
   state.memberTasks = [];
   state.checklist = state.checklist.map(c => ({ ...c, done: false }));
