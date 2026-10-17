@@ -256,6 +256,12 @@ const STICKY_VALUES = {
 
 function showAddStickyModal() { openModal('modal-sticky'); }
 
+// Local calendar day (not UTC) — the calendar screen places stickies by this date.
+function _localIsoToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function saveSticky() {
   const text = document.getElementById('sticky-text').value.trim().slice(0, 500);
   if (!text) { notify('נדרש תוכן לפתק', 'error'); return; }
@@ -267,7 +273,7 @@ function saveSticky() {
     id: Date.now(),
     value,
     text,
-    date: new Date().toISOString().split('T')[0],
+    date: _localIsoToday(),
     // No author name shown on board
   });
   saveState(); closeModal('modal-sticky');

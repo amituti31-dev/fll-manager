@@ -1,7 +1,6 @@
 // ═══════════════════════════════════════════════════════
-// § 31 · CALENDAR (meetings & milestones)
+// § 31 · CALENDAR (milestones + value-sticky notes)
 // ═══════════════════════════════════════════════════════
-let _editingMeetingId = null;
 const _calHebrewMonths = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 const _calHebrewWeekdays = ['א','ב','ג','ד','ה','ו','ש']; // Sunday-first
 let _calMonth = new Date(); _calMonth.setDate(1);
@@ -15,15 +14,22 @@ function _isoLocal(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
+function _stickiesForDay(iso) {
+  return (state.stickies || []).filter(s => s.date === iso);
+}
+
 function _chipsForDay(iso) {
   const chips = [];
-  (state.meetings || []).forEach(m => {
-    if (m.plannedDate === iso) chips.push({ icon: '🗓️', text: m.title, color: '#3d7fff' });
-    if (m.actualDate === iso) chips.push({ icon: '✅', text: m.title, color: '#00d4a0' });
-  });
   (state.milestones || []).forEach(m => {
     if (m.targetDate === iso) chips.push({ icon: '🚩', text: m.title, color: '#f5c842' });
     if (m.actualDate === iso) chips.push({ icon: '✅', text: m.title, color: '#00d4a0' });
+  });
+  // Value stickies added that day — one chip per value (label already has its
+  // emoji), with a count when several notes of the same value were added.
+  const counts = {};
+  _stickiesForDay(iso).forEach(s => { counts[s.value] = (counts[s.value] || 0) + 1; });
+  Object.entries(STICKY_VALUES).forEach(([key, cfg]) => {
+    if (counts[key]) chips.push({ icon: '', text: counts[key] > 1 ? `${cfg.label} ×${counts[key]}` : cfg.label, color: cfg.bg });
   });
   return chips;
 }
@@ -67,7 +73,7 @@ function renderMonthGrid() {
 
     const chipsHtml = visible.map(c => `
       <div style="background:${c.color}33;color:${c.color};border-radius:3px;padding:1px 3px;font-size:9px;font-weight:700;
-           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px">${c.icon} ${sanitize(c.text)}</div>
+           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px">${c.icon ? c.icon + ' ' : ''}${sanitize(c.text)}</div>
     `).join('');
 
     html += `
@@ -84,44 +90,31 @@ function renderMonthGrid() {
 }
 
 function showCalDay(iso) {
-  const meetings = (state.meetings || []).filter(m => m.plannedDate === iso || m.actualDate === iso);
   const milestones = (state.milestones || []).filter(m => m.targetDate === iso || m.actualDate === iso);
+  const stickies = _stickiesForDay(iso);
   document.getElementById('cal-day-title').textContent = `📅 ${formatDate(iso)}`;
   const itemsHtml = [
-    ...meetings.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🗓️ ${sanitize(m.title)}</div>`),
     ...milestones.map(m => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">🚩 ${sanitize(m.title)}</div>`),
+    ...stickies.map(s => {
+      const cfg = STICKY_VALUES[s.value] || { label: '📌', bg: 'var(--text3)' };
+      return `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">
+        <span style="color:${cfg.bg};font-weight:700">${cfg.label}</span>
+        <div style="color:var(--text2);margin-top:2px;white-space:pre-wrap">${sanitize(s.text)}</div>
+      </div>`;
+    }),
   ].join('');
   document.getElementById('cal-day-items').innerHTML = itemsHtml ||
     `<div style="color:var(--text3);font-size:13px;padding:6px 0">אין פריטים ביום הזה</div>`;
-  document.getElementById('cal-day-add-meeting').dataset.arg = iso;
   document.getElementById('cal-day-add-milestone').dataset.arg = iso;
   openModal('modal-cal-day');
 }
 
 function renderCalendar() {
   renderMonthGrid();
-  const meetingsEl = document.getElementById('meetings-list');
   const milestonesEl = document.getElementById('milestones-list');
-  if (!meetingsEl || !milestonesEl) return;
+  if (!milestonesEl) return;
 
-  const meetings = [...(state.meetings || [])].sort((a, b) => a.plannedDate.localeCompare(b.plannedDate));
   const milestones = [...(state.milestones || [])].sort((a, b) => a.targetDate.localeCompare(b.targetDate));
-
-  meetingsEl.innerHTML = meetings.length ? meetings.map(m => {
-    const changed = m.actualDate && m.actualDate !== m.plannedDate;
-    return `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:14px">${sanitize(m.title)}</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-            <span style="background:rgba(61,127,255,0.15);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600">📅 מתוכנן: ${formatDate(m.plannedDate)}</span>
-            <span style="cursor:pointer;background:${changed ? 'rgba(0,212,160,0.15)' : 'rgba(255,255,255,0.06)'};color:${changed ? 'var(--accent2)' : 'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600" data-action="show-meeting-actual-modal" data-id="${m.id}">${changed ? `✅ בפועל: ${formatDate(m.actualDate)}` : '➕ סמן תאריך בפועל'}</span>
-          </div>
-          ${m.notes ? `<div style="font-size:12px;color:var(--text2);margin-top:6px">${sanitize(m.notes)}</div>` : ''}
-        </div>
-        <button data-action="delete-meeting" data-id="${m.id}" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
-      </div>`;
-  }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין מפגשים מתוכננים עדיין</div>`;
 
   milestonesEl.innerHTML = milestones.length ? milestones.map(m => {
     const changed = m.actualDate && m.actualDate !== m.targetDate;
@@ -138,53 +131,6 @@ function renderCalendar() {
         </div>
       </div>`;
   }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין אבני דרך עדיין</div>`;
-}
-
-// ── Meetings ──
-function showAddMeetingModal(presetDate) {
-  document.getElementById('meeting-title').value = '';
-  document.getElementById('meeting-date').value = presetDate || new Date().toISOString().split('T')[0];
-  document.getElementById('meeting-notes').value = '';
-  closeModal('modal-cal-day');
-  openModal('modal-meeting');
-}
-
-function saveMeeting() {
-  const title = document.getElementById('meeting-title').value.trim();
-  const date = document.getElementById('meeting-date').value;
-  if (!title) { notify('נדרש נושא למפגש', 'error'); return; }
-  if (!date) { notify('נדרש תאריך', 'error'); return; }
-  if (!state.meetings) state.meetings = [];
-  state.meetings.push({
-    id: Date.now(),
-    title,
-    plannedDate: date,
-    actualDate: null,
-    notes: document.getElementById('meeting-notes').value.trim(),
-  });
-  saveState(); closeModal('modal-meeting'); renderCalendar();
-  notify('🗓️ מפגש נוסף!', 'success');
-}
-
-function deleteMeeting(id) {
-  state.meetings = (state.meetings || []).filter(m => m.id !== id);
-  saveState(); renderCalendar();
-}
-
-function showMeetingActualModal(id) {
-  const m = (state.meetings || []).find(x => x.id === id);
-  if (!m) return;
-  _editingMeetingId = id;
-  document.getElementById('meeting-actual-date').value = m.actualDate || m.plannedDate;
-  openModal('modal-meeting-actual');
-}
-
-function saveMeetingActual() {
-  const m = (state.meetings || []).find(x => x.id === _editingMeetingId);
-  if (!m) return;
-  const actual = document.getElementById('meeting-actual-date').value;
-  m.actualDate = (actual && actual !== m.plannedDate) ? actual : null;
-  saveState(); closeModal('modal-meeting-actual'); renderCalendar();
 }
 
 // ── Milestones ──

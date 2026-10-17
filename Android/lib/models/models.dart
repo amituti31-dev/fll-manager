@@ -608,36 +608,6 @@ class ChecklistItem {
   Map<String, dynamic> toMap() => {'id': id, 'text': text, 'done': done};
 }
 
-// ─── Meeting (planned vs. actual) ──────────────────────
-class Meeting {
-  final int id;
-  String title;
-  String plannedDate;
-  String? actualDate; // only set when it differs from plannedDate
-  String notes;
-
-  Meeting({
-    required this.id,
-    required this.title,
-    required this.plannedDate,
-    this.actualDate,
-    this.notes = '',
-  });
-
-  factory Meeting.fromMap(Map<String, dynamic> m) => Meeting(
-    id: m['id'] as int,
-    title: m['title'] as String? ?? '',
-    plannedDate: m['plannedDate'] as String? ?? '',
-    actualDate: m['actualDate'] as String?,
-    notes: m['notes'] as String? ?? '',
-  );
-
-  Map<String, dynamic> toMap() => {
-    'id': id, 'title': title, 'plannedDate': plannedDate,
-    'actualDate': actualDate, 'notes': notes,
-  };
-}
-
 // ─── Milestone ──────────────────────────────────────────
 class Milestone {
   final int id;

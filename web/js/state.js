@@ -34,7 +34,6 @@ function defaultState() {
     pendingRubricCategory: null,
     teamGallery: [],          // [{id, image, caption, date, author}]
     links: [],                // [{id, title, url, category, author, date}]
-    meetings: [],              // [{id, title, plannedDate, actualDate, notes}]
     milestones: [],            // [{id, title, targetDate, done}]
     strategyBoardImage: null, // base64 background image (localStorage only, not Firestore)
     competitionDate: null,    // 'YYYY-MM-DD'
@@ -72,13 +71,14 @@ async function saveState() {
     const links = state.links || [];
     const interviews = state.interviews || [];
     const missionExtra = state.missionExtra || {};
-    const meetings = state.meetings || [];
     const milestones = state.milestones || [];
     await window.db.collection(window.FB_PROJECT).doc("data").set({
       logs, findings, stickies, memberTasks, missionChecks, links, interviews, missionExtra,
-      meetings, milestones,
+      milestones,
       // Clean up the copy written before images moved to their own subcollection.
       improvements: firebase.firestore.FieldValue.delete(),
+      // Planned-meetings feature was removed — the calendar now shows value stickies instead.
+      meetings: firebase.firestore.FieldValue.delete(),
     }, { merge: true });
 
     // "admin-data" — mentor-only per Firestore rules. Never sync raw PINs

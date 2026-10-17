@@ -100,16 +100,10 @@ const ACTIONS = {
   'toggle-checklist': (el) => toggleChecklist(Number(el.dataset.id)),
   'remove-checklist-item': (el) => removeChecklistItem(Number(el.dataset.id)),
 
-  // Calendar (meetings / milestones)
+  // Calendar (milestones + value-sticky notes)
   'shift-cal-month': (el) => shiftCalMonth(el.dataset.arg),
   'show-cal-day': (el) => showCalDay(el.dataset.arg),
-  'quick-add-meeting': (el) => showAddMeetingModal(el.dataset.arg),
   'quick-add-milestone': (el) => showAddMilestoneModal(el.dataset.arg),
-  'show-add-meeting-modal': () => showAddMeetingModal(),
-  'save-meeting': () => saveMeeting(),
-  'delete-meeting': (el) => deleteMeeting(Number(el.dataset.id)),
-  'show-meeting-actual-modal': (el) => showMeetingActualModal(Number(el.dataset.id)),
-  'save-meeting-actual': () => saveMeetingActual(),
   'show-add-milestone-modal': () => showAddMilestoneModal(),
   'save-milestone': () => saveMilestone(),
   'toggle-milestone': (el) => toggleMilestone(Number(el.dataset.id)),

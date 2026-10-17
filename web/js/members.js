@@ -166,7 +166,6 @@ async function resetTeamData() {
   state.stickies = [];
   state.memberTasks = [];
   state.checklist = state.checklist.map(c => ({ ...c, done: false }));
-  state.meetings = [];
   state.milestones = [];
   await saveState();
   populateAll();

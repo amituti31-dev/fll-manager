@@ -8,6 +8,17 @@ const _hebrewMonths = [
 ];
 const _hebrewWeekdays = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']; // Sunday-first
 
+/// Core-value display info for sticky notes, keyed by StickyNote.value —
+/// same icons/labels/colors as the values screen's sticky board.
+const coreValueStyles = <String, (String, String, Color)>{
+  'discovery':  ('🔍', 'גילוי',      Color(0xFF3D7FFF)),
+  'innovation': ('💡', 'חדשנות',     Color(0xFF00D4A0)),
+  'impact':     ('🌍', 'השפעה',      Color(0xFFFF6B35)),
+  'inclusion':  ('🤝', 'הכלה',       Color(0xFFFFD700)),
+  'teamwork':   ('👥', 'עבודת צוות', Color(0xFFAB47BC)),
+  'fun':        ('😄', 'כיף',        Color(0xFFEC407A)),
+};
+
 class _DayChip {
   final String icon;
   final String text;
@@ -17,15 +28,16 @@ class _DayChip {
 
 /// A Google-Calendar-style month grid: a full rectangle of day cells
 /// (greyed-out leading/trailing days from adjacent months fill it out),
-/// each showing small colored event chips (not just dots) for meetings
-/// (planned/actual) and milestones due that day, with a "+N" overflow and
-/// a circular highlight on today. Tapping a day with items calls [onDayTap].
+/// each showing small colored event chips (not just dots) for milestones
+/// due/done that day and the value sticky notes added that day (one chip per
+/// core value, with a count), a "+N" overflow and a circular highlight on
+/// today. Tapping any day calls [onDayTap].
 class MonthCalendar extends StatefulWidget {
-  final List<Meeting> meetings;
   final List<Milestone> milestones;
-  final void Function(DateTime day, List<Meeting> meetings, List<Milestone> milestones)? onDayTap;
+  final List<StickyNote> stickies;
+  final void Function(DateTime day, List<Milestone> milestones, List<StickyNote> stickies)? onDayTap;
 
-  const MonthCalendar({super.key, required this.meetings, required this.milestones, this.onDayTap});
+  const MonthCalendar({super.key, required this.milestones, required this.stickies, this.onDayTap});
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -50,14 +62,18 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
   List<_DayChip> _chipsFor(String iso) {
     final chips = <_DayChip>[];
-    for (final m in widget.meetings) {
-      if (m.plannedDate == iso) chips.add(_DayChip('🗓️', m.title, AppColors.accent));
-      if (m.actualDate == iso) chips.add(_DayChip('✅', m.title, AppColors.accent2));
-    }
     for (final m in widget.milestones) {
       if (m.targetDate == iso) chips.add(_DayChip('🚩', m.title, AppColors.gold));
       if (m.actualDate == iso) chips.add(_DayChip('✅', m.title, AppColors.accent2));
     }
+    final counts = <String, int>{};
+    for (final s in widget.stickies) {
+      if (s.date == iso) counts[s.value] = (counts[s.value] ?? 0) + 1;
+    }
+    coreValueStyles.forEach((key, style) {
+      final n = counts[key];
+      if (n != null) chips.add(_DayChip(style.$1, n > 1 ? '${style.$2} ×$n' : style.$2, style.$3));
+    });
     return chips;
   }
 
@@ -126,8 +142,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
             onTap: widget.onDayTap != null
                 ? () => widget.onDayTap!(
                     date,
-                    widget.meetings.where((m) => m.plannedDate == iso || m.actualDate == iso).toList(),
                     widget.milestones.where((m) => m.targetDate == iso || m.actualDate == iso).toList(),
+                    widget.stickies.where((s) => s.date == iso).toList(),
                   )
                 : null,
             child: Container(
@@ -173,9 +189,9 @@ class _MonthCalendarState extends State<MonthCalendar> {
       ),
       SizedBox(height: 10),
       Wrap(spacing: 14, children: [
-        _Legend(AppColors.accent, 'מתוכנן'),
-        _Legend(AppColors.accent2, 'בפועל'),
         _Legend(AppColors.gold, 'אבן דרך'),
+        _Legend(AppColors.accent2, 'בוצע'),
+        Text('📌 פתקי ערכים (לפי צבע הערך)', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
       ]),
     ]);
   }

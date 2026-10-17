@@ -42,7 +42,6 @@ class AppProvider extends ChangeNotifier {
   List<JudgingQuestion> judgingQuestions = _defaultJudgingQuestions();
   List<LinkItem> links = [];
   List<StrategyBoard> strategyBoards = [];
-  List<Meeting> meetings = [];
   List<Milestone> milestones = [];
 
   static List<ChecklistItem> _defaultChecklist() => [
@@ -106,7 +105,6 @@ class AppProvider extends ChangeNotifier {
     judgingQuestions = _defaultJudgingQuestions();
     links = [];
     strategyBoards = [];
-    meetings = [];
     milestones = [];
   }
 
@@ -204,7 +202,6 @@ class AppProvider extends ChangeNotifier {
       interviews = _parseList(data['interviews'], Interview.fromMap);
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
-      meetings = _parseList(data['meetings'], Meeting.fromMap);
       milestones = _parseList(data['milestones'], Milestone.fromMap);
       if (data['missionChecks'] != null) {
         final raw = data['missionChecks'] as Map<String, dynamic>;
@@ -331,8 +328,9 @@ class AppProvider extends ChangeNotifier {
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
       'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
       'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
-      'meetings': meetings.map((m) => m.toMap()).toList(),
       'milestones': milestones.map((m) => m.toMap()).toList(),
+      // Planned-meetings feature was removed — the calendar shows value stickies instead.
+      'meetings': FieldValue.delete(),
     });
 
     // "admin-data" — mentor-only per Firestore rules. A non-mentor calling
@@ -396,7 +394,6 @@ class AppProvider extends ChangeNotifier {
     'judgingQuestions': judgingQuestions.map((q) => q.toMap()).toList(),
     'links': links.map((l) => l.toMap()).toList(),
     'strategyBoards': strategyBoards.map((b) => b.toMap()).toList(),
-    'meetings': meetings.map((m) => m.toMap()).toList(),
     'milestones': milestones.map((m) => m.toMap()).toList(),
   };
 
@@ -485,7 +482,6 @@ class AppProvider extends ChangeNotifier {
       'memberTasks': [],
       'innovationProblem': '',
       'innovationSolution': '',
-      'meetings': [],
       'milestones': [],
     }, {
       'members': [founder.toMap()],
@@ -717,29 +713,6 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
-  // ─── Meetings ─────────────────────────────────────
-
-  Future<void> addMeeting(Meeting meeting) async {
-    meetings.add(meeting);
-    meetings.sort((a, b) => a.plannedDate.compareTo(b.plannedDate));
-    notifyListeners();
-    await _saveData();
-  }
-
-  Future<void> updateMeeting(Meeting meeting) async {
-    final i = meetings.indexWhere((m) => m.id == meeting.id);
-    if (i == -1) return;
-    meetings[i] = meeting;
-    notifyListeners();
-    await _saveData();
-  }
-
-  Future<void> deleteMeeting(int id) async {
-    meetings.removeWhere((m) => m.id == id);
-    notifyListeners();
-    await _saveData();
-  }
-
   // ─── Milestones ───────────────────────────────────
 
   Future<void> addMilestone(Milestone milestone) async {
@@ -863,7 +836,6 @@ class AppProvider extends ChangeNotifier {
     innovationProblem = '';
     innovationSolution = '';
     gallery = [];
-    meetings = [];
     milestones = [];
     for (final q in judgingQuestions) { q.answer = ''; }
     notifyListeners();
