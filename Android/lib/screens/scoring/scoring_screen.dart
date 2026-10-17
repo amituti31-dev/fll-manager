@@ -598,6 +598,11 @@ class _RubricSection extends StatelessWidget {
             if (prov.isAdmin) ...[
               SizedBox(width: 8),
               GestureDetector(
+                onTap: () => _importOfficial(context),
+                child: Text('📥', style: TextStyle(fontSize: 18)),
+              ),
+              SizedBox(width: 8),
+              GestureDetector(
                 onTap: () => _addQuestion(context),
                 child: Icon(Icons.add_circle_outline, size: 20, color: color),
               ),
@@ -613,7 +618,7 @@ class _RubricSection extends StatelessWidget {
                   color: AppColors.textTertiary, fontSize: 13)),
               SizedBox(height: 4),
               if (prov.isAdmin)
-                Text('לחץ + להוסיף שאלה',
+                Text('לחץ 📥 לייבוא המחוון הרשמי או + להוספת שאלה',
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
             ]),
           )
@@ -636,6 +641,16 @@ class _RubricSection extends StatelessWidget {
       builder: (_) => _AddRubricDialog(title: title, category: category),
     );
   }
+
+  Future<void> _importOfficial(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final (added, removed) = await context.read<AppProvider>().importOfficialRubric(category);
+    messenger.showSnackBar(SnackBar(content: Text(
+      added > 0 || removed > 0
+          ? '✅ נוספו $added קריטריונים רשמיים${removed > 0 ? ' (הוסרו $removed ישנים)' : ''}'
+          : 'כל הקריטריונים כבר קיימים',
+    )));
+  }
 }
 
 class _RubricRow extends StatelessWidget {
@@ -650,7 +665,7 @@ class _RubricRow extends StatelessWidget {
     required this.category, required this.color, required this.prov,
   });
 
-  static const _labels = ['לא הוצג', 'ראשיתי', 'מתפתח', 'מיומן', 'מצוין'];
+  static const _labels = ['לא הוצג', 'מתחילה', 'מתפתחת', 'מיומנת', 'מצטיינת'];
   static const _colors = [
     AppColors.red, AppColors.accent3, AppColors.gold, AppColors.accent2, AppColors.accent
   ];

@@ -691,6 +691,27 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  /// Adds the official criteria missing from [category] and drops the old
+  /// made-up defaults (unless they have notes). Returns (added, removed).
+  Future<(int, int)> importOfficialRubric(String category) async {
+    final list = rubrics[category]!;
+    final before = list.length;
+    list.removeWhere((r) => legacyRubricTexts.contains(r.question) && r.notes.trim().isEmpty);
+    final removed = before - list.length;
+    final existing = list.map((r) => r.question).toSet();
+    var added = 0;
+    var id = DateTime.now().microsecondsSinceEpoch;
+    for (final q in officialRubrics[category] ?? const <String>[]) {
+      if (existing.add(q)) {
+        list.add(RubricItem(id: id++, question: q));
+        added++;
+      }
+    }
+    notifyListeners();
+    await _saveData();
+    return (added, removed);
+  }
+
   Future<void> deleteRubricAtIndex(String category, int index) async {
     final list = rubrics[category]!;
     if (index < 0 || index >= list.length) return;

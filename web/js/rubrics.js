@@ -33,7 +33,7 @@ function renderRubrics(cat) {
   if (scoringEl) scoringEl.innerHTML = html;
 }
 
-function scoreLabel(s) { return ['','מתחיל','מתפתח','מוצלח','מצטיין'][s]; }
+function scoreLabel(s) { return ['','מתחילה','מתפתחת','מיומנת','מצטיינת'][s]; }
 
 function setScore(cat, id, score) {
   const r = state.rubrics[cat]?.find(r => r.id === id);
@@ -49,13 +49,20 @@ function deleteRubric(cat, id) {
 }
 
 function importOfficialRubric(cat) {
+  // Drop the old made-up default criteria (kept if the team wrote notes on them).
+  const legacy = new Set(LEGACY_RUBRIC_TEXTS);
+  const before = state.rubrics[cat].length;
+  state.rubrics[cat] = state.rubrics[cat].filter(r => !legacy.has(r.q) || (r.notes || '').trim());
+  const removed = before - state.rubrics[cat].length;
   const existing = new Set(state.rubrics[cat].map(r => r.q));
   let added = 0;
   OFFICIAL_RUBRICS[cat].forEach(q => {
     if (!existing.has(q)) { state.rubrics[cat].push({ id: Date.now() + Math.random(), q, score: 0, notes: '' }); added++; }
   });
   saveState(); renderRubrics(cat);
-  notify(added ? `✅ נוספו ${added} קריטריונים` : 'כל הקריטריונים כבר קיימים', 'success');
+  notify(added || removed
+    ? `✅ נוספו ${added} קריטריונים רשמיים${removed ? ` (הוסרו ${removed} ישנים)` : ''}`
+    : 'כל הקריטריונים כבר קיימים', 'success');
 }
 
 function addCustomRubric(cat) { state.pendingRubricCategory = cat; openModal('modal-rubric'); }
