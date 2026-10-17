@@ -21,13 +21,17 @@ Team-management app for a FIRST LEGO League team. Three clients share one Fireba
 **Backend**: Firebase (Firestore + Auth + Storage). No Cloud Functions, no Blaze plan — all logic is client-side; JSON/data imports are prepared externally and just consumed by the app.
 
 **Firestore layout**, per team under `/{teamId}/`:
-- `settings` — team name/logo/join codes. Mentor-only write.
-- `data` — anything **any** team member (student or mentor) can write: logs, `missionChecks`, `missionExtra`, links, stickies, memberTasks, interviews, innovation fields, etc.
+- `settings` — team name/logo/join codes, `competitionDate` (`YYYY-MM-DD`). Mentor-only write. (Dark/light theme is a per-device preference, never stored here.)
+- `data` — anything **any** team member (student or mentor) can write: logs, `missionChecks`, `missionStatuses`, `missionExtra`, `links`, stickies, memberTasks, interviews, `judgingQuestions` (flat `[{id, category, question, answer}]`), innovation fields, `meetingPlans`, `seasonStory`, etc. (`links` used to be an Android-only `links` doc and `judgingQuestions` mentor-only admin-data — both clients merge/migrate the old copy on load.)
 - `admin-data` — **mentor-only** write: members (raw PINs stripped before sync), scores, `officialRubric`, checklist, seasons, `customMissions` (the mission list, shared by both clients; the old Android-only `missions` field is read as a fallback and deleted on save), judgingDoc. (The older `rubrics` free-form question lists are still loaded/saved/archived but no longer shown anywhere.)
 - `archives` — mentor-only.
 - `chats` — group/private chat + announcements; `ai-config` — the team's Gemini key. **Both mentor-only for read and write** (`isMentorOnlyDoc` in the rules); both clients hide the chat from students.
 - `gallery`, `improvements` — small anchor docs whose only real content is a `photos` subcollection (`/{teamId}/gallery/photos/{id}`, `/{teamId}/improvements/photos/{id}`), one document per photo. Member-writable (not mentor-only). See "Images" below.
 - `fll-teams-registry` (top-level collection) — sanitized-email → `{teamId, role}`, the source of truth Firestore rules read to authorize.
+
+**Joining a team**: register in `fll-teams-registry` FIRST, then load the team (team docs are member-readable only). Students can't write `admin-data`, so they add themselves to `admin-data.members` via `addSelfToMembers()` (both clients) — a transaction writing only `members`, allowed by the `isSelfJoin` rule (append exactly one entry: own auth email, role `student`). Login self-heals a registered user missing from the list the same way.
+
+**Cross-client formats** (keep these when touching either client): members carry both a hex `color` and a `colorIndex` into the same 6-color palette (`AVATAR_COLORS` / `AppColors.avatarColors`); task `due` is `YYYY-MM-DD` (older Android wrote `d/m/yyyy` — parse via `taskDueIso` / `parseTaskDue`); Android stores innovation research/ideas/sharing as `logs` with topics `research`/`ideas`/`sharing` while web uses `data.findings` / `innovationSharing` — each client shows the other's read-only, and both exclude those topics from the daily log (`dailyLogs()`). The strategy board is still a different feature per client (web: unsaved canvas; Android: saved boards in the `strategy` doc with raw pixel coordinates).
 
 Enforcement is entirely server-side in **`Android/firestore.rules`** (a single rules file, shared by web and Android, deployed via Firebase — there's no per-client copy) via `isMember`/`isMentor` helpers that read the *caller's own* registry doc. **Never trust a client-side `state.isAdmin` / `prov.isAdmin` flag for real authorization** — it's UI-only convenience (hides buttons); the only real gate is `firestore.rules`. When adding a new piece of state, decide up front which tier it belongs in (writable-by-anyone → `data`, mentor-only → `admin-data`) and wire it into the load/save functions on **both** clients.
 
