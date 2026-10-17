@@ -204,6 +204,11 @@ final List<Mission> officialMissions = [
 // Scored but not robot-game missions: equipment inspection (16) and precision tokens (17).
 const officialNonMissionIds = {16, 17};
 
+// Precision tokens (id 17): the team starts with 6; points depend on how many are
+// left at the end of the match (official scorer: 0→0, 1→10, 2→15, 3→25, 4→35, 5–6→50).
+const precisionTokensId = 17;
+const precisionTokenPoints = [0, 10, 15, 25, 35, 50, 50];
+
 // mission id → (bonus pts, official bonus text); pre-filled into missionExtra.
 const Map<int, (int, String)> officialBonuses = {
   1: (10, 'מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר'),

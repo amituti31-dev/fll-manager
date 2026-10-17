@@ -626,3 +626,6 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .login-choice-btn:hover { border-color: var(--accent); }
 .login-choice-btn.accent2:hover { border-color: var(--accent2); }
 
+
+/* precision-tokens picker (robot + scoring screens) */
+.pt-select { width: auto; padding: 4px 8px; font-size: 12px; min-height: 0; }

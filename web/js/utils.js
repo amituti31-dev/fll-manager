@@ -66,6 +66,32 @@ function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }
 
+// The official precision-tokens entry (scored by tokens left, not a plain check).
+function isPrecisionTokens(m) {
+  const official = OFFICIAL_MISSIONS.find(o => o.id === PRECISION_TOKENS_ID);
+  return m.id === PRECISION_TOKENS_ID && !!official && m.name === official.name;
+}
+function getPrecisionTokens() {
+  const n = Number(state.precisionTokens);
+  return Number.isInteger(n) && n >= 0 && n <= 6 ? n : 6;
+}
+// Points an item scores right now (0 when unchecked).
+function missionPoints(m) {
+  if (!state.missionChecks[m.id]) return 0;
+  return isPrecisionTokens(m) ? PRECISION_TOKEN_POINTS[getPrecisionTokens()] : m.pts;
+}
+function setPrecisionTokens(n) {
+  state.precisionTokens = Math.max(0, Math.min(6, Number(n) || 0));
+  saveState(); renderMissions(); renderScoring();
+}
+// <select> of tokens left (6…0) with the points each gives.
+function precisionTokensSelect() {
+  const cur = getPrecisionTokens();
+  return `<select class="form-input pt-select" data-onchange="set-precision-tokens" title="כמה אסימוני דיוק נשארו">${
+    [6, 5, 4, 3, 2, 1, 0].map(n => `<option value="${n}" ${n === cur ? 'selected' : ''}>נשארו ${n} · ${PRECISION_TOKEN_POINTS[n]} נק'</option>`).join('')
+  }</select>`;
+}
+
 // The 15 robot-game missions — everything in the list except the official
 // equipment-inspection / precision-tokens entries (scored, but not missions).
 function isRealMission(m) {
@@ -105,7 +131,7 @@ function applyOfficialBonuses() {
 // any achieved bonus points (state.missionExtra[id].bonusDone), used by both
 // the live scoring display and saved run history so they stay consistent.
 function getMissionsScoreTotal() {
-  const base = getMissions().reduce((a, m) => a + (state.missionChecks[m.id] ? m.pts : 0), 0);
+  const base = getMissions().reduce((a, m) => a + missionPoints(m), 0);
   const extras = state.missionExtra || {};
   const bonus = Object.values(extras).reduce((a, e) => a + (e.bonusDone ? (e.bonusPts || 0) : 0), 0);
   return base + bonus;

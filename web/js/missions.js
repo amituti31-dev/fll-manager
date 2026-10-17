@@ -32,7 +32,9 @@ function renderMissions() {
         <span class="mission-check">${done ? '✅' : '⬜'}</span>
         <div class="mission-icon">⛏️</div>
         <div class="mission-name">${sanitize(m.name)}</div>
-        <div class="mission-pts">${m.pts} נקודות</div>
+        ${isPrecisionTokens(m)
+          ? `<div class="mission-pts" data-action="noop">${precisionTokensSelect()}</div>`
+          : `<div class="mission-pts">${m.pts} נקודות</div>`}
         <div class="mission-status-row">
           ${['not_tried','in_progress','ready'].map(s => `<button class="ms-btn ${status === s ? 'ms-active-'+s : ''}" data-action="set-mission-status" data-id="${m.id}" data-status="${s}">${statusLabels[s]}</button>`).join('')}
         </div>

@@ -8,6 +8,7 @@ import '../../models/models.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/image_source_picker.dart';
 import '../../widgets/mission_extra_sheet.dart';
+import '../../widgets/precision_tokens.dart';
 
 class RobotScreen extends StatefulWidget {
   final void Function(int)? navigateTo;
@@ -295,10 +296,13 @@ class _RobotScreenState extends State<RobotScreen> {
                     maxLines: 2, overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 2),
-                  Text('${m.pts} נק\'', style: TextStyle(
-                    fontSize: 10, fontWeight: FontWeight.w600, fontFamily: 'monospace',
-                    color: isDone ? AppColors.accent2 : AppColors.textTertiary,
-                  )),
+                  if (prov.isPrecisionTokens(m))
+                    const PrecisionTokensChip(compact: true)
+                  else
+                    Text('${m.pts} נק\'', style: TextStyle(
+                      fontSize: 10, fontWeight: FontWeight.w600, fontFamily: 'monospace',
+                      color: isDone ? AppColors.accent2 : AppColors.textTertiary,
+                    )),
                 ]),
               ),
             ),

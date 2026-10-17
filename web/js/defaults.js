@@ -43,6 +43,11 @@ const OFFICIAL_MISSIONS = [
 // Scored but not robot-game missions: equipment inspection (16) and precision tokens (17).
 const OFFICIAL_NON_MISSION_IDS = [16, 17];
 
+// Precision tokens (id 17): the team starts with 6; points depend on how many are
+// left at the end of the match (official scorer: 0→0, 1→10, 2→15, 3→25, 4→35, 5–6→50).
+const PRECISION_TOKENS_ID = 17;
+const PRECISION_TOKEN_POINTS = [0, 10, 15, 25, 35, 50, 50];
+
 // mission id → official bonus (pre-filled into missionExtra; see applyOfficialBonuses()).
 const OFFICIAL_BONUSES = {
   1: { bonusPts: 10, bonus: "מפת ה-LiDAR התהפכה לחלוטין, וסמן הסריקה נמצא לפחות חלקית באזור הסקר" },

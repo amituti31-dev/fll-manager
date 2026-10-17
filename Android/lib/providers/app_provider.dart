@@ -33,6 +33,7 @@ class AppProvider extends ChangeNotifier {
   List<Interview> interviews = [];
   List<ScoreRun> scores = [];
   Map<int, bool> missionChecks = {};
+  int precisionTokens = 6; // precision tokens left (0-6) — see precisionTokenPoints
   Map<int, MissionExtra> missionExtra = {};
   Map<String, List<RubricItem>> rubrics = {'values': [], 'robot': [], 'innovation': []};
   // Official judging grid (judging room): marks[cat][fieldId] = 1-4, notes[cat][fieldId] =
@@ -98,6 +99,7 @@ class AppProvider extends ChangeNotifier {
     interviews = [];
     scores = [];
     missionChecks = {};
+    precisionTokens = 6;
     missionExtra = {};
     rubrics = {'values': [], 'robot': [], 'innovation': []};
     rubricMarks = {'innovation': {}, 'robot': {}};
@@ -211,6 +213,8 @@ class AppProvider extends ChangeNotifier {
       stickies = _parseList(data['stickies'], StickyNote.fromMap);
       memberTasks = _parseList(data['memberTasks'], MemberTask.fromMap);
       milestones = _parseList(data['milestones'], Milestone.fromMap);
+      final pt = data['precisionTokens'];
+      if (pt is num && pt >= 0 && pt <= 6) precisionTokens = pt.toInt();
       if (data['missionChecks'] != null) {
         final raw = data['missionChecks'] as Map<String, dynamic>;
         missionChecks = raw.map((k, v) => MapEntry(int.tryParse(k) ?? 0, v as bool));
@@ -372,6 +376,7 @@ class AppProvider extends ChangeNotifier {
       'stickies': stickies.map((s) => s.toMap()).toList(),
       'memberTasks': memberTasks.map((t) => t.toMap()).toList(),
       'missionChecks': missionChecks.map((k, v) => MapEntry(k.toString(), v)),
+      'precisionTokens': precisionTokens,
       'missionExtra': missionExtra.map((k, v) => MapEntry(k.toString(), v.toMap())),
       'milestones': milestones.map((m) => m.toMap()).toList(),
       // Planned-meetings feature was removed — the calendar shows value stickies instead.
@@ -627,10 +632,26 @@ class AppProvider extends ChangeNotifier {
     await _saveData();
   }
 
+  /// The official precision-tokens entry (scored by tokens left, not a plain check).
+  bool isPrecisionTokens(Mission m) {
+    final official = officialMissions.where((o) => o.id == precisionTokensId).firstOrNull;
+    return m.id == precisionTokensId && official != null && m.name == official.name;
+  }
+
+  /// Points an item scores right now (0 when unchecked).
+  int missionPoints(Mission m) {
+    if (missionChecks[m.id] != true) return 0;
+    return isPrecisionTokens(m) ? precisionTokenPoints[precisionTokens] : m.pts;
+  }
+
+  Future<void> setPrecisionTokens(int n) async {
+    precisionTokens = n.clamp(0, 6);
+    notifyListeners();
+    await _saveData();
+  }
+
   int get totalScore {
-    final base = missions
-        .where((m) => missionChecks[m.id] == true)
-        .fold(0, (total, m) => total + m.pts);
+    final base = missions.fold(0, (total, m) => total + missionPoints(m));
     final bonus = missionExtra.values
         .where((e) => e.bonusDone)
         .fold(0, (total, e) => total + e.bonusPts);
@@ -704,6 +725,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> replaceMissions(List<Mission> newMissions, {Map<int, MissionExtra>? extras, String? season}) async {
     missions = newMissions;
     missionChecks = {};
+    precisionTokens = 6;
     missionExtra = extras ?? {};
     // Unlike web (which mixes an active + archived seasons into one array
     // that must stay in sync), currentSeason here is a plain string with no
@@ -919,6 +941,7 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> resetScoringData() async {
     missionChecks = {};
+    precisionTokens = 6;
     missionExtra = {};
     scores = [];
     missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
@@ -936,6 +959,7 @@ class AppProvider extends ChangeNotifier {
     interviews = [];
     scores = [];
     missionChecks = {};
+    precisionTokens = 6;
     missionExtra = {};
     missions = officialMissions.map((m) => Mission(id: m.id, name: m.name, pts: m.pts)).toList();
     rubrics = {'values': [], 'robot': [], 'innovation': []};

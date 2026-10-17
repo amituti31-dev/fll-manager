@@ -13,6 +13,8 @@ import '../../services/firebase_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/score_history_chart.dart';
 import '../../widgets/rubric_grid.dart';
+import '../../widgets/precision_tokens.dart';
+import '../../models/models.dart';
 
 class ScoringScreen extends StatefulWidget {
   const ScoringScreen({super.key});
@@ -351,8 +353,12 @@ class _ScoringScreenState extends State<ScoringScreen>
                   ),
                   child: Text(statusEmoji, style: TextStyle(fontSize: 12)),
                 ),
+                if (prov.isPrecisionTokens(m)) ...[
+                  SizedBox(width: 8),
+                  const PrecisionTokensChip(),
+                ],
                 SizedBox(width: 8),
-                Text('${m.pts}', style: TextStyle(
+                Text('${prov.isPrecisionTokens(m) ? precisionTokenPoints[prov.precisionTokens] : m.pts}', style: TextStyle(
                   fontFamily: 'monospace', fontWeight: FontWeight.w700,
                   color: done ? AppColors.accent2 : AppColors.textTertiary,
                 )),

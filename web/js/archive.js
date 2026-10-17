@@ -79,6 +79,7 @@ async function createNewSeason() {
   state.findings = [];
   state.scores = [];
   state.missionChecks = {};
+  state.precisionTokens = 6;
   // New season → back to the built-in official missions (ids now mean different missions).
   state.customMissions = [];
   state.missionExtra = {};

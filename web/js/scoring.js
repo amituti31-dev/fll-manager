@@ -26,7 +26,8 @@ function renderScoring() {
         <input type="checkbox" class="mission-checkbox" id="scb-${m.id}" ${extra.bonusDone ? 'checked' : ''} data-onchange="toggle-mission-bonus" data-id="${m.id}">
         <label for="scb-${m.id}" style="font-size:12px;font-weight:700;white-space:nowrap;color:${extra.bonusDone ? 'var(--gold)' : 'var(--text3)'}">🎁+${extra.bonusPts}</label>
       ` : ''}
-      <span class="mission-row-pts">${m.pts}</span>
+      ${isPrecisionTokens(m) ? precisionTokensSelect() : ''}
+      <span class="mission-row-pts">${isPrecisionTokens(m) ? PRECISION_TOKEN_POINTS[getPrecisionTokens()] : m.pts}</span>
     </div>
   `;
   }).join('');

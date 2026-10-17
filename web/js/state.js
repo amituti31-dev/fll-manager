@@ -28,6 +28,7 @@ function defaultState() {
       { name: OFFICIAL_SEASON_NAME, year: 2026, archived: false, topScore: 0 },
     ],
     missionChecks: {},
+    precisionTokens: 6,       // precision tokens left (0-6) — see PRECISION_TOKEN_POINTS
     missionStatuses: {},      // id → 'not_tried'|'in_progress'|'ready'
     missionExtra: {},         // id → { bonus, rules, bonusDone, bonusPts } — free-text bonus/rule notes + bonus score per mission
     customMissions: [],       // mentor-imported mission list (overrides OFFICIAL_MISSIONS when populated; shared with Android)
@@ -67,6 +68,7 @@ async function saveState() {
     // own document under a subcollection (see saveGalleryPhoto/
     // saveImprovementPhoto below), to keep this document well under 1MB.
     const { logs, findings, missionChecks } = state;
+    const precisionTokens = getPrecisionTokens();
     const stickies = state.stickies || [];
     const memberTasks = state.memberTasks || [];
     const links = state.links || [];
@@ -74,7 +76,7 @@ async function saveState() {
     const missionExtra = state.missionExtra || {};
     const milestones = state.milestones || [];
     await window.db.collection(window.FB_PROJECT).doc("data").set({
-      logs, findings, stickies, memberTasks, missionChecks, links, interviews, missionExtra,
+      logs, findings, stickies, memberTasks, missionChecks, precisionTokens, links, interviews, missionExtra,
       milestones,
       // Clean up the copy written before images moved to their own subcollection.
       improvements: firebase.firestore.FieldValue.delete(),
