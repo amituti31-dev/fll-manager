@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/firebase_service.dart';
+import '../services/season_story_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
@@ -430,6 +431,24 @@ class AppProvider extends ChangeNotifier {
   // tiers (gallery/improvements are per-photo subcollections there), but
   // this snapshot is about capturing current state for backup, not mirroring
   // how it's synced.
+  /// Generates the season story with the team's Gemini key (mentors only) and
+  /// saves it to data.seasonStory with a targeted write — the general _saveData()
+  /// never writes it, so a stale copy here can't overwrite a newer story.
+  Future<void> generateSeasonStory() async {
+    if (!isAdmin || teamId == null) throw 'יצירת סיפור זמינה למנטורים בלבד';
+    final key = await FirebaseService.getAiKey(teamId!);
+    if (key == null) throw 'קודם צריך לשמור מפתח Gemini בהגדרות (פעם אחת לכל הקבוצה)';
+    if (stickies.isEmpty && logs.isEmpty && meetingPlans.isEmpty) throw 'אין עדיין מספיק תיעוד לסיפור';
+    final (text, model) = await SeasonStoryService.generate(key, SeasonStoryService.buildInput(this));
+    final createdAt = DateTime.now().toUtc().toIso8601String();
+    await FirebaseService.saveData(teamId!, {
+      'seasonStory': {'text': text, 'createdAt': createdAt, 'model': model},
+    });
+    seasonStoryText = text;
+    seasonStoryCreatedAt = createdAt;
+    notifyListeners();
+  }
+
   /// Full backup in the shared format; records the time so the reminder resets.
   Future<Map<String, dynamic>> exportFullBackup() async {
     final backup = await FirebaseService.exportRawBackup(teamId!, teamName);

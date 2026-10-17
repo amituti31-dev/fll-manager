@@ -1,34 +1,63 @@
 // ═══════════════════════════════════════════════════════
 // § 33 · SEASON STORY (Gemini) & STICKY EXPORT
 // ═══════════════════════════════════════════════════════
-// The app has no backend, so the AI call goes straight from the browser to
-// Google's Gemini API with a key the mentor pastes in Settings. The key is
-// stored ONLY in this browser's localStorage — never in Firestore or the code.
+// The app has no backend, so the AI call goes straight from the device to
+// Google's Gemini API. The team's key is saved once by a mentor in the
+// /{teamId}/ai-config doc, which firestore.rules make readable/writable by
+// MENTORS ONLY (isMentorOnlyDoc) — so every mentor on every device can use it,
+// students can't read it, and it's never in the code or the backup file.
 // The generated story is saved to data.seasonStory so the whole team (and
 // Android) can read it. Student names are not sent.
-const GEMINI_KEY_STORE = 'fll_gemini_key';
+const GEMINI_KEY_STORE = 'fll_gemini_key'; // old per-browser copy — migrated to ai-config
 const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash']; // first that works
 const STORY_INPUT_LIMIT = 60000; // characters of season data sent to the model
 
-function _getGeminiKey() { try { return localStorage.getItem(GEMINI_KEY_STORE) || ''; } catch (e) { return ''; } }
+function _aiConfigRef() { return window.db.collection(window.FB_PROJECT).doc('ai-config'); }
 
-function renderAiSettings() {
+// The team key from the cloud (mentors only — a student's read is rejected).
+async function _getGeminiKey() {
+  if (!state.isAdmin || !window.db) return '';
+  try {
+    const snap = await _aiConfigRef().get();
+    return (snap.exists && snap.data().geminiKey) || '';
+  } catch (e) { return ''; }
+}
+
+async function renderAiSettings() {
   const status = document.getElementById('ai-key-status');
-  if (!status) return;
-  const key = _getGeminiKey();
-  status.textContent = key ? `✅ מפתח שמור במכשיר הזה (…${key.slice(-4)})` : 'אין מפתח במכשיר הזה';
+  if (!status || !state.isAdmin || !window.db) return;
+  let key = await _getGeminiKey();
+  // One-time move of a key saved in this browser by the earlier version.
+  let local = '';
+  try { local = localStorage.getItem(GEMINI_KEY_STORE) || ''; } catch (e) {}
+  if (local) {
+    try {
+      if (!key) {
+        await _aiConfigRef().set({ geminiKey: local, setBy: state.currentUser?.name || '', setAt: new Date().toISOString() });
+        key = local;
+        notify('🔑 המפתח שנשמר בדפדפן הועבר לענן — זמין עכשיו לכל המנטורים', 'success');
+      }
+      localStorage.removeItem(GEMINI_KEY_STORE);
+    } catch (e) { console.warn('AI key migration failed:', e); }
+  }
+  status.textContent = key ? `✅ מפתח שמור לכל המנטורים (…${key.slice(-4)})` : 'עוד לא נשמר מפתח לקבוצה';
   status.style.color = key ? 'var(--accent2)' : 'var(--text3)';
 }
-function saveGeminiKey() {
+async function saveGeminiKey() {
+  if (!state.isAdmin) return;
   const v = document.getElementById('ai-key-input').value.trim();
   if (!v) { notify('הדביקו מפתח', 'error'); return; }
-  try { localStorage.setItem(GEMINI_KEY_STORE, v); } catch (e) { notify('לא ניתן לשמור בדפדפן הזה', 'error'); return; }
+  try {
+    await _aiConfigRef().set({ geminiKey: v, setBy: state.currentUser?.name || '', setAt: new Date().toISOString() });
+  } catch (e) { notify('❌ השמירה נכשלה: ' + (e.message || e), 'error'); return; }
   document.getElementById('ai-key-input').value = '';
-  renderAiSettings(); notify('✅ המפתח נשמר במכשיר הזה בלבד', 'success');
+  renderAiSettings(); notify('✅ המפתח נשמר בענן — זמין לכל המנטורים', 'success');
 }
-function removeGeminiKey() {
+async function removeGeminiKey() {
+  if (!state.isAdmin || !confirm('להסיר את המפתח לכל המנטורים?')) return;
+  try { await _aiConfigRef().delete(); } catch (e) { notify('❌ ההסרה נכשלה', 'error'); return; }
   try { localStorage.removeItem(GEMINI_KEY_STORE); } catch (e) {}
-  renderAiSettings(); notify('המפתח הוסר מהמכשיר', 'success');
+  renderAiSettings(); notify('המפתח הוסר', 'success');
 }
 function openAiKeyPage() { window.open('https://aistudio.google.com/apikey', '_blank'); }
 
@@ -126,9 +155,9 @@ function renderSeasonStory() {
 
 async function generateSeasonStory() {
   if (!state.isAdmin) return;
-  const key = _getGeminiKey();
+  const key = await _getGeminiKey();
   if (!key) {
-    notify('קודם צריך להוסיף מפתח Gemini בהגדרות', 'error');
+    notify('קודם צריך לשמור מפתח Gemini בהגדרות (פעם אחת לכל הקבוצה)', 'error');
     closeModal('modal-story'); navigate('settings'); return;
   }
   if (!(state.stickies || []).length && !(state.logs || []).length && !(state.meetingPlans || []).length) {

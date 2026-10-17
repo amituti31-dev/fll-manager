@@ -13,6 +13,8 @@ let _pendingRestore = null;
 
 // Every document the apps write under /{teamId}/ (registry docs live elsewhere),
 // plus one archive_<season> doc per archived season (see createNewSeason()).
+// 'ai-config' (the Gemini key) is deliberately NOT backed up — a backup file
+// sitting on someone's computer shouldn't contain a secret.
 function _backupDocIds() {
   const ids = ['settings', 'data', 'admin-data', 'archives', 'gallery', 'improvements',
                'links', 'strategy', 'chats', 'judging_pdf'];

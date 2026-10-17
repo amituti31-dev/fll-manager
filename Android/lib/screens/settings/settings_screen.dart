@@ -8,6 +8,7 @@ import '../../widgets/image_source_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../services/firebase_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -587,6 +588,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ]),
         SizedBox(height: 12),
 
+        if (prov.isAdmin) ...[
+          _AiKeyCard(prov: prov),
+          SizedBox(height: 12),
+        ],
+
         _Card(children: [
           _CardHeader('💾', 'גיבוי נתונים'),
           SizedBox(height: 8),
@@ -966,6 +972,118 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
           child: Text('מחק חשבון', style: TextStyle(color: AppColors.red)),
         ),
       ],
+    );
+  }
+}
+
+/// Settings card for the team's Gemini key (mentors). Saved once to the
+/// mentor-only ai-config doc — every mentor on every device can then use it.
+class _AiKeyCard extends StatefulWidget {
+  final AppProvider prov;
+  const _AiKeyCard({required this.prov});
+
+  @override
+  State<_AiKeyCard> createState() => _AiKeyCardState();
+}
+
+class _AiKeyCardState extends State<_AiKeyCard> {
+  final _ctrl = TextEditingController();
+  String? _savedKey;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final key = await FirebaseService.getAiKey(widget.prov.teamId!);
+    if (mounted) setState(() { _savedKey = key; _loading = false; });
+  }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+  Future<void> _save() async {
+    final v = _ctrl.text.trim();
+    if (v.isEmpty) { _toast('הדביקו מפתח'); return; }
+    try {
+      await FirebaseService.setAiKey(widget.prov.teamId!, v, widget.prov.currentUser?.name ?? '');
+      _ctrl.clear();
+      await _load();
+      _toast('✅ המפתח נשמר בענן — זמין לכל המנטורים');
+    } catch (e) {
+      _toast('❌ השמירה נכשלה: $e');
+    }
+  }
+
+  Future<void> _remove() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: const Text('להסיר את המפתח לכל המנטורים?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ביטול')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('הסר')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await FirebaseService.deleteAiKey(widget.prov.teamId!);
+    await _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('✨ בינה מלאכותית (Gemini)',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.textPrimary)),
+        SizedBox(height: 8),
+        Text('משמש ליצירת "סיפור העונה". מפתח API חינמי של Google: Google AI Studio ← Create API key ← הדביקו כאן. '
+            'המפתח נשמר פעם אחת לכל הקבוצה, בענן, במקום שרק מנטורים יכולים לקרוא. תלמידים לא רואים אותו. '
+            'בשימוש החינמי Google רשאית להשתמש בטקסט שנשלח לשיפור המוצרים שלה (שמות לא נשלחים).',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5)),
+        SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: () => launchUrl(Uri.parse('https://aistudio.google.com/apikey'), mode: LaunchMode.externalApplication),
+          icon: Text('🔑'),
+          label: Text('קבלת מפתח ב-Google AI Studio'),
+        ),
+        TextField(
+          controller: _ctrl,
+          obscureText: true,
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(hintText: 'הדביקו כאן את המפתח'),
+        ),
+        SizedBox(height: 10),
+        Row(children: [
+          ElevatedButton(onPressed: _save, child: Text('💾 שמור')),
+          SizedBox(width: 8),
+          if (_savedKey != null) TextButton(onPressed: _remove, child: Text('🗑️ הסר')),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _loading ? '...' : _savedKey != null
+                  ? '✅ שמור לכל המנטורים (…${_savedKey!.substring(_savedKey!.length - 4)})'
+                  : 'עוד לא נשמר מפתח',
+              style: TextStyle(fontSize: 12, color: _savedKey != null ? AppColors.accent2 : AppColors.textTertiary),
+            ),
+          ),
+        ]),
+      ]),
     );
   }
 }

@@ -280,7 +280,30 @@ class FirebaseService {
   // be a field embedded in the "data" doc (migrated from AppProvider, since
   // that's where "data" is already loaded).
 
+  // ─── AI key (mentor-only ai-config doc; see firestore.rules isMentorOnlyDoc) ───
+  // The team's Gemini key, saved once by a mentor and usable by every mentor on
+  // every device. A student's read is rejected by the rules → returns null.
+  static Future<String?> getAiKey(String teamId) async {
+    try {
+      final snap = await _db.collection(teamId).doc('ai-config').get();
+      final key = snap.data()?['geminiKey'] as String?;
+      return (key == null || key.isEmpty) ? null : key;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> setAiKey(String teamId, String key, String setBy) =>
+      _db.collection(teamId).doc('ai-config').set({
+        'geminiKey': key,
+        'setBy': setBy,
+        'setAt': DateTime.now().toUtc().toIso8601String(),
+      });
+
+  static Future<void> deleteAiKey(String teamId) => _db.collection(teamId).doc('ai-config').delete();
+
   // ─── Full backup (same format as web's backup.js) ─────────────────
+  // ('ai-config' is deliberately not backed up — no secrets in backup files.)
   //   { format: 'fll-manager-backup', version: 1, createdAt, teamId, teamName,
   //     docs: { <docId>: {...} }, photos: { gallery: [...], improvements: [...] } }
   // The team's Firestore documents verbatim, Timestamps as { __ts: millis }.

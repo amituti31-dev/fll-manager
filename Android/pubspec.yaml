@@ -39,6 +39,7 @@ dependencies:
 
   # Utils
   intl: ^0.20.0
+  http: ^1.6.0 # Gemini season story (season_story_service.dart)
   uuid: ^4.3.3
   timezone: ^0.9.4
   flutter_local_notifications: ^17.0.0

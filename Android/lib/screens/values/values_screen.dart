@@ -291,42 +291,12 @@ class _BoardTabState extends State<_BoardTab> {
   );
 
   void _showStory(BuildContext context) {
-    final prov = widget.prov;
-    final text = prov.seasonStoryText;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('✨ סיפור העונה', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-              SizedBox(height: 12),
-              if (text == null || text.isEmpty)
-                Text('עוד לא נוצר סיפור עונה. מנטור יכול ליצור אותו מהאתר או מאפליקציית המחשב (ערכי ליבה ← לוח פתקים ← ✨ סיפור העונה).',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5))
-              else ...[
-                Flexible(child: SingleChildScrollView(
-                  child: Text(text, style: TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.7)),
-                )),
-                SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => Share.share(text, subject: 'סיפור העונה'),
-                    icon: Text('📤'),
-                    label: Text('שתף'),
-                  ),
-                ),
-              ],
-            ]),
-          ),
-        ),
-      ),
+      builder: (ctx) => _StorySheet(prov: widget.prov),
     );
   }
 
@@ -490,3 +460,91 @@ class _StickyCard extends StatelessWidget {
   }
 }
 
+
+/// Season story sheet: read + share for everyone; mentors can (re)generate it
+/// with the team's Gemini key.
+class _StorySheet extends StatefulWidget {
+  final AppProvider prov;
+  const _StorySheet({required this.prov});
+
+  @override
+  State<_StorySheet> createState() => _StorySheetState();
+}
+
+class _StorySheetState extends State<_StorySheet> {
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _generate() async {
+    if (widget.prov.seasonStoryText != null) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          content: const Text('ליצור סיפור חדש במקום הקיים?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ביטול')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('צור')),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+    setState(() { _busy = true; _error = null; });
+    try {
+      await widget.prov.generateSeasonStory();
+    } catch (e) {
+      _error = e.toString();
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prov = widget.prov;
+    final text = prov.seasonStoryText;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('✨ סיפור העונה', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            SizedBox(height: 12),
+            if (text == null || text.isEmpty)
+              Text(prov.isAdmin
+                  ? 'עוד לא נוצר סיפור עונה. לחצו "✨ צור סיפור" כדי לבנות אותו מכל התיעוד של העונה.'
+                  : 'עוד לא נוצר סיפור עונה. מנטור יכול ליצור אותו.',
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5))
+            else
+              Flexible(child: SingleChildScrollView(
+                child: Text(text, style: TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.7)),
+              )),
+            if (_error != null) ...[
+              SizedBox(height: 8),
+              Text('❌ $_error', style: TextStyle(color: AppColors.red, fontSize: 12)),
+            ],
+            SizedBox(height: 12),
+            Row(children: [
+              if (text != null && text.isNotEmpty)
+                Expanded(child: OutlinedButton.icon(
+                  onPressed: () => Share.share(text, subject: 'סיפור העונה'),
+                  icon: Text('📤'),
+                  label: Text('שתף'),
+                )),
+              if (prov.isAdmin) ...[
+                if (text != null && text.isNotEmpty) SizedBox(width: 10),
+                Expanded(child: ElevatedButton.icon(
+                  onPressed: _busy ? null : _generate,
+                  icon: _busy
+                      ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text('✨'),
+                  label: Text(_busy ? 'כותב...' : (text != null && text.isNotEmpty ? 'צור מחדש' : 'צור סיפור')),
+                )),
+              ],
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
+}

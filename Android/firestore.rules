@@ -49,9 +49,10 @@ service cloud.firestore {
     // stays read/write for any team member — missionChecks and links are
     // things any member can legitimately add/toggle.
     // Mentor-only for READ as well as write: the team chat ('chats' holds the
-    // group and private messages) is for mentors only.
+    // group and private messages) and 'ai-config' (the team's Gemini API key
+    // for the season-story feature) are for mentors only.
     function isMentorOnlyDoc(document) {
-      return document == 'chats';
+      return document == 'chats' || document == 'ai-config';
     }
 
     function isProtectedDoc(document) {
