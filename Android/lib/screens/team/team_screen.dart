@@ -349,7 +349,7 @@ class _MemberCard extends StatelessWidget {
                 ),
               ],
             ]),
-            Text(member.isAdmin ? '👑 מנטור' : '🎓 תלמיד',
+            Text(member.isAdmin ? '👑 מנטור' : member.juniorMentor ? '🌱 מנטור צעיר' : '🎓 תלמיד',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           ])),
           if (pending > 0)
@@ -358,6 +358,12 @@ class _MemberCard extends StatelessWidget {
               child: Text('$pending משימות', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
             ),
           if (prov.isAdmin) ...[
+            if (!member.isAdmin)
+              IconButton(
+                icon: Opacity(opacity: member.juniorMentor ? 1 : 0.45, child: Text('🌱', style: TextStyle(fontSize: 16))),
+                onPressed: () => context.read<AppProvider>().toggleJuniorMentor(member.id),
+                tooltip: member.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר',
+              ),
             IconButton(
               icon: Icon(Icons.add_task, size: 18, color: AppColors.accent2),
               onPressed: () => TeamScreen.showAddTaskDialog(context, forMember: member),

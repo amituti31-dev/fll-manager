@@ -220,6 +220,11 @@ async function loadState() {
     state.improvements = await mergeAndMigratePhotos(improvementPhotosSnap, legacyImprovements, saveImprovementPhoto,
       () => window.db.collection(window.FB_PROJECT).doc('data').set({ improvements: firebase.firestore.FieldValue.delete() }, { merge: true }));
 
+    // Normalize images saved without the data-URL prefix so they render.
+    [state.teamGallery, state.improvements, state.logs].forEach(list => (list || []).forEach(item => {
+      if (item && item.image && !item.image.startsWith('data:image')) item.image = imageSrc(item.image) || item.image;
+    }));
+
     console.log("Loaded from Firestore, project:", window.FB_PROJECT);
     return;
   } catch(e) {

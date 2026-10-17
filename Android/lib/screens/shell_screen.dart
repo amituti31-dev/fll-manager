@@ -78,6 +78,12 @@ class _ShellScreenState extends State<ShellScreen> {
     _NavItem('⚙️', 'הגדרות'),
   ];
 
+  static const _chatIndex = 6;
+
+  /// Drawer entries this user may see — the chat is mentors only.
+  List<int> _visibleNav(AppProvider prov) =>
+      [for (var i = 0; i < _navItems.length; i++) if (i != _chatIndex || prov.isAdmin) i];
+
   Widget _buildScreen(int index) {
     return switch (index) {
       0 => DashboardScreen(navigateTo: (i) => setState(() => _selectedIndex = i)),
@@ -121,7 +127,9 @@ class _ShellScreenState extends State<ShellScreen> {
       drawer: _buildDrawer(prov),
       body: IndexedStack(
         index: _selectedIndex,
-        children: List.generate(_navItems.length, _buildScreen),
+        // The chat (index 6) is for mentors only (also enforced in firestore.rules).
+        children: List.generate(_navItems.length,
+            (i) => i == _chatIndex && !prov.isAdmin ? const SizedBox.shrink() : _buildScreen(i)),
       ),
     );
   }
@@ -156,8 +164,9 @@ class _ShellScreenState extends State<ShellScreen> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _navItems.length,
-              itemBuilder: (_, i) {
+              itemCount: _visibleNav(prov).length,
+              itemBuilder: (_, k) {
+                final i = _visibleNav(prov)[k];
                 final selected = _selectedIndex == i;
                 return ListTile(
                   leading: Text(_navItems[i].icon, style: TextStyle(fontSize: 20)),

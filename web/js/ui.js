@@ -49,6 +49,8 @@ function populateAll() {
 
 // ── Navigation ──
 function navigate(screen) {
+  // The chat is for mentors only (also enforced in firestore.rules).
+  if ((screen === 'chat') && !state.isAdmin) { notify('הצ\'אט זמין למנטורים בלבד', 'error'); return; }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const el = document.getElementById('screen-' + screen);

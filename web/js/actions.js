@@ -68,6 +68,7 @@ const ACTIONS = {
   'set-mission-status': (el) => setMissionStatus(Number(el.dataset.id), el.dataset.status),
   'open-mission-extra': (el) => openMissionExtraModal(Number(el.dataset.id)),
   'save-mission-extra': () => saveMissionExtra(),
+  'toggle-junior-mentor': (el) => toggleJuniorMentor(el.dataset.id),
   'set-precision-tokens': (el) => setPrecisionTokens(el.value),
   'toggle-mission-bonus': (el) => toggleMissionBonus(Number(el.dataset.id)),
   'import-missions-json': (el) => importMissionsJson(el),

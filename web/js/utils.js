@@ -62,6 +62,16 @@ function sanitizeUrl(url) {
 // getMissions() - the mission list currently in effect: a mentor-imported
 // list if one exists, otherwise the built-in OFFICIAL_MISSIONS fallback (kept
 // so offline/first-load teams always have a working mission set).
+// Images are stored as base64 data URLs, but some older Android saves stored
+// bare base64 without the "data:image/...;base64," prefix — which <img> can't
+// render, so those photos never showed on web. Returns a usable src, or ''.
+function imageSrc(v) {
+  if (typeof v !== 'string' || !v) return '';
+  if (v.startsWith('data:image')) return v;
+  const bare = v.replace(/\s/g, '');
+  return /^[A-Za-z0-9+/]+={0,2}$/.test(bare) && bare.length > 100 ? 'data:image/jpeg;base64,' + bare : '';
+}
+
 function getMissions() {
   return (state.customMissions && state.customMissions.length) ? state.customMissions : OFFICIAL_MISSIONS;
 }

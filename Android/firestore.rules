@@ -48,6 +48,12 @@ service cloud.firestore {
     // ('data', 'links', 'chats', 'gallery', 'strategy', 'judging_pdf', …)
     // stays read/write for any team member — missionChecks and links are
     // things any member can legitimately add/toggle.
+    // Mentor-only for READ as well as write: the team chat ('chats' holds the
+    // group and private messages) is for mentors only.
+    function isMentorOnlyDoc(document) {
+      return document == 'chats';
+    }
+
     function isProtectedDoc(document) {
       return document == 'settings' || document == 'admin-data'
         || document == 'archives';
@@ -99,9 +105,10 @@ service cloud.firestore {
     // risk is negligible.
     //
     match /{teamId}/{document} {
-      allow read: if isMember(teamId);
-      allow write: if isMember(teamId) && !isProtectedDoc(document);
-      allow write: if isMentor(teamId) && isProtectedDoc(document);
+      allow read: if isMember(teamId) && !isMentorOnlyDoc(document);
+      allow read: if isMentor(teamId) && isMentorOnlyDoc(document);
+      allow write: if isMember(teamId) && !isProtectedDoc(document) && !isMentorOnlyDoc(document);
+      allow write: if isMentor(teamId) && (isProtectedDoc(document) || isMentorOnlyDoc(document));
       allow create: if isAuth() && !teamCreated(teamId);
     }
 

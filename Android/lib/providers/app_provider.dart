@@ -910,6 +910,14 @@ class AppProvider extends ChangeNotifier {
   Future<void> changePassword(String currentPassword, String newPassword) =>
       FirebaseService.changePassword(currentPassword: currentPassword, newPassword: newPassword);
 
+  Future<void> toggleJuniorMentor(String memberId) async {
+    final i = members.indexWhere((m) => m.id == memberId);
+    if (i == -1 || members[i].isAdmin) return;
+    members[i].juniorMentor = !members[i].juniorMentor;
+    notifyListeners();
+    await _saveData();
+  }
+
   Future<void> updateMemberName(String memberId, String newName) async {
     final member = members.firstWhere((m) => m.id == memberId, orElse: () => members.first);
     member.name = newName;

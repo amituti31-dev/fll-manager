@@ -10,6 +10,7 @@ class Member {
   final Color color;
   String pin;
   int nameChanges;
+  bool juniorMentor; // "מנטור צעיר" — a label on a student, no extra permissions
 
   Member({
     required this.id,
@@ -19,6 +20,7 @@ class Member {
     required this.color,
     this.pin = '',
     this.nameChanges = 0,
+    this.juniorMentor = false,
   });
 
   bool get isAdmin => role == 'admin';
@@ -33,6 +35,7 @@ class Member {
       color: AppColors.avatarColors[colorIndex % AppColors.avatarColors.length],
       pin: m['pin'] as String? ?? '',
       nameChanges: m['nameChanges'] as int? ?? 0,
+      juniorMentor: m['juniorMentor'] as bool? ?? false,
     );
   }
 
@@ -44,6 +47,7 @@ class Member {
     'colorIndex': AppColors.avatarColors.indexOf(color).clamp(0, 5),
     'pin': pin,
     'nameChanges': nameChanges,
+    'juniorMentor': juniorMentor,
   };
 }
 

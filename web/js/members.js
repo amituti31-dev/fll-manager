@@ -1,26 +1,37 @@
 // ═══════════════════════════════════════════════════════
 // § 09 · MEMBERS
 // ═══════════════════════════════════════════════════════
+// "מנטור צעיר" is just a label on a student (no extra permissions); mentors toggle it.
+function toggleJuniorMentor(id) {
+  if (!state.isAdmin) return;
+  const m = (state.members || []).find(x => String(x.id) === String(id));
+  if (!m || m.role === 'admin') return;
+  m.juniorMentor = !m.juniorMentor;
+  saveState(); renderMembers();
+}
+
 function renderMembers() {
   const el = document.getElementById('members-list');
   el.innerHTML = state.members.map(m => {
     const tasks = (state.memberTasks || []).filter(t => (!t.done) && (String(t.memberId) === String(m.id) || t.memberId === 'all'));
     const pending = tasks.length;
     return `
-    <div class="member-card" style="flex-direction:column;align-items:stretch${String(m.id) !== String(state.currentUser?.id) ? ';cursor:pointer' : ''}"
-      ${String(m.id) !== String(state.currentUser?.id) ? `data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}"` : ''}>
+    <div class="member-card" style="flex-direction:column;align-items:stretch${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? ';cursor:pointer' : ''}"
+      ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}"` : ''}>
       <div style="display:flex;align-items:center;gap:12px">
         <div class="member-avatar" style="background:${sanitize(m.color)}">${sanitize(m.name ? m.name[0] : '?')}</div>
         <div class="member-info" style="flex:1">
           <div class="member-name">${sanitize(m.name)}</div>
-          <div class="member-role"><span class="badge badge-${m.role === 'admin' ? 'admin' : 'student'}">${m.role === 'admin' ? '👑 מנטור' : '🎓 תלמיד'}</span></div>
+          <div class="member-role"><span class="badge badge-${m.role === 'admin' ? 'admin' : 'student'}">${m.role === 'admin' ? '👑 מנטור' : m.juniorMentor ? '🌱 מנטור צעיר' : '🎓 תלמיד'}</span></div>
           <div style="font-size:11px;color:var(--text3)">${sanitize(m.email || '')}</div>
         </div>
         ${pending > 0 ? `<span style="background:var(--accent3);color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap">${pending} משימות</span>` : ''}
-        ${String(m.id) !== String(state.currentUser?.id) ? `
+        ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:14px;padding:4px" data-action="open-private-chat" data-id="${sanitize(String(m.id))}" data-name="${sanitize(m.name)}" title="צ'אט פרטי">💬</button>` : ''}
         ${m.role !== 'admin' && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px" data-action="show-add-member-task-modal" data-id="${sanitize(String(m.id))}" title="הוסף משימה">📋</button>` : ''}
+        ${state.isAdmin && m.role !== 'admin' ? `
+          <button class="btn btn-ghost btn-icon" style="font-size:13px;padding:4px;opacity:${m.juniorMentor ? '1' : '0.45'}" data-action="toggle-junior-mentor" data-id="${sanitize(String(m.id))}" title="${m.juniorMentor ? 'הסר תווית מנטור צעיר' : 'סמן כמנטור צעיר'}">🌱</button>` : ''}
         ${state.isAdmin && String(m.id) !== String(state.currentUser?.id) ? `
           <button class="btn btn-ghost btn-icon" style="color:var(--accent);font-size:12px;padding:4px" data-action="admin-change-name" data-id="${sanitize(String(m.id))}" title="שנה שם">✏️</button>
           <button class="btn btn-ghost btn-icon" style="color:var(--red)" data-action="remove-member" data-id="${sanitize(String(m.id))}" title="הסר">✕</button>` : ''}
