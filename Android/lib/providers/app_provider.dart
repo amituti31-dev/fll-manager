@@ -602,20 +602,39 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> joinTeam({required String code, required String fullName, required String email}) async {
-    final tid = await FirebaseService.findTeamByJoinCode(code);
-    if (tid == null) throw Exception('קוד לא נמצא');
+    // Each step is named in the error so a failure (e.g. permission-denied)
+    // says where it happened.
+    Future<T> step<T>(String name, Future<T> Function() run) async {
+      try {
+        return await run();
+      } catch (e) {
+        throw Exception('$name: $e');
+      }
+    }
 
-    final role = await FirebaseService.getRoleByCode(code);
+    final tid = await step('חיפוש הקוד', () => FirebaseService.findTeamByJoinCode(code));
+    if (tid == null) throw Exception('קוד לא נמצא');
+    final codeRole = await step('בדיקת סוג הקוד', () => FirebaseService.getRoleByCode(code));
+
+    // Register FIRST: firestore.rules only let registered members read the
+    // team's docs, so loading before registering failed with permission-denied
+    // for anyone joining for the first time. If this user is already
+    // registered to this team, keep that role (self-registration can't change
+    // a recorded role).
+    final registeredRole = await step('בדיקת רישום קיים', () => FirebaseService.getOwnRegistryRole(email, tid));
+    final role = registeredRole ?? codeRole;
+    if (registeredRole == null) {
+      await step('רישום לקבוצה', () => FirebaseService.registerUserToTeam(email, tid, role));
+    }
+
     _resetToDefaults();
     teamId = tid;
-
-    await loadTeamData();
+    await step('טעינת נתוני הקבוצה', () => loadTeamData());
 
     final existing = members.firstWhere((m) => m.email == email, orElse: () => Member(id: '', name: '', email: '', role: '', color: AppColors.avatarColors[0]));
     if (existing.id.isNotEmpty) {
       currentUser = existing;
       isAdmin = existing.isAdmin;
-      await FirebaseService.registerUserToTeam(email, tid, existing.role);
     } else {
       final newMember = Member(
         id: FirebaseService.currentUser!.uid,
@@ -627,8 +646,7 @@ class AppProvider extends ChangeNotifier {
       members.add(newMember);
       currentUser = newMember;
       isAdmin = newMember.isAdmin;
-      await _saveData();
-      await FirebaseService.registerUserToTeam(email, tid, role);
+      await step('שמירת החבר החדש', () => _saveData());
     }
     status = AppStatus.ready;
     notifyListeners();

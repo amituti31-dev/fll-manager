@@ -99,6 +99,15 @@ class FirebaseService {
     await _db.collection(_registry).doc(key).set({'teamId': teamId, 'email': email, 'role': role});
   }
 
+  /// The role recorded in this user's own registry entry, if it points at [teamId].
+  static Future<String?> getOwnRegistryRole(String email, String teamId) async {
+    final key = email.replaceAll(RegExp(r'[.@]'), '_');
+    final snap = await _db.collection(_registry).doc(key).get();
+    final data = snap.data();
+    if (data == null || data['teamId'] != teamId) return null;
+    return data['role'] as String?;
+  }
+
   static Future<String?> findTeamByJoinCode(String code) async {
     final mentorSnap = await _db.collection(_registry).doc('mentor_$code').get();
     if (mentorSnap.exists) {
