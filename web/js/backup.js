@@ -127,7 +127,7 @@ async function confirmRestore() {
         // Keep this team's identity and current join codes so nobody gets locked out.
         Object.assign(doc, {
           teamId: window.FB_PROJECT, joinCode: state.joinCode || null,
-          mentorCode: state.mentorCode || null, studentCode: state.studentCode || null,
+          mentorCode: state.mentorCode || null, studentCode: state.studentCode || null, juniorCode: state.juniorCode || null,
         });
       }
       await team.doc(id).set(doc);

@@ -9,14 +9,16 @@ async function regenerateCodes(silent = false) {
 
   const mentorCode  = generateJoinCode();
   const studentCode = generateJoinCode();
+  const juniorCode  = generateJoinCode();
 
   state.mentorCode  = mentorCode;
   state.studentCode = studentCode;
+  state.juniorCode  = juniorCode;
 
   try {
     // עדכן settings
     await window.db.collection(window.FB_PROJECT).doc('settings').set(
-      { mentorCode, studentCode }, { merge: true }
+      { mentorCode, studentCode, juniorCode }, { merge: true }
     );
     // שמור ברגיסטרי
     await Promise.all([
@@ -26,6 +28,7 @@ async function regenerateCodes(silent = false) {
       window.db.collection(window.FB_REGISTRY).doc('student_' + studentCode).set(
         { teamId, joinCode: studentCode, role: 'student', teamName, createdAt: new Date().toISOString() }
       ),
+      _registerJuniorCode(teamId, juniorCode, teamName),
     ]);
   } catch(e) { console.warn('regenerateCodes error:', e); }
 
@@ -34,13 +37,35 @@ async function regenerateCodes(silent = false) {
   const sEl = document.getElementById('settings-student-code');
   if (mEl) mEl.textContent = mentorCode;
   if (sEl) sEl.textContent = studentCode;
+  const jEl = document.getElementById('settings-junior-code');
+  if (jEl) jEl.textContent = juniorCode;
 
   if (!silent) notify('✅ קודים חדשים נוצרו!', 'success');
 }
 
+// Junior-mentor join code: registry doc junior_<code>. Joining with it makes the
+// member type 'junior'; in the registry/rules they're a 'student'.
+function _registerJuniorCode(teamId, code, teamName) {
+  return window.db.collection(window.FB_REGISTRY).doc('junior_' + code).set(
+    { teamId, joinCode: code, role: 'student', kind: 'junior', teamName, createdAt: new Date().toISOString() });
+}
+
+// Teams created before junior codes existed get one (keeps the other codes).
+async function ensureJuniorCode() {
+  if (state.juniorCode || !state.isAdmin || !window.db || !window.FB_PROJECT) return;
+  const juniorCode = generateJoinCode();
+  try {
+    await _registerJuniorCode(window.FB_PROJECT, juniorCode, state.teamName);
+    await window.db.collection(window.FB_PROJECT).doc('settings').set({ juniorCode }, { merge: true });
+    state.juniorCode = juniorCode;
+    const jEl = document.getElementById('settings-junior-code');
+    if (jEl) jEl.textContent = juniorCode;
+  } catch (e) { console.warn('ensureJuniorCode:', e); }
+}
+
 function copySettingsCode(type) {
-  const code  = type === 'mentor' ? (state.mentorCode || '----') : (state.studentCode || '----');
-  const label = type === 'mentor' ? '👑 קוד מנטורים' : '🎓 קוד תלמידים';
+  const code  = type === 'mentor' ? (state.mentorCode || '----') : type === 'junior' ? (state.juniorCode || '----') : (state.studentCode || '----');
+  const label = type === 'mentor' ? '👑 קוד מנטורים' : type === 'junior' ? '🌱 קוד מנטורים צעירים' : '🎓 קוד תלמידים';
   const text  = `${label} לקבוצה ${state.teamName}: ${code}`;
   navigator.clipboard?.writeText(text).then(() => notify('📋 קוד הועתק!', 'success')).catch(() => notify('קוד: ' + code, 'success'));
 }

@@ -110,6 +110,9 @@ function navigate(screen) {
       const sEl = document.getElementById('settings-student-code');
       if (mEl) mEl.textContent = state.mentorCode;
       if (sEl) sEl.textContent = state.studentCode;
+      const jEl = document.getElementById('settings-junior-code');
+      if (jEl) jEl.textContent = state.juniorCode || '----';
+      if (!state.juniorCode) ensureJuniorCode();
     }
     // הצג team ID
   }

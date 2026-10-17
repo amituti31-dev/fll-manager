@@ -530,6 +530,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             gradient: LinearGradient(colors: [AppColors.accent, AppColors.accent2]),
             onCopy: () => _copyCode(prov.studentCode ?? '', 'קוד תלמידים'),
           ),
+          SizedBox(height: 10),
+          Builder(builder: (_) {
+            if (prov.juniorCode == null) WidgetsBinding.instance.addPostFrameCallback((_) => prov.ensureJuniorCode());
+            return _CodeBox(
+              label: '🌱 קוד מנטורים צעירים',
+              code: prov.juniorCode ?? '----',
+              gradient: const LinearGradient(colors: [Color(0xFF00A882), Color(0xFF7C4FC4)]),
+              onCopy: () => _copyCode(prov.juniorCode ?? '', 'קוד מנטורים צעירים'),
+            );
+          }),
           SizedBox(height: 12),
           Text(
             '💡 שתף את הקודים עם חברי הקבוצה. מנטורים ← קוד מנטורים 👑',

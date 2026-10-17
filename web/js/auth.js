@@ -99,14 +99,16 @@ async function joinWithCode() {
 
     // שלב 2: עכשיו יש auth — חפש קוד ב-Firestore
     errEl.textContent = '⏳ מחפש קבוצה...';
-    const [mentorSnap, studentSnap] = await Promise.all([
+    const [mentorSnap, studentSnap, juniorSnap] = await Promise.all([
       window.db.collection(window.FB_REGISTRY).doc('mentor_' + code).get(),
       window.db.collection(window.FB_REGISTRY).doc('student_' + code).get(),
+      window.db.collection(window.FB_REGISTRY).doc('junior_' + code).get(),
     ]);
 
     let teamId = null, role = 'student';
     if (mentorSnap.exists)       { teamId = mentorSnap.data().teamId; role = 'admin'; }
     else if (studentSnap.exists) { teamId = studentSnap.data().teamId; role = 'student'; }
+    else if (juniorSnap.exists)  { teamId = juniorSnap.data().teamId; role = 'junior'; }
     else {
       await window.auth.signOut();
       window._joiningInProgress = false;
@@ -118,8 +120,8 @@ async function joinWithCode() {
     // רק לחבר רשום. אם כבר רשום לקבוצה הזו, שומרים את התפקיד הקיים.
     errEl.textContent = '⏳ נרשם לקבוצה...';
     const registeredRole = await getOwnRegistryRole(fbUser.email, teamId);
-    if (registeredRole) role = registeredRole;
-    else await registerUserToTeam(fbUser.email, teamId, role);
+    if (registeredRole) role = registeredRole === 'admin' ? 'admin' : (role === 'admin' ? 'student' : role);
+    else await registerUserToTeam(fbUser.email, teamId, role === 'admin' ? 'admin' : 'student');
 
     errEl.textContent = '⏳ טוען נתונים...';
     window.FB_PROJECT = teamId;
@@ -227,9 +229,9 @@ function generateJoinCode() {
 }
 
 function copyCode(type) {
-  const id = type === 'mentor' ? 'display-mentor-code' : 'display-student-code';
+  const id = type === 'mentor' ? 'display-mentor-code' : type === 'junior' ? 'display-junior-code' : 'display-student-code';
   const code = document.getElementById(id)?.textContent || '';
-  const label = type === 'mentor' ? '👑 קוד מנטורים' : '🎓 קוד תלמידים';
+  const label = type === 'mentor' ? '👑 קוד מנטורים' : type === 'junior' ? '🌱 קוד מנטורים צעירים' : '🎓 קוד תלמידים';
   navigator.clipboard?.writeText(code).then(() => notify(`📋 ${label} הועתק: ${code}`, 'success'))
     .catch(() => notify(`קוד: ${code}`, 'success'));
 }
@@ -288,8 +290,10 @@ async function completeSetup() {
   // יצור קוד נפרד למנטורים ולתלמידים
   const mentorCode  = generateJoinCode();
   const studentCode = generateJoinCode();
+  const juniorCode  = generateJoinCode();
   state.mentorCode  = mentorCode;
   state.studentCode = studentCode;
+  state.juniorCode  = juniorCode;
 
   // שמור שני קודים ברגיסטרי
   if (window.db) {
@@ -297,6 +301,8 @@ async function completeSetup() {
       await Promise.all([
         window.db.collection(window.FB_REGISTRY).doc('mentor_' + mentorCode).set({ teamId, joinCode: mentorCode, role: 'admin', teamName, createdAt: new Date().toISOString() }),
         window.db.collection(window.FB_REGISTRY).doc('student_' + studentCode).set({ teamId, joinCode: studentCode, role: 'student', teamName, createdAt: new Date().toISOString() }),
+        _registerJuniorCode(teamId, juniorCode, teamName),
+        window.db.collection(teamId).doc('settings').set({ juniorCode }, { merge: true }),
       ]);
     } catch(e) { console.warn('Join code registry failed:', e); }
   }
@@ -307,6 +313,7 @@ async function completeSetup() {
   // הצג את שני הקודים
   document.getElementById('display-mentor-code').textContent  = mentorCode;
   document.getElementById('display-student-code').textContent = studentCode;
+  document.getElementById('display-junior-code').textContent = juniorCode;
   showSetupStep('code');
 }
 
@@ -335,12 +342,14 @@ async function joinTeam() {
     // חפש teamId לפי קוד ב-registry (mentor_ / student_)
     let teamId = null, joinRole = 'student';
     if (window.db) {
-      const [mentorSnap, studentSnap] = await Promise.all([
+      const [mentorSnap, studentSnap, juniorSnap] = await Promise.all([
         window.db.collection(window.FB_REGISTRY).doc('mentor_' + code).get(),
         window.db.collection(window.FB_REGISTRY).doc('student_' + code).get(),
+        window.db.collection(window.FB_REGISTRY).doc('junior_' + code).get(),
       ]);
       if (mentorSnap.exists)       { teamId = mentorSnap.data().teamId;  joinRole = 'admin'; }
       else if (studentSnap.exists) { teamId = studentSnap.data().teamId; joinRole = 'student'; }
+      else if (juniorSnap.exists)  { teamId = juniorSnap.data().teamId;  joinRole = 'junior'; }
     }
 
     if (!teamId) {
@@ -353,8 +362,8 @@ async function joinTeam() {
     // אין עדיין ערך משלה לאותו שדה
     // רישום לפני טעינה (ראו joinWithCode) — שומרים תפקיד קיים לאותה קבוצה
     const registeredRole = await getOwnRegistryRole(fbUser.email, teamId);
-    if (registeredRole) joinRole = registeredRole;
-    else await registerUserToTeam(fbUser.email, teamId, joinRole);
+    if (registeredRole) joinRole = registeredRole === 'admin' ? 'admin' : (joinRole === 'admin' ? 'student' : joinRole);
+    else await registerUserToTeam(fbUser.email, teamId, joinRole === 'admin' ? 'admin' : 'student');
 
     window.FB_PROJECT = teamId;
     state = defaultState();

@@ -19,6 +19,7 @@ class AppProvider extends ChangeNotifier {
   String currentSeason = officialSeasonName;
   String? mentorCode;
   String? studentCode;
+  String? juniorCode; // מנטור צעיר join code
 
   Member? currentUser;
   bool isAdmin = false;
@@ -106,6 +107,7 @@ class AppProvider extends ChangeNotifier {
     currentSeason = officialSeasonName;
     mentorCode = null;
     studentCode = null;
+    juniorCode = null;
     members = [];
     logs = [];
     archives = [];
@@ -211,6 +213,7 @@ class AppProvider extends ChangeNotifier {
       currentSeason = settings['currentSeason'] as String? ?? officialSeasonName;
       mentorCode = settings['mentorCode'] as String?;
       studentCode = settings['studentCode'] as String?;
+      juniorCode = settings['juniorCode'] as String?;
       await _loadThemePref();
       competitionDate = settings['competitionDate'] as String?;
       judgingPdfName = settings['judgingPdfName'] as String?;
@@ -425,6 +428,7 @@ class AppProvider extends ChangeNotifier {
       'teamId': teamId,
       'mentorCode': mentorCode,
       'studentCode': studentCode,
+      'juniorCode': juniorCode,
       'competitionDate': competitionDate,
       'judgingPdfName':  judgingPdfName,
     });
@@ -747,6 +751,7 @@ class AppProvider extends ChangeNotifier {
       'rubrics': {'values': [], 'robot': [], 'innovation': []},
     });
     await FirebaseService.saveJoinCodes(teamId: tid, teamName: tName, mentorCode: mc, studentCode: sc);
+    await ensureJuniorCode();
 
     status = AppStatus.ready;
     _startLiveSync();
@@ -774,9 +779,13 @@ class AppProvider extends ChangeNotifier {
     // registered to this team, keep that role (self-registration can't change
     // a recorded role).
     final registeredRole = await step('בדיקת רישום קיים', () => FirebaseService.getOwnRegistryRole(email, tid));
-    final role = registeredRole ?? codeRole;
+    // Member type from the code (admin | student | junior); the registry only
+    // knows admin|student, so a junior mentor is registered as a student.
+    final role = registeredRole == null
+        ? codeRole
+        : (registeredRole == 'admin' ? 'admin' : (codeRole == 'admin' ? 'student' : codeRole));
     if (registeredRole == null) {
-      await step('רישום לקבוצה', () => FirebaseService.registerUserToTeam(email, tid, role));
+      await step('רישום לקבוצה', () => FirebaseService.registerUserToTeam(email, tid, role == 'admin' ? 'admin' : 'student'));
     }
 
     _resetToDefaults();
@@ -1270,6 +1279,20 @@ class AppProvider extends ChangeNotifier {
     await FirebaseService.saveJoinCodes(
       teamId: teamId!, teamName: teamName, mentorCode: mc, studentCode: sc,
     );
+    juniorCode = null;
+    await ensureJuniorCode();
+  }
+
+  /// Teams created before junior codes existed get one (keeps the other codes).
+  Future<void> ensureJuniorCode() async {
+    if (juniorCode != null || teamId == null || !isAdmin) return;
+    final code = FirebaseService.generateJoinCode();
+    try {
+      await FirebaseService.saveJuniorCode(teamId: teamId!, teamName: teamName, code: code);
+      juniorCode = code;
+      notifyListeners();
+      await _saveSettings();
+    } catch (_) {}
   }
 
   Future<void> leaveTeam() async {

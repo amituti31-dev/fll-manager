@@ -136,14 +136,29 @@ class FirebaseService {
     if (studentSnap.exists) {
       return studentSnap.data()?['teamId'] as String?;
     }
+    final juniorSnap = await _db.collection(_registry).doc('junior_$code').get();
+    if (juniorSnap.exists) {
+      return juniorSnap.data()?['teamId'] as String?;
+    }
     return null;
   }
 
+  /// Member type for a join code: 'admin' | 'junior' | 'student'.
   static Future<String> getRoleByCode(String code) async {
     final mentorSnap = await _db.collection(_registry).doc('mentor_$code').get();
     if (mentorSnap.exists) return 'admin';
+    final juniorSnap = await _db.collection(_registry).doc('junior_$code').get();
+    if (juniorSnap.exists) return 'junior';
     return 'student';
   }
+
+  /// Junior-mentor join code: registry doc junior_<code> (role 'student' there —
+  /// the registry/rules only know admin|student).
+  static Future<void> saveJuniorCode({required String teamId, required String teamName, required String code}) =>
+      _db.collection(_registry).doc('junior_$code').set({
+        'teamId': teamId, 'joinCode': code, 'role': 'student', 'kind': 'junior', 'teamName': teamName,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
 
   static Future<void> saveJoinCodes({
     required String teamId,

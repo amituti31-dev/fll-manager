@@ -69,7 +69,7 @@ service cloud.firestore {
         && after.size() == before.size() + 1
         && after[0:before.size()] == before
         && after[before.size()].email == request.auth.token.email
-        && after[before.size()].role == 'student';
+        && after[before.size()].role in ['student', 'junior'];
     }
 
     // Strategy boards: any member may save changes to EXISTING boards (drawing),
