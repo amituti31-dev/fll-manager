@@ -88,6 +88,29 @@ class DashboardScreen extends StatelessWidget {
       ),
       SizedBox(height: 16),
 
+      // ── Meetings waiting for a summary ─────────────────
+      if (prov.meetingsAwaitingSummary.isNotEmpty) ...[
+        _SectionCard(
+          icon: '✍️',
+          title: 'מפגשים שמחכים לסיכום',
+          child: Column(children: [
+            for (final m in prov.meetingsAwaitingSummary)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(children: [
+                  Expanded(child: Text('📋 ${m.displayTitle} · ${m.date.split('-').reversed.join('/')}',
+                      style: TextStyle(fontSize: 13, color: AppColors.textPrimary))),
+                  TextButton(
+                    onPressed: () => CalendarScreen.showMeetingPlanDialog(context, plan: m),
+                    child: Text('✍️ כתוב סיכום', style: TextStyle(fontSize: 12)),
+                  ),
+                ]),
+              ),
+          ]),
+        ),
+        SizedBox(height: 12),
+      ],
+
       // ── This month's calendar (always the current month) ──
       Container(
         padding: const EdgeInsets.all(14),

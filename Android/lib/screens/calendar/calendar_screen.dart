@@ -158,35 +158,7 @@ class CalendarScreen extends StatelessWidget {
       if (prov.meetingPlans.isEmpty)
         _Empty('אין מפגשים עדיין. לחצו על יום בלוח כדי להוסיף תכנית מפגש.')
       else
-        ...([...prov.meetingPlans]..sort((a, b) => b.date.compareTo(a.date))).map((m) => GestureDetector(
-              onTap: () => showMeetingPlanDialog(context, plan: m),
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                    Text('📋 ${m.displayTitle}',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
-                    _DateChip(icon: '📅', label: _formatDate(m.date), color: AppColors.accent),
-                    if (m.summary.isNotEmpty)
-                      Text('✅ סוכם', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.accent2)),
-                    if (prov.stickies.any((s) => s.date == m.date))
-                      Text('📌 ${prov.stickies.where((s) => s.date == m.date).length} פתקים',
-                          style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-                  ]),
-                  if (m.plan.isNotEmpty) ...[
-                    SizedBox(height: 4),
-                    Text(m.plan, maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                  ],
-                ]),
-              ),
-            )),
+        _MeetingColumns(prov: prov, formatDate: _formatDate),
       SizedBox(height: 24),
 
       // ── Milestones ───────────────────────────────────
@@ -558,5 +530,77 @@ class _MeetingPlanDialogState extends State<_MeetingPlanDialog> {
         ),
       ],
     );
+  }
+}
+
+/// Two-sided table: right — not summarized yet (oldest first; past ones
+/// flagged "חסר סיכום" with a write button), left — summarized (newest first).
+class _MeetingColumns extends StatelessWidget {
+  final AppProvider prov;
+  final String Function(String) formatDate;
+  const _MeetingColumns({required this.prov, required this.formatDate});
+
+  @override
+  Widget build(BuildContext context) {
+    final today = CalendarScreen.isoOf(DateTime.now());
+    final pending = prov.meetingPlans.where((m) => m.summary.trim().isEmpty).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    final done = prov.meetingPlans.where((m) => m.summary.trim().isNotEmpty).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+
+    Widget column(String title, Color color, List<MeetingPlan> items, String empty) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$title (${items.length})', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: color)),
+        SizedBox(height: 8),
+        if (items.isEmpty)
+          Text(empty, style: TextStyle(fontSize: 12, color: AppColors.textTertiary))
+        else
+          ...items.map((m) {
+            final isPending = m.summary.trim().isEmpty;
+            final overdue = isPending && m.date.compareTo(today) <= 0;
+            final notes = prov.stickies.where((s) => s.date == m.date).length;
+            return GestureDetector(
+              onTap: () => CalendarScreen.showMeetingPlanDialog(context, plan: m),
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: overdue ? AppColors.red.withAlpha(130) : AppColors.border),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('📋 ${m.displayTitle}', maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary)),
+                  SizedBox(height: 4),
+                  Wrap(spacing: 6, runSpacing: 2, children: [
+                    Text(formatDate(m.date), style: TextStyle(fontSize: 11, color: AppColors.accent, fontWeight: FontWeight.w600)),
+                    if (overdue) Text('חסר סיכום', style: TextStyle(fontSize: 11, color: AppColors.red, fontWeight: FontWeight.w700))
+                    else if (isPending) Text('מתוכנן', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                    if (notes > 0) Text('📌 $notes', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                  ]),
+                  if ((isPending ? m.plan : m.summary).isNotEmpty) ...[
+                    SizedBox(height: 4),
+                    Text(isPending ? m.plan : m.summary, maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: isPending ? AppColors.textTertiary : AppColors.textSecondary)),
+                  ],
+                  if (overdue) ...[
+                    SizedBox(height: 6),
+                    Text('✍️ כתוב סיכום', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                  ],
+                ]),
+              ),
+            );
+          }),
+      ],
+    );
+
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: column('✍️ לא סוכמו', AppColors.accent3, pending, 'כל המפגשים סוכמו 🎉')),
+      SizedBox(width: 10),
+      Expanded(child: column('✅ סוכמו', AppColors.accent2, done, 'עוד אין מפגשים מסוכמים')),
+    ]);
   }
 }

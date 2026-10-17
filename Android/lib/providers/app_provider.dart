@@ -849,6 +849,16 @@ class AppProvider extends ChangeNotifier {
 
   // ─── Meeting plans ────────────────────────────────
 
+  static String _todayIso() {
+    final d = DateTime.now();
+    return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Meetings whose date has passed (or is today) with no summary yet, oldest first.
+  List<MeetingPlan> get meetingsAwaitingSummary =>
+      meetingPlans.where((m) => m.date.compareTo(_todayIso()) <= 0 && m.summary.trim().isEmpty).toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
+
   MeetingPlan? meetingForDay(String iso) => meetingPlans.where((m) => m.date == iso).firstOrNull;
 
   /// Adds or replaces (by id) a meeting plan. Returns false if another meeting

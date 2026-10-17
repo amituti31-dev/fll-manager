@@ -45,6 +45,7 @@ function renderMonthGrid() {
 
 // Dashboard: always the current month (October shows October, December shows December…).
 function renderDashboardCalendar() {
+  try { renderMeetingSummaryReminder(); } catch(e) {}
   const now = new Date();
   _renderMonthInto('dash-cal', new Date(now.getFullYear(), now.getMonth(), 1));
 }
@@ -236,6 +237,10 @@ function showMeetingPlanModal(presetDate, id) {
   document.getElementById('meeting-plan-delete').style.display = existing ? '' : 'none';
   closeModal('modal-cal-day');
   openModal('modal-meeting-plan');
+  // Past meeting with no summary yet → jump to "מה קרה בפועל".
+  if (existing && !String(existing.summary || '').trim() && existing.date <= _localIsoToday()) {
+    setTimeout(() => document.getElementById('meeting-plan-summary').focus(), 50);
+  }
 }
 
 function saveMeetingPlan() {
@@ -263,22 +268,61 @@ function deleteMeetingPlan() {
 
 function _meetingTitle(m) { return m.title || 'מפגש'; }
 
-// The "מפגשים" card on the calendar screen.
+// The "מפגשים" card on the calendar screen: a two-sided table —
+// right: not summarized yet (oldest first; past ones flagged "חסר סיכום"),
+// left: summarized (newest first).
+function _meetingRowHtml(m, today) {
+  const notes = _stickiesForDay(m.date).length;
+  const pending = !String(m.summary || '').trim();
+  const overdue = pending && m.date <= today;
+  return `
+    <div style="padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;background:var(--surface2)${overdue ? ';border-color:rgba(255,77,109,0.5)' : ''}"
+         data-action="show-meeting-plan-modal" data-id="${m.id}">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-weight:700;font-size:13px">📋 ${sanitize(_meetingTitle(m))}</span>
+        <span style="background:rgba(61,127,255,0.15);color:var(--accent);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600">${formatDate(m.date)}</span>
+        ${overdue ? `<span style="color:var(--red);font-size:11px;font-weight:700">חסר סיכום</span>` : pending ? `<span style="color:var(--text3);font-size:11px">מתוכנן</span>` : ''}
+        ${notes ? `<span style="color:var(--text3);font-size:11px">📌 ${notes}</span>` : ''}
+      </div>
+      ${!pending ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;white-space:pre-wrap;max-height:3em;overflow:hidden">${sanitize(m.summary)}</div>`
+        : m.plan ? `<div style="font-size:12px;color:var(--text3);margin-top:4px;white-space:pre-wrap;max-height:3em;overflow:hidden">${sanitize(m.plan)}</div>` : ''}
+      ${overdue ? `<button class="btn btn-ghost" style="margin-top:6px;font-size:12px;padding:4px 10px" data-action="show-meeting-plan-modal" data-id="${m.id}">✍️ כתוב סיכום</button>` : ''}
+    </div>`;
+}
+
 function renderMeetingPlans() {
   const el = document.getElementById('meeting-plans-list');
-  if (!el) return;
-  const plans = [...(state.meetingPlans || [])].sort((a, b) => b.date.localeCompare(a.date));
-  el.innerHTML = plans.length ? plans.map(m => {
-    const notes = _stickiesForDay(m.date).length;
-    return `
-      <div style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" data-action="show-meeting-plan-modal" data-id="${m.id}">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:700;font-size:14px">📋 ${sanitize(_meetingTitle(m))}</span>
-          <span style="background:rgba(61,127,255,0.15);color:var(--accent);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600">${formatDate(m.date)}</span>
-          ${m.summary ? `<span style="color:var(--accent2);font-size:11px;font-weight:700">✅ סוכם</span>` : ''}
-          ${notes ? `<span style="color:var(--text3);font-size:11px">📌 ${notes} פתקים</span>` : ''}
-        </div>
-        ${m.plan ? `<div style="font-size:12px;color:var(--text2);margin-top:4px;white-space:pre-wrap;max-height:3.2em;overflow:hidden">${sanitize(m.plan)}</div>` : ''}
+  if (el) {
+    const today = _localIsoToday();
+    const all = state.meetingPlans || [];
+    const pending = all.filter(m => !String(m.summary || '').trim()).sort((a, b) => a.date.localeCompare(b.date));
+    const done = all.filter(m => String(m.summary || '').trim()).sort((a, b) => b.date.localeCompare(a.date));
+    const col = (title, color, items, empty) => `
+      <div style="min-width:0">
+        <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px">${title} (${items.length})</div>
+        ${items.length ? items.map(m => _meetingRowHtml(m, today)).join('') : `<div style="color:var(--text3);font-size:12px;padding:8px 0">${empty}</div>`}
       </div>`;
-  }).join('') : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין מפגשים עדיין. לחצו על יום בלוח כדי להוסיף תכנית מפגש.</div>`;
+    el.innerHTML = all.length ? `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+        ${col('✍️ לא סוכמו', 'var(--accent3)', pending, 'כל המפגשים סוכמו 🎉')}
+        ${col('✅ סוכמו', 'var(--accent2)', done, 'עוד אין מפגשים מסוכמים')}
+      </div>` : `<div style="color:var(--text3);font-size:13px;padding:12px 0">אין מפגשים עדיין. לחצו על יום בלוח כדי להוסיף תכנית מפגש.</div>`;
+  }
+  renderMeetingSummaryReminder();
+}
+
+// Dashboard reminder: meetings whose date has passed (or is today) with no summary yet.
+function renderMeetingSummaryReminder() {
+  const card = document.getElementById('dashboard-meeting-reminder');
+  if (!card) return;
+  const today = _localIsoToday();
+  const overdue = (state.meetingPlans || [])
+    .filter(m => m.date <= today && !String(m.summary || '').trim())
+    .sort((a, b) => a.date.localeCompare(b.date));
+  card.style.display = overdue.length ? '' : 'none';
+  document.getElementById('dashboard-meeting-reminder-list').innerHTML = overdue.map(m => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:13px">📋 ${sanitize(_meetingTitle(m))} <span style="color:var(--text3);font-size:12px">· ${formatDate(m.date)}</span></span>
+      <button class="btn btn-ghost" style="font-size:12px;padding:4px 10px" data-action="show-meeting-plan-modal" data-id="${m.id}">✍️ כתוב סיכום</button>
+    </div>`).join('');
 }
