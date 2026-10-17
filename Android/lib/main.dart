@@ -106,7 +106,7 @@ class _RootRouter extends StatefulWidget {
 }
 
 class _RootRouterState extends State<_RootRouter> {
-  static const _currentVersion = '1.0.47';
+  static const _currentVersion = '1.0.48';
   bool _updateChecked = false;
 
   // Check for an update as soon as the app opens — on the login screen too,
