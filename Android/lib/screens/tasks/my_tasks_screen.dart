@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_provider.dart';
 import '../../models/models.dart';
 import '../../theme/app_theme.dart';
+import '../team/team_screen.dart';
 
 class MyTasksScreen extends StatefulWidget {
   const MyTasksScreen({super.key});
@@ -52,6 +53,15 @@ class _MyTasksScreenState extends State<MyTasksScreen>
           if (overdueN > 0) ...[
             const SizedBox(width: 8),
             _Chip(count: overdueN, label: '⚠️ פגה תוקף', color: AppColors.red),
+          ],
+          // Only mentors assign tasks (students tick their own as done).
+          if (prov.isAdmin) ...[
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => TeamScreen.showAddTaskDialog(context),
+              icon: Icon(Icons.add_task, size: 18, color: AppColors.accent),
+              label: Text('משימה חדשה', style: TextStyle(color: AppColors.accent, fontSize: 13)),
+            ),
           ],
         ]),
       ),

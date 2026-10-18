@@ -93,6 +93,15 @@ class _FllManagerAppState extends State<FllManagerApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('he', 'IL'), Locale('en', 'US')],
+      // Respect the phone's font-size setting, but within limits: very large
+      // system fonts squeezed narrow rows until words broke one letter per line.
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(textScaler: mq.textScaler.clamp(minScaleFactor: 0.85, maxScaleFactor: 1.15)),
+          child: child!,
+        );
+      },
       home: const _RootRouter(),
     );
   }

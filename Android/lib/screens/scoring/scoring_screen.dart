@@ -325,25 +325,35 @@ class _ScoringScreenState extends State<ScoringScreen>
               child: Row(children: [
                 Text(done ? '✅' : '⬜', style: TextStyle(fontSize: 20)),
                 SizedBox(width: 12),
-                Expanded(child: Text(m.name, style: TextStyle(
-                  fontSize: 14,
-                  color: done ? AppColors.accent2 : AppColors.textPrimary,
-                  decoration: done ? TextDecoration.lineThrough : null,
-                ))),
-                if (extra != null && extra.bonusPts > 0) ...[
-                  GestureDetector(
-                    onTap: () => context.read<AppProvider>().toggleMissionBonusDone(m.id),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Text(extra.bonusDone ? '✅' : '⬜', style: TextStyle(fontSize: 18)),
-                      SizedBox(width: 4),
-                      Text('🎁+${extra.bonusPts}', style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700,
-                        color: extra.bonusDone ? AppColors.gold : AppColors.textTertiary,
-                      )),
+                // The name gets the full width; bonus / precision-token controls go
+                // on a line below it (side by side they squeezed the name until
+                // it broke one letter per line on narrow phones).
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(m.name, style: TextStyle(
+                    fontSize: 14,
+                    color: done ? AppColors.accent2 : AppColors.textPrimary,
+                    decoration: done ? TextDecoration.lineThrough : null,
+                  )),
+                  if ((extra != null && extra.bonusPts > 0) || prov.isPrecisionTokens(m)) ...[
+                    SizedBox(height: 6),
+                    Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                      if (extra != null && extra.bonusPts > 0)
+                        GestureDetector(
+                          onTap: () => context.read<AppProvider>().toggleMissionBonusDone(m.id),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Text(extra.bonusDone ? '✅' : '⬜', style: TextStyle(fontSize: 16)),
+                            SizedBox(width: 4),
+                            Text('🎁 בונוס +${extra.bonusPts}', style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700,
+                              color: extra.bonusDone ? AppColors.gold : AppColors.textTertiary,
+                            )),
+                          ]),
+                        ),
+                      if (prov.isPrecisionTokens(m)) const PrecisionTokensChip(),
                     ]),
-                  ),
-                  SizedBox(width: 6),
-                ],
+                  ],
+                ])),
+                SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
@@ -353,10 +363,6 @@ class _ScoringScreenState extends State<ScoringScreen>
                   ),
                   child: Text(statusEmoji, style: TextStyle(fontSize: 12)),
                 ),
-                if (prov.isPrecisionTokens(m)) ...[
-                  SizedBox(width: 8),
-                  const PrecisionTokensChip(),
-                ],
                 SizedBox(width: 8),
                 Text('${prov.isPrecisionTokens(m) ? precisionTokenPoints[prov.precisionTokens] : m.pts}', style: TextStyle(
                   fontFamily: 'monospace', fontWeight: FontWeight.w700,
